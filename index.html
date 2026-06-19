@@ -373,6 +373,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <!-- HOJE -->
     <div id="page-hoje" class="page active">
       <div class="update-bar"><span class="live-dot" style="width:7px;height:7px;background:var(--verde-light);border-radius:50%;flex-shrink:0;animation:pulse 2s infinite"></span><span id="update-txt">Atualizando…</span></div>
+      <div id="hoje-install-banner"></div>
       <div id="hoje-notif-banner"></div>
       <div id="hoje-container"><div class="loading-spinner"><div class="spinner"></div><span>Carregando jogos…</span></div></div>
     </div>
@@ -524,7 +525,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '25';
+const APP_VERSION = '26';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -559,6 +560,73 @@ setInterval(checarAtualizacaoServidor, 20000);
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') checarAtualizacaoServidor();
 });
+
+// ═══════════════════════════════════════════
+// INSTALAR APP (PWA) — botão "Instalar" automático
+// ═══════════════════════════════════════════
+let promptInstalacao = null;
+const jaInstalado = window.matchMedia('(display-mode: standalone)').matches
+  || window.navigator.standalone === true; // iOS
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  promptInstalacao = e;
+  if (!jaInstalado && !localStorage.getItem('copa_install_dispensado')) {
+    mostrarBannerInstalar();
+  }
+});
+
+function mostrarBannerInstalar() {
+  const banner = document.getElementById('hoje-install-banner');
+  if (!banner) return;
+  const ehIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+  if (ehIOS) {
+    // iOS não tem prompt automático — mostra instruções manuais
+    banner.innerHTML = `
+      <div class="notif-banner" style="border-color:rgba(0,156,59,.4)">
+        <div class="notif-icon">📲</div>
+        <div class="notif-text">
+          <strong>Instalar como app</strong>
+          <span>Toque em <strong>Compartilhar</strong> ⬆️ e depois em <strong>"Adicionar à Tela de Início"</strong></span>
+        </div>
+        <button class="btn-notif" onclick="dispensarInstalar()" style="background:var(--card2);color:var(--muted)">Ok</button>
+      </div>`;
+  } else if (promptInstalacao) {
+    banner.innerHTML = `
+      <div class="notif-banner" style="border-color:rgba(0,156,59,.4)">
+        <div class="notif-icon">📲</div>
+        <div class="notif-text">
+          <strong>Instalar o app</strong>
+          <span>Acesso rápido direto da tela inicial, sem precisar abrir o navegador!</span>
+        </div>
+        <button class="btn-notif" onclick="instalarApp()">Instalar</button>
+      </div>`;
+  }
+}
+
+async function instalarApp() {
+  const banner = document.getElementById('hoje-install-banner');
+  if (!promptInstalacao) { if (banner) banner.innerHTML = ''; return; }
+  promptInstalacao.prompt();
+  const { outcome } = await promptInstalacao.userChoice;
+  if (outcome === 'accepted') {
+    showToast('🎉 App instalado com sucesso!');
+  }
+  promptInstalacao = null;
+  if (banner) banner.innerHTML = '';
+}
+
+function dispensarInstalar() {
+  localStorage.setItem('copa_install_dispensado', '1');
+  const banner = document.getElementById('hoje-install-banner');
+  if (banner) banner.innerHTML = '';
+}
+
+// Para iOS, como não existe beforeinstallprompt, mostra direto (se aplicável)
+if (!jaInstalado && /iPad|iPhone|iPod/.test(navigator.userAgent) && !localStorage.getItem('copa_install_dispensado')) {
+  setTimeout(mostrarBannerInstalar, 2000);
+}
 
 // ═══════════════════════════════════════════
 // FLAGS & NOMES
