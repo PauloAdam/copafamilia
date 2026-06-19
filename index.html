@@ -466,6 +466,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <!-- PERFIL -->
     <div id="page-perfil" class="page">
       <div class="section-title">👤 Meu Perfil</div>
+      <div id="botao-instalar-permanente"></div>
       <div id="perfil-container"></div>
     </div>
 
@@ -525,7 +526,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '26';
+const APP_VERSION = '27';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -623,9 +624,64 @@ function dispensarInstalar() {
   if (banner) banner.innerHTML = '';
 }
 
+// Card permanente no Perfil — sempre disponível, mesmo se o banner foi dispensado
+function renderBotaoInstalarPermanente() {
+  const c = document.getElementById('botao-instalar-permanente');
+  if (!c) return;
+  if (jaInstalado) {
+    c.innerHTML = `
+      <div class="card" style="text-align:center;border-color:rgba(0,156,59,.4)">
+        <div style="font-size:1.5rem;margin-bottom:.3rem">✅</div>
+        <div style="font-weight:700;color:var(--verde-light)">App já instalado!</div>
+      </div>`;
+    return;
+  }
+  const ehIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  if (ehIOS) {
+    c.innerHTML = `
+      <div class="card" style="text-align:center">
+        <div style="font-size:1.8rem;margin-bottom:.4rem">📲</div>
+        <div style="font-weight:700;margin-bottom:.3rem">Instalar como app</div>
+        <div style="font-size:.78rem;color:var(--muted)">Toque em <strong>Compartilhar</strong> ⬆️ e depois em <strong>"Adicionar à Tela de Início"</strong></div>
+      </div>`;
+  } else {
+    c.innerHTML = `
+      <div class="card" style="text-align:center">
+        <div style="font-size:1.8rem;margin-bottom:.4rem">📲</div>
+        <div style="font-weight:700;margin-bottom:.5rem">Instalar como app</div>
+        <button class="btn-primary" style="max-width:220px;margin:0 auto" onclick="instalarApp()">📲 Instalar agora</button>
+        <div style="font-size:.7rem;color:var(--muted);margin-top:.6rem">Se não funcionar, toque no menu ⋮ do Chrome → "Adicionar à tela inicial"</div>
+      </div>`;
+  }
+}
+
 // Para iOS, como não existe beforeinstallprompt, mostra direto (se aplicável)
 if (!jaInstalado && /iPad|iPhone|iPod/.test(navigator.userAgent) && !localStorage.getItem('copa_install_dispensado')) {
   setTimeout(mostrarBannerInstalar, 2000);
+}
+
+// FALLBACK: se depois de 4 segundos o Chrome Android não disparou o evento
+// automático (beforeinstallprompt), mostra instruções manuais via menu do Chrome.
+// Isso garante que sempre existe uma forma de instalar, mesmo se o Chrome
+// decidir não oferecer o prompt automático (acontece em alguns casos).
+const ehAndroidChrome = /Android/.test(navigator.userAgent) && /Chrome/.test(navigator.userAgent);
+if (!jaInstalado && ehAndroidChrome && !localStorage.getItem('copa_install_dispensado')) {
+  setTimeout(() => {
+    if (!promptInstalacao) {
+      const banner = document.getElementById('hoje-install-banner');
+      if (banner && !banner.innerHTML) {
+        banner.innerHTML = `
+          <div class="notif-banner" style="border-color:rgba(0,156,59,.4)">
+            <div class="notif-icon">📲</div>
+            <div class="notif-text">
+              <strong>Instalar como app</strong>
+              <span>Toque no menu <strong>⋮</strong> (3 pontinhos) do Chrome e depois em <strong>"Adicionar à tela inicial"</strong></span>
+            </div>
+            <button class="btn-notif" onclick="dispensarInstalar()" style="background:var(--card2);color:var(--muted)">Ok</button>
+          </div>`;
+      }
+    }
+  }, 4000);
 }
 
 // ═══════════════════════════════════════════
@@ -1798,6 +1854,7 @@ async function selecionarCampeao(time){
 // PERFIL / HISTÓRICO 👤
 // ═══════════════════════════════════════════
 function renderPerfil(){
+  renderBotaoInstalarPermanente();
   const c=document.getElementById('perfil-container');
   const uid=usuarioAtual?.id;
   const{total,exatos,resultados,erros}=calcPtsTotal(uid);
@@ -1921,34 +1978,61 @@ function showToast(msg){
 // PWA MANIFEST INLINE (sem precisar de arquivo externo)
 // ═══════════════════════════════════════════
 (function(){
+  // Gera um ícone 512x512 localmente via canvas (bandeira do Brasil estilizada)
+  // — evita depender de CDN externo, que pode bloquear a instalação no Chrome
+  function gerarIconeDataURL(tamanho) {
+    const canvas = document.createElement('canvas');
+    canvas.width = tamanho; canvas.height = tamanho;
+    const ctx = canvas.getContext('2d');
+    // fundo verde
+    ctx.fillStyle = '#009c3b';
+    ctx.fillRect(0, 0, tamanho, tamanho);
+    // losango amarelo
+    ctx.fillStyle = '#ffdf00';
+    ctx.beginPath();
+    ctx.moveTo(tamanho*0.5, tamanho*0.12);
+    ctx.lineTo(tamanho*0.92, tamanho*0.5);
+    ctx.lineTo(tamanho*0.5, tamanho*0.88);
+    ctx.lineTo(tamanho*0.08, tamanho*0.5);
+    ctx.closePath();
+    ctx.fill();
+    // círculo azul
+    ctx.fillStyle = '#002776';
+    ctx.beginPath();
+    ctx.arc(tamanho*0.5, tamanho*0.5, tamanho*0.22, 0, Math.PI*2);
+    ctx.fill();
+    // bola de futebol (texto emoji)
+    ctx.font = `${tamanho*0.22}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('⚽', tamanho*0.5, tamanho*0.5);
+    return canvas.toDataURL('image/png');
+  }
+
+  // URL estável (sem query string de cache-busting) para o manifest não mudar a cada load
+  const startUrlEstavel = window.location.origin + window.location.pathname;
+
   const manifest = {
     name: 'Copa 2026 – Palpites da Família',
     short_name: 'Copa 2026',
     description: 'Palpites e resultados da Copa do Mundo 2026',
-    start_url: window.location.href,
+    start_url: startUrlEstavel,
+    scope: startUrlEstavel,
     display: 'standalone',
     background_color: '#080f0a',
     theme_color: '#009c3b',
     orientation: 'portrait',
-    icons: [{
-      src: 'https://flagcdn.com/h80/br.png',
-      sizes: '80x80',
-      type: 'image/png',
-      purpose: 'any'
-    },{
-      src: 'https://flagcdn.com/h40/br.png',
-      sizes: '40x40',
-      type: 'image/png',
-      purpose: 'maskable'
-    }],
-    shortcuts: [
-      { name: 'Jogos de Hoje', url: window.location.href + '?page=hoje', description: 'Ver jogos de hoje' },
-      { name: 'Ranking', url: window.location.href + '?page=ranking', description: 'Ver ranking' }
-    ]
+    icons: [
+      { src: gerarIconeDataURL(192), sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: gerarIconeDataURL(192), sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+      { src: gerarIconeDataURL(512), sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: gerarIconeDataURL(512), sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+    ],
   };
   const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
-  document.getElementById('pwa-manifest').href = url;
+  const linkEl = document.getElementById('pwa-manifest');
+  if (linkEl) linkEl.href = url;
 })();
 
 // ═══════════════════════════════════════════
