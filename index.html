@@ -526,7 +526,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '27';
+const APP_VERSION = '28';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -1978,36 +1978,18 @@ function showToast(msg){
 // PWA MANIFEST INLINE (sem precisar de arquivo externo)
 // ═══════════════════════════════════════════
 (function(){
-  // Gera um ícone 512x512 localmente via canvas (bandeira do Brasil estilizada)
-  // — evita depender de CDN externo, que pode bloquear a instalação no Chrome
-  function gerarIconeDataURL(tamanho) {
-    const canvas = document.createElement('canvas');
-    canvas.width = tamanho; canvas.height = tamanho;
-    const ctx = canvas.getContext('2d');
-    // fundo verde
-    ctx.fillStyle = '#009c3b';
-    ctx.fillRect(0, 0, tamanho, tamanho);
-    // losango amarelo
-    ctx.fillStyle = '#ffdf00';
-    ctx.beginPath();
-    ctx.moveTo(tamanho*0.5, tamanho*0.12);
-    ctx.lineTo(tamanho*0.92, tamanho*0.5);
-    ctx.lineTo(tamanho*0.5, tamanho*0.88);
-    ctx.lineTo(tamanho*0.08, tamanho*0.5);
-    ctx.closePath();
-    ctx.fill();
-    // círculo azul
-    ctx.fillStyle = '#002776';
-    ctx.beginPath();
-    ctx.arc(tamanho*0.5, tamanho*0.5, tamanho*0.22, 0, Math.PI*2);
-    ctx.fill();
-    // bola de futebol (texto emoji)
-    ctx.font = `${tamanho*0.22}px Arial`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('⚽', tamanho*0.5, tamanho*0.5);
-    return canvas.toDataURL('image/png');
-  }
+  // IMPORTANTE: o Android precisa de ícones como URL HTTP real (não data:// URL).
+  // Ícones gerados via canvas/data-URL costumam falhar silenciosamente na hora
+  // de criar o atalho na tela inicial, mesmo o Chrome aceitando o manifest.
+  // Usamos a bandeira do Brasil em alta resolução, hospedada de verdade.
+  // IMPORTANTE: o Android precisa de ícones QUADRADOS como URL HTTP real.
+  // A bandeira do Brasil é retangular (4:3) — o Android pode rejeitar ou
+  // distorcer a criação do atalho com ícone não-quadrado. Usamos um SVG
+  // próprio, quadrado, hospedado como arquivo separado (icon.svg) no
+  // mesmo repositório do site.
+  const baseUrl = window.location.origin + window.location.pathname.replace(/[^/]+$/, '');
+  const ICONE_192 = baseUrl + 'icon.svg';
+  const ICONE_512 = baseUrl + 'icon.svg';
 
   // URL estável (sem query string de cache-busting) para o manifest não mudar a cada load
   const startUrlEstavel = window.location.origin + window.location.pathname;
@@ -2023,10 +2005,9 @@ function showToast(msg){
     theme_color: '#009c3b',
     orientation: 'portrait',
     icons: [
-      { src: gerarIconeDataURL(192), sizes: '192x192', type: 'image/png', purpose: 'any' },
-      { src: gerarIconeDataURL(192), sizes: '192x192', type: 'image/png', purpose: 'maskable' },
-      { src: gerarIconeDataURL(512), sizes: '512x512', type: 'image/png', purpose: 'any' },
-      { src: gerarIconeDataURL(512), sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      { src: ICONE_192, sizes: '192x192', type: 'image/svg+xml', purpose: 'any' },
+      { src: ICONE_512, sizes: '512x512', type: 'image/svg+xml', purpose: 'any' },
+      { src: ICONE_512, sizes: '512x512', type: 'image/svg+xml', purpose: 'maskable' },
     ],
   };
   const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
