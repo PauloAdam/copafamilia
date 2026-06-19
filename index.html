@@ -479,6 +479,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <div id="admin-jogos-container"></div>
     </div>
 
+    <!-- AUDITORIA -->
+    <div id="page-auditoria" class="page">
+      <div style="background:rgba(0,39,118,.15);border:1px solid rgba(0,39,118,.4);border-radius:var(--radius);padding:.75rem 1rem;margin-bottom:1rem">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;color:#9ab6f0;letter-spacing:1px">🔍 AUDITORIA</div>
+        <div style="font-size:.75rem;color:var(--muted)">Visão completa de atividade do app — acesso restrito.</div>
+      </div>
+      <div id="auditoria-container"></div>
+    </div>
+
   </div>
 
   <!-- BOTTOM NAV -->
@@ -500,6 +509,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <button onclick="irParaMenu('palpites')" style="width:100%;background:none;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'Inter',sans-serif;font-size:.9rem;font-weight:600;padding:.8rem 1rem;text-align:left;cursor:pointer;display:flex;align-items:center;gap:.6rem">🎯 Meus Palpites</button>
     <button onclick="irParaMenu('perfil')" style="width:100%;background:none;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'Inter',sans-serif;font-size:.9rem;font-weight:600;padding:.8rem 1rem;text-align:left;cursor:pointer;display:flex;align-items:center;gap:.6rem">👤 Meu Perfil</button>
     <button id="btn-admin-menu" onclick="irParaMenu('admin')" style="display:none;width:100%;background:none;border:none;border-bottom:1px solid var(--border);color:#ff8888;font-family:'Inter',sans-serif;font-size:.9rem;font-weight:600;padding:.8rem 1rem;text-align:left;cursor:pointer;display:none;align-items:center;gap:.6rem">⚙️ Painel Admin</button>
+    <button id="btn-auditoria-menu" onclick="irParaMenu('auditoria')" style="display:none;width:100%;background:none;border:none;border-bottom:1px solid var(--border);color:#9ab6f0;font-family:'Inter',sans-serif;font-size:.9rem;font-weight:600;padding:.8rem 1rem;text-align:left;cursor:pointer;display:none;align-items:center;gap:.6rem">🔍 Auditoria</button>
     <button onclick="fecharMenu()" style="width:100%;background:none;border:none;color:var(--muted);font-family:'Inter',sans-serif;font-size:.85rem;padding:.7rem 1rem;text-align:center;cursor:pointer">Fechar ✕</button>
   </div>
 </div>
@@ -526,7 +536,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '28';
+const APP_VERSION = '29';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -804,6 +814,7 @@ async function fazerLogin(){
     const u=rows[0];
     if(u.senha_hash!==hash){mostrarErroAuth('Senha incorreta.');return}
     usuarioAtual=u;localStorage.setItem('copa_user',JSON.stringify(u));iniciarApp();
+    registrarLogAuditoria('login','Entrou no app');
   }catch(e){mostrarErroAuth('Erro de conexão. Verifique sua internet.');console.error(e)}
   finally{btn.disabled=false;btn.textContent='⚽ ENTRAR'}
 }
@@ -823,6 +834,7 @@ async function fazerCadastro(){
     const hash=await hashSenha(senha);
     const res=await sbPost('usuarios',{nome,usuario,senha_hash:hash});
     usuarioAtual=res[0];localStorage.setItem('copa_user',JSON.stringify(usuarioAtual));iniciarApp();
+    registrarLogAuditoria('cadastro',`Novo usuário cadastrado: ${nome}`);
   }catch(e){mostrarErroAuth('Erro ao criar conta.');console.error(e)}
   finally{btn.disabled=false;btn.textContent='✅ CRIAR CONTA'}
 }
@@ -844,6 +856,7 @@ async function iniciarApp(){
   // Admin?
   if(isAdmin()){
     document.getElementById('btn-admin-menu').style.display='flex';
+    document.getElementById('btn-auditoria-menu').style.display='flex';
   }
   // Theme
   const t=localStorage.getItem('copa_theme')||'dark';
@@ -871,7 +884,7 @@ async function carregarTudo(){
   await Promise.allSettled([carregarJogos(),carregarDadosSupabase()]);
   ultimaAtualizacao=new Date();
   const el=document.getElementById('update-txt');
-  if(el)el.textContent=`Paulinho gostozinho atualizou às ${ultimaAtualizacao.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · com dados reais`;
+  if(el)el.textContent=`Atualizado às ${ultimaAtualizacao.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · dados reais`;
   // Salvar placares antes de atualizar (para detectar gols)
   todosJogos.forEach(j=>{ if(j.gols1!==null)placaresPrev[j.id]={g1:j.gols1,g2:j.gols2}; });
 }
@@ -1409,6 +1422,7 @@ function renderPagina(pag){
   else if(pag==='bolao')renderBolao();
   else if(pag==='perfil')renderPerfil();
   else if(pag==='admin')renderAdmin();
+  else if(pag==='auditoria')renderAuditoria();
 }
 
 // ═══════════════════════════════════════════
@@ -1952,6 +1966,155 @@ function adminSalvar(id){
   if(st)j.status=st;
   showToast(`✅ Jogo atualizado manualmente!`);
   renderAdmin();
+  registrarLogAuditoria('placar_editado', `${nomePT(j.time1)} ${g1}x${g2} ${nomePT(j.time2)}`);
+}
+
+// ═══════════════════════════════════════════
+// AUDITORIA 🔍 — restrita ao admin
+// ═══════════════════════════════════════════
+
+// Registra uma ação no log de auditoria (tabela 'auditoria_log' no Supabase)
+async function registrarLogAuditoria(tipo, detalhe){
+  if(!usuarioAtual)return;
+  try{
+    await sbPost('auditoria_log',{
+      usuario_id:usuarioAtual.id,
+      usuario_nome:usuarioAtual.nome,
+      tipo,
+      detalhe,
+    });
+  }catch(e){console.warn('Log de auditoria falhou (tabela pode não existir ainda):',e.message)}
+}
+
+async function renderAuditoria(){
+  const c=document.getElementById('auditoria-container');
+  if(!isAdmin()){
+    c.innerHTML=`<div class="empty-state"><span class="ei">🔒</span><p>Acesso restrito ao administrador.</p></div>`;
+    return;
+  }
+  c.innerHTML=`<div class="loading-spinner"><div class="spinner"></div><span>Carregando auditoria…</span></div>`;
+
+  // ── 1. ESTATÍSTICAS GERAIS ──
+  const totalUsuarios=todosUsuarios.length;
+  const totalPalpitesDados=Object.values(todosPalpites).reduce((acc,porJogo)=>acc+Object.keys(porJogo).length,0);
+  const totalJogosEncerrados=todosJogos.filter(j=>j.status==='encerrado').length;
+  const totalJogosFuturos=todosJogos.filter(j=>j.status==='futuro').length;
+  const totalChatMsgs=chatMsgs.length;
+  const totalBolao=Object.keys(bolaoAtual).length;
+  const mediaPalpitesPorUsuario=totalUsuarios?Math.round(totalPalpitesDados/totalUsuarios*10)/10:0;
+
+  // Usuário mais ativo (mais palpites dados)
+  const contagemPorUsuario={};
+  Object.values(todosPalpites).forEach(porJogo=>{
+    Object.keys(porJogo).forEach(uid=>{contagemPorUsuario[uid]=(contagemPorUsuario[uid]||0)+1});
+  });
+  let maisAtivo=null,maisAtivoCount=0;
+  Object.entries(contagemPorUsuario).forEach(([uid,n])=>{
+    if(n>maisAtivoCount){maisAtivoCount=n;maisAtivo=todosUsuarios.find(u=>u.id===uid)}
+  });
+
+  // Usuários sem nenhum palpite ainda
+  const semPalpite=todosUsuarios.filter(u=>!contagemPorUsuario[u.id]);
+
+  let html=`
+    <div class="meu-resumo" style="grid-template-columns:repeat(3,1fr);margin-bottom:1rem">
+      <div class="resumo-card"><div class="resumo-num">${totalUsuarios}</div><div class="resumo-label">Usuários</div></div>
+      <div class="resumo-card"><div class="resumo-num">${totalPalpitesDados}</div><div class="resumo-label">Palpites dados</div></div>
+      <div class="resumo-card"><div class="resumo-num">${mediaPalpitesPorUsuario}</div><div class="resumo-label">Média/pessoa</div></div>
+      <div class="resumo-card"><div class="resumo-num">${totalJogosEncerrados}</div><div class="resumo-label">Jogos encerrados</div></div>
+      <div class="resumo-card"><div class="resumo-num">${totalJogosFuturos}</div><div class="resumo-label">Jogos futuros</div></div>
+      <div class="resumo-card"><div class="resumo-num">${totalChatMsgs}</div><div class="resumo-label">Msgs no chat</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📈 Engajamento</div>
+      <div style="font-size:.82rem;line-height:1.8">
+        ${maisAtivo?`<div>🏆 Mais ativo: <strong style="color:var(--amarelo)">${maisAtivo.nome}</strong> (${maisAtivoCount} palpites)</div>`:''}
+        <div>👑 Bolão do campeão preenchido: <strong style="color:var(--amarelo)">${totalBolao}/${totalUsuarios}</strong></div>
+        ${semPalpite.length?`<div style="color:#ff8888;margin-top:.4rem">⚠️ Sem nenhum palpite ainda: ${semPalpite.map(u=>u.nome).join(', ')}</div>`:'<div style="color:var(--verde-light);margin-top:.4rem">✅ Todos já deram pelo menos 1 palpite</div>'}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🕐 Log de ações recentes</div>
+      <div id="audit-log-lista"><div class="loading-spinner" style="padding:1rem"><div class="spinner" style="width:20px;height:20px"></div></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 Todos os palpites (todos os jogos)</div>
+      <div class="filtro-bar" style="margin-bottom:.75rem">
+        <button class="filtro-btn active" onclick="filtrarAuditJogos('todos',this)">Todos</button>
+        <button class="filtro-btn" onclick="filtrarAuditJogos('encerrado',this)">Encerrados</button>
+        <button class="filtro-btn" onclick="filtrarAuditJogos('futuro',this)">Futuros</button>
+      </div>
+      <div id="audit-palpites-lista"></div>
+    </div>
+  `;
+  c.innerHTML=html;
+
+  renderAuditPalpites('todos');
+  carregarLogAuditoria();
+}
+
+let filtroAuditAtivo='todos';
+function filtrarAuditJogos(f,btn){
+  filtroAuditAtivo=f;
+  document.querySelectorAll('#page-auditoria .filtro-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAuditPalpites(f);
+}
+
+function renderAuditPalpites(filtro){
+  const cont=document.getElementById('audit-palpites-lista');
+  if(!cont)return;
+  let jogos=todosJogos.filter(j=>Object.keys(todosPalpites[j.id]||{}).length>0);
+  if(filtro==='encerrado')jogos=jogos.filter(j=>j.status==='encerrado');
+  else if(filtro==='futuro')jogos=jogos.filter(j=>j.status==='futuro');
+  jogos.sort((a,b)=>(b.data+b.hora).localeCompare(a.data+a.hora));
+
+  if(!jogos.length){cont.innerHTML='<div class="empty-state" style="padding:1rem"><p>Nenhum palpite registrado nessa categoria.</p></div>';return}
+
+  cont.innerHTML=jogos.map(j=>{
+    const pals=todosPalpites[j.id]||{};
+    const entradas=Object.entries(pals).map(([uid,pal])=>{
+      const u=todosUsuarios.find(x=>x.id===uid);
+      const nome=u?.nome||'?';
+      let tag='';
+      if(j.status==='encerrado'){
+        const{txt}=calcPts(j,pal);
+        if(txt.includes('Exato'))tag='style="color:var(--amarelo)"';
+        else if(txt.includes('Resultado'))tag='style="color:var(--verde-light)"';
+        else tag='style="color:#ff8888"';
+      }
+      return `<span ${tag}>${nome}: ${pal.p1}×${pal.p2}</span>`;
+    }).join(' · ');
+    return `<div style="padding:.6rem 0;border-bottom:1px solid var(--border);font-size:.78rem">
+      <div style="font-weight:600;margin-bottom:.3rem">${getFlagSmall(j.time1)} ${nomePT(j.time1)} x ${nomePT(j.time2)} ${getFlagSmall(j.time2)} <span style="color:var(--muted);font-weight:400">· ${fmtData(j.data)}</span></div>
+      <div style="color:var(--muted);line-height:1.6">${entradas}</div>
+    </div>`;
+  }).join('');
+}
+
+async function carregarLogAuditoria(){
+  const cont=document.getElementById('audit-log-lista');
+  if(!cont)return;
+  try{
+    const logs=await sbGet('auditoria_log','select=*&order=criado_em.desc&limit=30');
+    if(!logs.length){cont.innerHTML='<div class="empty-state" style="padding:1rem"><p>Nenhum log registrado ainda.</p></div>';return}
+    const iconesPorTipo={placar_editado:'⚽',login:'🔑',cadastro:'✨'};
+    cont.innerHTML=logs.map(l=>{
+      const t=new Date(l.criado_em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+      return `<div style="padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.78rem;display:flex;gap:.5rem">
+        <span>${iconesPorTipo[l.tipo]||'📌'}</span>
+        <div style="flex:1">
+          <strong>${escHtml(l.usuario_nome)}</strong> — ${escHtml(l.detalhe||l.tipo)}
+          <div style="color:var(--muted);font-size:.68rem">${t}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    cont.innerHTML=`<div class="empty-state" style="padding:1rem"><p style="color:var(--muted);font-size:.78rem">Tabela de log ainda não criada no Supabase. Veja o SETUP_AUDITORIA.md para o SQL necessário.</p></div>`;
+  }
 }
 
 // ═══════════════════════════════════════════
