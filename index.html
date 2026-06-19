@@ -871,7 +871,7 @@ async function carregarTudo(){
   await Promise.allSettled([carregarJogos(),carregarDadosSupabase()]);
   ultimaAtualizacao=new Date();
   const el=document.getElementById('update-txt');
-  if(el)el.textContent=`Paulinho atualizou às ${ultimaAtualizacao.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · com dados reais`;
+  if(el)el.textContent=`Paulinho gostozinho atualizou às ${ultimaAtualizacao.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · com dados reais`;
   // Salvar placares antes de atualizar (para detectar gols)
   todosJogos.forEach(j=>{ if(j.gols1!==null)placaresPrev[j.id]={g1:j.gols1,g2:j.gols2}; });
 }
