@@ -156,7 +156,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 /* APOSTA EXTRA — botões grandes, fáceis de clicar (acessível p/ idosos) */
 .extra-aposta-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
-.extra-aposta-btn{background:rgba(255,255,255,.05);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;padding:.6rem .5rem;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:.4rem;text-align:center}
+.extra-aposta-btn{background:rgba(255,255,255,.05);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'Inter',sans-serif;font-size:.9rem;font-weight:700;padding:.85rem .5rem;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:.5rem;text-align:center}
 .extra-aposta-btn:active{transform:scale(.97)}
 .extra-aposta-btn.selected{background:rgba(0,156,59,.18);border-color:var(--verde);color:var(--verde-light);font-weight:700}
 .palpite-resultado{font-size:.7rem;color:var(--muted)}
@@ -562,7 +562,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '30';
+const APP_VERSION = '31';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -801,40 +801,6 @@ const NOMES_PT = {
   'Croatia':'Croácia','Ghana':'Gana','Panama':'Panamá','DR Congo':'R.D. Congo',
   'Sweden':'Suécia','Bosnia':'Bósnia','Turkey':'Turquia','Ukraine':'Ucrânia',
 };
-
-// Principais atacantes por seleção, para a aposta "quem marca primeiro?"
-// Times sem dados específicos usam fallback genérico (Atacante 1 / Atacante 2)
-const ATACANTES = {
-  'Brazil': ['Vinícius Jr.', 'Raphinha'],
-  'Argentina': ['Lionel Messi', 'Julián Álvarez'],
-  'France': ['Kylian Mbappé', 'Ousmane Dembélé'],
-  'Portugal': ['Cristiano Ronaldo', 'Gonçalo Ramos'],
-  'England': ['Harry Kane', 'Bukayo Saka'],
-  'Spain': ['Álvaro Morata', 'Lamine Yamal'],
-  'Germany': ['Kai Havertz', 'Jamal Musiala'],
-  'Netherlands': ['Memphis Depay', 'Cody Gakpo'],
-  'Belgium': ['Romelu Lukaku', 'Kevin De Bruyne'],
-  'Uruguay': ['Darwin Núñez', 'Federico Valverde'],
-  'Colombia': ['Luis Díaz', 'James Rodríguez'],
-  'Croatia': ['Luka Modrić', 'Ivan Perišić'],
-  'Morocco': ['Achraf Hakimi', 'Hakim Ziyech'],
-  'USA': ['Christian Pulisic', 'Folarin Balogun'],
-  'Mexico': ['Santiago Giménez', 'Hirving Lozano'],
-  'Canada': ['Jonathan David', 'Alphonso Davies'],
-  'Senegal': ['Sadio Mané', 'Nicolas Jackson'],
-  'Switzerland': ['Breel Embolo', 'Xherdan Shaqiri'],
-  'Japan': ['Takefusa Kubo', 'Ayase Ueda'],
-  'South Korea': ['Son Heung-min', 'Cho Gue-sung'],
-  'Ecuador': ['Enner Valencia', 'Kevin Rodríguez'],
-  'Ghana': ['Mohammed Kudus', 'Jordan Ayew'],
-  'Norway': ['Erling Haaland', 'Alexander Sørloth'],
-};
-function getAtacantes(time) {
-  for (const [en, lista] of Object.entries(ATACANTES)) {
-    if (time && time.toLowerCase().includes(en.toLowerCase())) return lista;
-  }
-  return ['Atacante 1', 'Atacante 2'];
-}
 
 function getFlag(nome) {
   if (!nome) return '<span style="font-size:1.8rem">🏳️</span>';
@@ -1332,79 +1298,46 @@ function tocarSomGol(brasil){
 }
 
 // ═══════════════════════════════════════════
-// MÚSICA AMBIENTE DE TORCIDA 🎵 (gerada via Web Audio, sem arquivo externo)
+// MÚSICA DE FUNDO 🎵 — "É Uma Partida de Futebol" (Skank)
+// Arquivo de áudio real, fornecido pelo usuário, tocando em loop
 // ═══════════════════════════════════════════
-let audioCtxAmbiente = null;
-let nosAmbiente = null;
+let elementoAudio = null;
 let tocandoAmbiente = false;
 
-function criarRuidoTorcida(ctx) {
-  // Gera ruído rosa filtrado (simula murmúrio de torcida em estádio)
-  const bufferSize = 2 * ctx.sampleRate;
-  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-  const data = buffer.getChannelData(0);
-  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
-  for (let i = 0; i < bufferSize; i++) {
-    const white = Math.random() * 2 - 1;
-    b0 = 0.99886*b0 + white*0.0555179;
-    b1 = 0.99332*b1 + white*0.0750759;
-    b2 = 0.96900*b2 + white*0.1538520;
-    b3 = 0.86650*b3 + white*0.3104856;
-    b4 = 0.55000*b4 + white*0.5329522;
-    b5 = -0.7616*b5 - white*0.0168980;
-    data[i] = (b0+b1+b2+b3+b4+b5+b6+white*0.5362) * 0.11;
-    b6 = white*0.115926;
+function getElementoAudio() {
+  if (!elementoAudio) {
+    elementoAudio = document.createElement('audio');
+    elementoAudio.src = 'musica-fundo.mp3';
+    elementoAudio.loop = true;
+    elementoAudio.volume = 0.35; // volume moderado, não atrapalha o uso do app
+    elementoAudio.preload = 'auto';
   }
-  const source = ctx.createBufferSource();
-  source.buffer = buffer;
-  source.loop = true;
-
-  // Filtro passa-baixa para suavizar (simula murmúrio distante de torcida)
-  const filtro = ctx.createBiquadFilter();
-  filtro.type = 'lowpass';
-  filtro.frequency.value = 1200;
-
-  // Modulação lenta de volume (simula ondas de torcida cantando/aplaudindo)
-  const lfo = ctx.createOscillator();
-  lfo.frequency.value = 0.15;
-  const lfoGain = ctx.createGain();
-  lfoGain.gain.value = 0.04;
-
-  const gainPrincipal = ctx.createGain();
-  gainPrincipal.gain.value = 0.06; // volume baixo, ambiente, não incomoda
-
-  lfo.connect(lfoGain);
-  lfoGain.connect(gainPrincipal.gain);
-  source.connect(filtro);
-  filtro.connect(gainPrincipal);
-  gainPrincipal.connect(ctx.destination);
-
-  source.start();
-  lfo.start();
-
-  return { source, lfo, gainPrincipal };
+  return elementoAudio;
 }
 
 function iniciarMusicaAmbiente() {
   if (tocandoAmbiente) return;
   try {
-    if (!audioCtxAmbiente) audioCtxAmbiente = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtxAmbiente.state === 'suspended') audioCtxAmbiente.resume();
-    nosAmbiente = criarRuidoTorcida(audioCtxAmbiente);
-    tocandoAmbiente = true;
-    localStorage.setItem('copa_musica_ativa', '1');
-    atualizarBotaoMusica();
-  } catch(e) { console.warn('Música ambiente indisponível:', e.message); }
+    const audio = getElementoAudio();
+    const promessa = audio.play();
+    if (promessa) {
+      promessa.then(() => {
+        tocandoAmbiente = true;
+        localStorage.setItem('copa_musica_ativa', '1');
+        atualizarBotaoMusica();
+      }).catch(e => {
+        // Navegador bloqueou autoplay (precisa de interação do usuário primeiro)
+        console.info('Autoplay bloqueado, aguardando interação:', e.message);
+        tocandoAmbiente = false;
+        atualizarBotaoMusica();
+      });
+    }
+  } catch(e) { console.warn('Música de fundo indisponível:', e.message); }
 }
 
 function pararMusicaAmbiente() {
-  if (!tocandoAmbiente || !nosAmbiente) return;
-  try {
-    nosAmbiente.gainPrincipal.gain.linearRampToValueAtTime(0, audioCtxAmbiente.currentTime + 0.4);
-    setTimeout(() => {
-      try { nosAmbiente.source.stop(); nosAmbiente.lfo.stop(); } catch(e){}
-    }, 450);
-  } catch(e){}
+  if (!tocandoAmbiente || !elementoAudio) return;
+  try { elementoAudio.pause(); } catch(e){}
   tocandoAmbiente = false;
   localStorage.setItem('copa_musica_ativa', '0');
   atualizarBotaoMusica();
@@ -1419,6 +1352,14 @@ function atualizarBotaoMusica() {
   const btn = document.getElementById('btn-musica-toggle');
   if (btn) btn.textContent = tocandoAmbiente ? '🔊' : '🔇';
 }
+
+// Fallback: se o autoplay foi bloqueado no login, tenta de novo no primeiro toque na tela
+document.addEventListener('click', function tentarAutoplayNoPrimeiroClique() {
+  const musicaPref = localStorage.getItem('copa_musica_ativa');
+  if (!tocandoAmbiente && musicaPref !== '0' && usuarioAtual) {
+    iniciarMusicaAmbiente();
+  }
+}, { once: false });
 
 // ═══════════════════════════════════════════
 // CONFETE 🎊
@@ -1966,28 +1907,22 @@ function extraApostaHTML(j){
   const uid=usuarioAtual?.id;
   if(!uid)return'';
   const escolha=(apostasExtras[j.id]||{})[uid];
-  const ata1=getAtacantes(j.time1), ata2=getAtacantes(j.time2);
-  const opcoes=[
-    {id:'t1a',nome:ata1[0],time:j.time1},
-    {id:'t1b',nome:ata1[1],time:j.time1},
-    {id:'t2a',nome:ata2[0],time:j.time2},
-    {id:'t2b',nome:ata2[1],time:j.time2},
-  ];
   return`<div class="palpite-row" style="flex-direction:column;align-items:stretch;gap:.5rem">
     <span class="palpite-label">⚽ Quem marca primeiro?</span>
-    <div class="extra-aposta-grid">
-      ${opcoes.map(o=>`<button class="extra-aposta-btn${escolha===o.nome?' selected':''}" onclick="salvarApostaExtra('${j.id}','${o.nome.replace(/'/g,"\\'")}')">${getFlagSmall(o.time)} ${o.nome}</button>`).join('')}
+    <div class="extra-aposta-grid" style="grid-template-columns:1fr 1fr">
+      <button class="extra-aposta-btn${escolha===j.time1?' selected':''}" onclick="salvarApostaExtra('${j.id}','${j.time1.replace(/'/g,"\\'")}')">${getFlagSmall(j.time1)} ${nomePT(j.time1)}</button>
+      <button class="extra-aposta-btn${escolha===j.time2?' selected':''}" onclick="salvarApostaExtra('${j.id}','${j.time2.replace(/'/g,"\\'")}')">${getFlagSmall(j.time2)} ${nomePT(j.time2)}</button>
     </div>
   </div>`;
 }
 
-async function salvarApostaExtra(jogoId, jogador){
+async function salvarApostaExtra(jogoId, time){
   if(!usuarioAtual)return;
   try{
-    await sbUpsert('apostas_extras',{usuario_id:usuarioAtual.id,jogo_id:jogoId,jogador},'usuario_id,jogo_id');
+    await sbUpsert('apostas_extras',{usuario_id:usuarioAtual.id,jogo_id:jogoId,jogador:time},'usuario_id,jogo_id');
     if(!apostasExtras[jogoId])apostasExtras[jogoId]={};
-    apostasExtras[jogoId][usuarioAtual.id]=jogador;
-    showToast(`⚽ Aposta: ${jogador} marca primeiro!`);
+    apostasExtras[jogoId][usuarioAtual.id]=time;
+    showToast(`⚽ Aposta: ${nomePT(time)} marca primeiro!`);
     const j=todosJogos.find(x=>x.id===jogoId);
     const card=document.getElementById('card_'+jogoId);
     if(card&&j){card.outerHTML=jogoCardHTML(j,true);const n=document.getElementById('card_'+jogoId);if(n)vincularPalpites(n)}
