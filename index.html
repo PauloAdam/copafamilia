@@ -153,6 +153,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .btn-salvar-pal:disabled{background:#2a4a30;color:#5a8a60;cursor:default}
 .palpite-ok{font-size:.72rem;color:var(--verde-light);font-weight:600}
 .palpite-pts{font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--amarelo)}
+
+/* APOSTA EXTRA — botões grandes, fáceis de clicar (acessível p/ idosos) */
+.extra-aposta-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.extra-aposta-btn{background:rgba(255,255,255,.05);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;padding:.6rem .5rem;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:.4rem;text-align:center}
+.extra-aposta-btn:active{transform:scale(.97)}
+.extra-aposta-btn.selected{background:rgba(0,156,59,.18);border-color:var(--verde);color:var(--verde-light);font-weight:700}
 .palpite-resultado{font-size:.7rem;color:var(--muted)}
 
 /* FILTROS */
@@ -241,6 +247,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .chat-bubble{max-width:75%;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:.45rem .7rem;font-size:.82rem}
 .chat-msg.minha .chat-bubble{background:rgba(0,156,59,.15);border-color:rgba(0,156,59,.3)}
 .chat-meta{font-size:.62rem;color:var(--muted);margin-top:2px}
+.chat-reacoes-row{display:flex;align-items:center;flex-wrap:wrap;gap:.3rem;margin-top:.3rem}
+.reacao-pill{background:rgba(0,156,59,.12);border:1px solid rgba(0,156,59,.3);border-radius:12px;padding:1px 7px;font-size:.7rem;cursor:pointer;user-select:none}
+.reacao-pill.minha-reacao{background:rgba(0,156,59,.3);border-color:var(--verde-light)}
+.reacao-add-wrap{display:inline-flex;gap:.25rem;opacity:.5}
+.reacao-add-btn{cursor:pointer;font-size:.85rem;padding:1px 3px;user-select:none;transition:transform .1s}
+.reacao-add-btn:active{transform:scale(1.3)}
 .chat-input-row{display:flex;gap:.5rem}
 .chat-input{flex:1;background:var(--card2);border:1px solid var(--border);border-radius:20px;color:var(--text);font-family:'Inter',sans-serif;font-size:.85rem;padding:.5rem .9rem;-webkit-appearance:none}
 .chat-input:focus{outline:none;border-color:var(--verde)}
@@ -307,6 +319,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:.75rem}
 .card-title{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;color:var(--amarelo);margin-bottom:.75rem}
+/* CONTAGEM REGRESSIVA */
+.countdown-card{background:linear-gradient(135deg,#002776 0%,#001a4d 100%);border:1px solid rgba(255,223,0,.3);border-radius:var(--radius);padding:1.2rem 1rem;margin-bottom:1rem;text-align:center;position:relative;overflow:hidden}
+.countdown-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(255,223,0,.1) 0%,transparent 70%);pointer-events:none}
+.countdown-label{font-size:.7rem;font-weight:700;color:#ffdf00;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:.5rem}
+.countdown-timer{font-family:'Bebas Neue',sans-serif;font-size:2.6rem;color:#fff;letter-spacing:3px;line-height:1;text-shadow:0 2px 12px rgba(255,223,0,.3);margin-bottom:.75rem}
+.countdown-times{display:flex;align-items:center;justify-content:center;gap:1rem;margin-bottom:.5rem}
+.countdown-time{display:flex;flex-direction:column;align-items:center;gap:.3rem}
+.countdown-time img{width:38px;height:auto;border-radius:3px}
+.countdown-time span{font-size:.72rem;font-weight:600;color:#fff}
+.countdown-vs{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:rgba(255,255,255,.4)}
+.countdown-info{font-size:.7rem;color:rgba(255,255,255,.6)}
+
 .hoje-hero{background:linear-gradient(135deg,rgba(0,156,59,.12) 0%,rgba(0,39,118,.1) 100%);border:1px solid rgba(255,223,0,.2);border-radius:var(--radius);padding:.9rem 1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.75rem}
 .hoje-hero .icon{font-size:2rem;flex-shrink:0}
 .hoje-hero h3{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1px;color:var(--amarelo)}
@@ -360,6 +384,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   <div class="topbar">
     <div class="topbar-logo">⚽ COPA <span>2026</span></div>
     <div class="topbar-actions">
+      <button class="btn-icon" id="btn-musica-toggle" onclick="toggleMusicaAmbiente()" title="Música ambiente">🔇</button>
       <button class="btn-icon" onclick="toggleTheme()" title="Tema">🌙</button>
       <button class="btn-icon" onclick="irPara('perfil',document.querySelector('.nav-btn[data-page=perfil]'))" title="Perfil">
         <div class="user-avatar" id="topbar-avatar" style="width:24px;height:24px;font-size:.7rem">?</div>
@@ -466,6 +491,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <!-- PERFIL -->
     <div id="page-perfil" class="page">
       <div class="section-title">👤 Meu Perfil</div>
+      <button class="btn-ver-palpites" style="margin-bottom:.75rem" onclick="mostrarResumoSemanal(false)">📊 Ver resumo da semana</button>
       <div id="botao-instalar-permanente"></div>
       <div id="perfil-container"></div>
     </div>
@@ -536,7 +562,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '29';
+const APP_VERSION = '30';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -634,6 +660,55 @@ function dispensarInstalar() {
   if (banner) banner.innerHTML = '';
 }
 
+// ═══════════════════════════════════════════
+// FOTO DE PERFIL 📷
+// ═══════════════════════════════════════════
+async function trocarFotoPerfil(input){
+  const file = input.files?.[0];
+  if (!file || !usuarioAtual) return;
+  if (!file.type.startsWith('image/')) { showToast('⚠️ Escolha uma imagem'); return; }
+
+  showToast('📷 Processando foto…');
+  try {
+    const dataUrl = await comprimirImagem(file, 256, 256, 0.75);
+    await sbPatch('usuarios', `id=eq.${usuarioAtual.id}`, { foto_url: dataUrl });
+    usuarioAtual.foto_url = dataUrl;
+    localStorage.setItem('copa_user', JSON.stringify(usuarioAtual));
+    showToast('✅ Foto atualizada!');
+    renderPerfil();
+    const avWrap = document.getElementById('topbar-avatar');
+    if (avWrap) avWrap.outerHTML = renderAvatar(usuarioAtual, 24).replace('<img ', '<img id="topbar-avatar" ').replace('<div ', '<div id="topbar-avatar" ');
+  } catch(e) {
+    console.error(e);
+    showToast('❌ Erro ao salvar foto. Tente uma imagem menor.');
+  }
+}
+
+// Redimensiona e comprime a imagem para caber bem no banco (retorna data URL base64)
+function comprimirImagem(file, larguraMax, alturaMax, qualidade){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        // Recorte quadrado central
+        const lado = Math.min(width, height);
+        const sx = (width - lado) / 2, sy = (height - lado) / 2;
+        const canvas = document.createElement('canvas');
+        canvas.width = larguraMax; canvas.height = alturaMax;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, sx, sy, lado, lado, 0, 0, larguraMax, alturaMax);
+        resolve(canvas.toDataURL('image/jpeg', qualidade));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 // Card permanente no Perfil — sempre disponível, mesmo se o banner foi dispensado
 function renderBotaoInstalarPermanente() {
   const c = document.getElementById('botao-instalar-permanente');
@@ -726,6 +801,41 @@ const NOMES_PT = {
   'Croatia':'Croácia','Ghana':'Gana','Panama':'Panamá','DR Congo':'R.D. Congo',
   'Sweden':'Suécia','Bosnia':'Bósnia','Turkey':'Turquia','Ukraine':'Ucrânia',
 };
+
+// Principais atacantes por seleção, para a aposta "quem marca primeiro?"
+// Times sem dados específicos usam fallback genérico (Atacante 1 / Atacante 2)
+const ATACANTES = {
+  'Brazil': ['Vinícius Jr.', 'Raphinha'],
+  'Argentina': ['Lionel Messi', 'Julián Álvarez'],
+  'France': ['Kylian Mbappé', 'Ousmane Dembélé'],
+  'Portugal': ['Cristiano Ronaldo', 'Gonçalo Ramos'],
+  'England': ['Harry Kane', 'Bukayo Saka'],
+  'Spain': ['Álvaro Morata', 'Lamine Yamal'],
+  'Germany': ['Kai Havertz', 'Jamal Musiala'],
+  'Netherlands': ['Memphis Depay', 'Cody Gakpo'],
+  'Belgium': ['Romelu Lukaku', 'Kevin De Bruyne'],
+  'Uruguay': ['Darwin Núñez', 'Federico Valverde'],
+  'Colombia': ['Luis Díaz', 'James Rodríguez'],
+  'Croatia': ['Luka Modrić', 'Ivan Perišić'],
+  'Morocco': ['Achraf Hakimi', 'Hakim Ziyech'],
+  'USA': ['Christian Pulisic', 'Folarin Balogun'],
+  'Mexico': ['Santiago Giménez', 'Hirving Lozano'],
+  'Canada': ['Jonathan David', 'Alphonso Davies'],
+  'Senegal': ['Sadio Mané', 'Nicolas Jackson'],
+  'Switzerland': ['Breel Embolo', 'Xherdan Shaqiri'],
+  'Japan': ['Takefusa Kubo', 'Ayase Ueda'],
+  'South Korea': ['Son Heung-min', 'Cho Gue-sung'],
+  'Ecuador': ['Enner Valencia', 'Kevin Rodríguez'],
+  'Ghana': ['Mohammed Kudus', 'Jordan Ayew'],
+  'Norway': ['Erling Haaland', 'Alexander Sørloth'],
+};
+function getAtacantes(time) {
+  for (const [en, lista] of Object.entries(ATACANTES)) {
+    if (time && time.toLowerCase().includes(en.toLowerCase())) return lista;
+  }
+  return ['Atacante 1', 'Atacante 2'];
+}
+
 function getFlag(nome) {
   if (!nome) return '<span style="font-size:1.8rem">🏳️</span>';
   for (const [k,code] of Object.entries(FLAG_CODES)) {
@@ -756,6 +866,17 @@ function nomePT(n) {
 }
 const CORES=['#009c3b','#002776','#c8191a','#e07000','#7b2d8b','#0088cc','#884400','#228866','#c05000','#506000'];
 function corU(id){let n=0;String(id).split('').forEach(c=>n=(n*31+c.charCodeAt(0))&0xffff);return CORES[n%CORES.length]}
+
+// Renderiza avatar (foto se tiver, senão letra inicial colorida)
+function renderAvatar(usuario, tamanho){
+  tamanho = tamanho || 34;
+  const cor = corU(usuario?.id || usuario?.usuario || '?');
+  const inicial = (usuario?.nome || '?').charAt(0).toUpperCase();
+  if (usuario?.foto_url) {
+    return `<img src="${usuario.foto_url}" style="width:${tamanho}px;height:${tamanho}px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1.5px solid ${cor}40" alt="${inicial}">`;
+  }
+  return `<div style="width:${tamanho}px;height:${tamanho}px;border-radius:50%;background:${cor}22;color:${cor};border:1.5px solid ${cor}40;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${tamanho*0.4}px;flex-shrink:0">${inicial}</div>`;
+}
 const DIAS=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 function fmtData(s){if(!s)return '';const[y,m,d]=s.split('-');const dt=new Date(+y,+m-1,+d);return`${DIAS[dt.getDay()]}, ${+d} ${MESES[+m-1]}`}
@@ -766,7 +887,7 @@ function fmtHora(s){return s?s+' (Brasília)':'';}
 // ═══════════════════════════════════════════
 let usuarioAtual=null, todosJogos=[], todosUsuarios=[], todosPalpites={};
 let filtroGrupoAtivo='todos', filtroStatusAtivo='proximos', ultimaAtualizacao=null;
-let placaresPrev={}, chatMsgs=[], ultimoChat=0, bolaoAtual={};
+let placaresPrev={}, chatMsgs=[], ultimoChat=0, bolaoAtual={}, apostasExtras={};
 
 // ═══════════════════════════════════════════
 // SUPABASE
@@ -850,9 +971,8 @@ function fazerLogout(){
 async function iniciarApp(){
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app').style.display='block';
-  const av=document.getElementById('topbar-avatar');
-  av.textContent=usuarioAtual.nome.charAt(0).toUpperCase();
-  av.style.background=corU(usuarioAtual.id||usuarioAtual.usuario);
+  const avWrap=document.getElementById('topbar-avatar');
+  if(avWrap) avWrap.outerHTML=renderAvatar(usuarioAtual,24).replace('<img ','<img id="topbar-avatar" ').replace('<div ','<div id="topbar-avatar" ');
   // Admin?
   if(isAdmin()){
     document.getElementById('btn-admin-menu').style.display='flex';
@@ -863,10 +983,19 @@ async function iniciarApp(){
   if(t==='light')document.documentElement.setAttribute('data-theme','light');
   document.querySelector('.btn-icon[onclick*="toggleTheme"]').textContent=t==='light'?'🌙':'☀️';
 
+  // Música ambiente — toca automaticamente (padrão ligada), exceto se a pessoa mutou antes
+  const musicaPref = localStorage.getItem('copa_musica_ativa');
+  if (musicaPref !== '0') {
+    iniciarMusicaAmbiente();
+  } else {
+    atualizarBotaoMusica();
+  }
+
   await carregarTudo();
   renderHoje();
   registrarSW();
   pedirNotificacao();
+  checarResumoSemanal();
   setInterval(async()=>{
     const prevPlacares={...placaresPrev};
     await carregarTudo();
@@ -1086,13 +1215,19 @@ async function tentarWC26viaProxy(){
 
 async function carregarDadosSupabase(){
   try{
-    todosUsuarios=await sbGet('usuarios','select=id,nome,usuario&order=nome');
+    todosUsuarios=await sbGet('usuarios','select=id,nome,usuario,foto_url&order=nome');
     const pals=await sbGet('palpites','select=*');
     todosPalpites={};
     pals.forEach(p=>{if(!todosPalpites[p.jogo_id])todosPalpites[p.jogo_id]={};todosPalpites[p.jogo_id][p.usuario_id]={p1:p.gols1,p2:p.gols2}});
     // Bolão campeão
     const b=await sbGet('bolao','select=*');
     bolaoAtual={};b.forEach(r=>bolaoAtual[r.usuario_id]=r.campeao);
+    // Apostas extras (quem marca primeiro)
+    try{
+      const ex=await sbGet('apostas_extras','select=*');
+      apostasExtras={};
+      ex.forEach(a=>{if(!apostasExtras[a.jogo_id])apostasExtras[a.jogo_id]={};apostasExtras[a.jogo_id][a.usuario_id]=a.jogador});
+    }catch(e){/* tabela pode não existir ainda */}
   }catch(e){console.warn('Supabase:',e)}
 }
 
@@ -1194,6 +1329,95 @@ function tocarSomGol(brasil){
       o.start(t);o.stop(t+0.35);
     });
   }catch(e){}
+}
+
+// ═══════════════════════════════════════════
+// MÚSICA AMBIENTE DE TORCIDA 🎵 (gerada via Web Audio, sem arquivo externo)
+// ═══════════════════════════════════════════
+let audioCtxAmbiente = null;
+let nosAmbiente = null;
+let tocandoAmbiente = false;
+
+function criarRuidoTorcida(ctx) {
+  // Gera ruído rosa filtrado (simula murmúrio de torcida em estádio)
+  const bufferSize = 2 * ctx.sampleRate;
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+  for (let i = 0; i < bufferSize; i++) {
+    const white = Math.random() * 2 - 1;
+    b0 = 0.99886*b0 + white*0.0555179;
+    b1 = 0.99332*b1 + white*0.0750759;
+    b2 = 0.96900*b2 + white*0.1538520;
+    b3 = 0.86650*b3 + white*0.3104856;
+    b4 = 0.55000*b4 + white*0.5329522;
+    b5 = -0.7616*b5 - white*0.0168980;
+    data[i] = (b0+b1+b2+b3+b4+b5+b6+white*0.5362) * 0.11;
+    b6 = white*0.115926;
+  }
+  const source = ctx.createBufferSource();
+  source.buffer = buffer;
+  source.loop = true;
+
+  // Filtro passa-baixa para suavizar (simula murmúrio distante de torcida)
+  const filtro = ctx.createBiquadFilter();
+  filtro.type = 'lowpass';
+  filtro.frequency.value = 1200;
+
+  // Modulação lenta de volume (simula ondas de torcida cantando/aplaudindo)
+  const lfo = ctx.createOscillator();
+  lfo.frequency.value = 0.15;
+  const lfoGain = ctx.createGain();
+  lfoGain.gain.value = 0.04;
+
+  const gainPrincipal = ctx.createGain();
+  gainPrincipal.gain.value = 0.06; // volume baixo, ambiente, não incomoda
+
+  lfo.connect(lfoGain);
+  lfoGain.connect(gainPrincipal.gain);
+  source.connect(filtro);
+  filtro.connect(gainPrincipal);
+  gainPrincipal.connect(ctx.destination);
+
+  source.start();
+  lfo.start();
+
+  return { source, lfo, gainPrincipal };
+}
+
+function iniciarMusicaAmbiente() {
+  if (tocandoAmbiente) return;
+  try {
+    if (!audioCtxAmbiente) audioCtxAmbiente = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtxAmbiente.state === 'suspended') audioCtxAmbiente.resume();
+    nosAmbiente = criarRuidoTorcida(audioCtxAmbiente);
+    tocandoAmbiente = true;
+    localStorage.setItem('copa_musica_ativa', '1');
+    atualizarBotaoMusica();
+  } catch(e) { console.warn('Música ambiente indisponível:', e.message); }
+}
+
+function pararMusicaAmbiente() {
+  if (!tocandoAmbiente || !nosAmbiente) return;
+  try {
+    nosAmbiente.gainPrincipal.gain.linearRampToValueAtTime(0, audioCtxAmbiente.currentTime + 0.4);
+    setTimeout(() => {
+      try { nosAmbiente.source.stop(); nosAmbiente.lfo.stop(); } catch(e){}
+    }, 450);
+  } catch(e){}
+  tocandoAmbiente = false;
+  localStorage.setItem('copa_musica_ativa', '0');
+  atualizarBotaoMusica();
+}
+
+function toggleMusicaAmbiente() {
+  if (tocandoAmbiente) pararMusicaAmbiente();
+  else iniciarMusicaAmbiente();
+}
+
+function atualizarBotaoMusica() {
+  const btn = document.getElementById('btn-musica-toggle');
+  if (btn) btn.textContent = tocandoAmbiente ? '🔊' : '🔇';
 }
 
 // ═══════════════════════════════════════════
@@ -1352,7 +1576,7 @@ function agendarNotificacoesJogos() {
   const agora = Date.now();
   todosJogos.filter(j => j.status === 'futuro').forEach(j => {
     const dtJ = new Date(j.data + 'T' + (j.hora||'12:00') + ':00-03:00').getTime();
-    [[30, '30 minutos'], [5, '5 minutos']].forEach(([mins, label]) => {
+    [[10, '10 minutos'], [5, '5 minutos']].forEach(([mins, label]) => {
       const ts = dtJ - mins * 60 * 1000;
       if (ts > agora) {
         setTimeout(() => notifJogo(j, label), ts - agora);
@@ -1363,13 +1587,12 @@ function agendarNotificacoesJogos() {
 
 function notifJogo(j, tempo) {
   if (Notification.permission !== 'granted') return;
-  const t1 = nomePT(j.time1), t2 = nomePT(j.time2);
   const uid = usuarioAtual?.id;
   const pal = (todosPalpites[j.id] || {})[uid];
-  const corpo = pal
-    ? `Seu palpite: ${pal.p1}×${pal.p2} · Boa sorte! 🤞`
-    : `⚠️ Você ainda não deu palpite! Corre!`;
-  enviarNotif(`⚽ ${t1} × ${t2} em ${tempo}!`, corpo, `jogo-${j.id}-${tempo}`, !pal);
+  // Só notifica se a pessoa AINDA NÃO deu palpite nesse jogo
+  if (pal) return;
+  const t1 = nomePT(j.time1), t2 = nomePT(j.time2);
+  enviarNotif(`⚠️ Falta pouco! ${t1} × ${t2} em ${tempo}!`, `Você ainda não palpitou nesse jogo. Corre! ⚽`, `jogo-${j.id}-${tempo}`, true);
 }
 
 async function enviarNotifGol(time, g1, g2, jogo) {
@@ -1438,6 +1661,13 @@ function renderHoje(){
   const futHoje=todosJogos.filter(j=>j.data===hoje&&j.status==='futuro').sort(porHorario);
   const amJs=todosJogos.filter(j=>j.data===amanha).sort(porHorario);
   let html='';
+
+  // CONTAGEM REGRESSIVA — próximo jogo (qualquer um), só se nada estiver ao vivo agora
+  if(!aoVivo.length){
+    const proximoJogo=todosJogos.filter(j=>j.status==='futuro').sort(porHorario)[0];
+    if(proximoJogo) html+=contagemRegressivaHTML(proximoJogo);
+  }
+
   if(aoVivo.length){
     html+=`<div class="hoje-hero"><span class="icon">🔴</span><div><h3>AO VIVO AGORA</h3><p>${aoVivo.length} jogo${aoVivo.length>1?'s':''} acontecendo agora</p></div></div>`;
     aoVivo.forEach(j=>{html+=jogoCardHTML(j,true)});
@@ -1466,6 +1696,48 @@ function renderHoje(){
   }
   c.innerHTML=html||'<div class="empty-state"><span class="ei">⚽</span><p>Sem dados. Verifique conexão.</p></div>';
   vincularPalpites(c);
+  iniciarTickContagem();
+}
+
+// ═══════════════════════════════════════════
+// CONTAGEM REGRESSIVA 🕐 — card grande pro próximo jogo
+// ═══════════════════════════════════════════
+function contagemRegressivaHTML(jogo){
+  return `<div class="countdown-card" id="countdown-card" data-jogo-data="${jogo.data}" data-jogo-hora="${jogo.hora}">
+    <div class="countdown-label">⏰ PRÓXIMO JOGO EM</div>
+    <div class="countdown-timer" id="countdown-timer">--:--:--</div>
+    <div class="countdown-times">
+      <div class="countdown-time">${getFlag(jogo.time1)}<span>${nomePT(jogo.time1)}</span></div>
+      <div class="countdown-vs">×</div>
+      <div class="countdown-time">${getFlag(jogo.time2)}<span>${nomePT(jogo.time2)}</span></div>
+    </div>
+    <div class="countdown-info">${fmtData(jogo.data)} · ${jogo.horaTxt}</div>
+  </div>`;
+}
+
+let tickContagemInterval=null;
+function iniciarTickContagem(){
+  if(tickContagemInterval)clearInterval(tickContagemInterval);
+  const atualizarTick=()=>{
+    const card=document.getElementById('countdown-card');
+    if(!card)return;
+    const data=card.dataset.jogoData, hora=card.dataset.jogoHora;
+    const alvo=new Date(data+'T'+hora+':00-03:00').getTime();
+    const diff=alvo-Date.now();
+    const timerEl=document.getElementById('countdown-timer');
+    if(!timerEl)return;
+    if(diff<=0){
+      timerEl.textContent='COMEÇOU! ⚽';
+      clearInterval(tickContagemInterval);
+      return;
+    }
+    const h=Math.floor(diff/3600000);
+    const m=Math.floor((diff%3600000)/60000);
+    const s=Math.floor((diff%60000)/1000);
+    timerEl.textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  };
+  atualizarTick();
+  tickContagemInterval=setInterval(atualizarTick,1000);
 }
 function divider(tipo,txt){return`<div class="date-divider ${tipo}"><span>${txt}</span></div>`}
 
@@ -1565,11 +1837,15 @@ function jogoCardHTML(j,comPalpite){
     if((enc||live)&&pal){
       const{pts,txt}=enc?calcPts(j,pal):{pts:null,txt:'⏳ Aguardando'};
       palHtml=`<div class="palpite-row"><span class="palpite-label">🎯 Meu palpite:</span><span class="palpite-ok" style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:2px">${pal.p1}:${pal.p2}</span><span class="palpite-resultado" style="margin-left:.3rem">${txt}</span>${enc?`<span class="palpite-pts" style="margin-left:auto">${pts>0?'+'+pts:'–'}</span>`:''}</div>`;
+      if(enc&&pts>0){
+        palHtml+=`<div style="padding:.5rem .9rem 0"><button class="btn-ver-palpites" style="background:rgba(255,223,0,.12);border-color:rgba(255,223,0,.35);color:var(--amarelo)" onclick="compartilharResultado('${j.id}')">📤 Compartilhar acerto</button></div>`;
+      }
     }else if(live&&!pal){
       palHtml=`<div class="palpite-row" style="opacity:.65"><span style="font-size:.75rem;color:#ff8888">🔒 Jogo em andamento — palpites encerrados</span></div>`;
     }else if(!enc&&!live){
       const v1=pal?.p1??'',v2=pal?.p2??'';
       palHtml=`<div class="palpite-row"><span class="palpite-label">🎯</span><div class="palpite-inputs"><input type="number" min="0" max="20" class="palpite-n" id="pn1_${j.id}" value="${v1}" placeholder="0"><span class="palpite-sep">×</span><input type="number" min="0" max="20" class="palpite-n" id="pn2_${j.id}" value="${v2}" placeholder="0"></div><button class="btn-salvar-pal" data-jogo="${j.id}">${pal?'✏️ Atualizar':'💾 Salvar'}</button>${pal?`<span class="palpite-ok" style="font-size:.68rem">✓${pal.p1}×${pal.p2}</span>`:''}</div>`;
+      palHtml+=extraApostaHTML(j);
     }
   }
   // Botão "Ver palpites de todos" — aparece se alguém já palpitou nesse jogo
@@ -1586,9 +1862,136 @@ function jogoCardHTML(j,comPalpite){
       <div class="time-lado"><div class="time-flag">${getFlag(j.time2)}</div><span class="time-nome">${nomePT(j.time2)}</span></div>
     </div>${extras}${palHtml}${btnVerTodos?`<div style="padding:0 .9rem .7rem">${btnVerTodos}</div>`:''}</div>`;
 }
+// ═══════════════════════════════════════════
+// COMPARTILHAR RESULTADO 📤 — gera imagem via Canvas
+// ═══════════════════════════════════════════
+async function compartilharResultado(jogoId){
+  const j=todosJogos.find(x=>x.id===jogoId);
+  if(!j||!usuarioAtual)return;
+  const uid=usuarioAtual.id;
+  const pal=(todosPalpites[jogoId]||{})[uid];
+  if(!pal)return;
+  const{pts,txt}=calcPts(j,pal);
+
+  showToast('🎨 Gerando imagem…');
+  try{
+    const canvas=document.createElement('canvas');
+    canvas.width=800; canvas.height=800;
+    const ctx=canvas.getContext('2d');
+
+    // Fundo gradiente verde/azul
+    const grad=ctx.createLinearGradient(0,0,800,800);
+    grad.addColorStop(0,'#002776'); grad.addColorStop(1,'#001a4d');
+    ctx.fillStyle=grad; ctx.fillRect(0,0,800,800);
+
+    // Borda dourada
+    ctx.strokeStyle='#ffdf00'; ctx.lineWidth=6;
+    ctx.strokeRect(20,20,760,760);
+
+    // Título
+    ctx.fillStyle='#ffdf00';
+    ctx.font='bold 36px Arial';
+    ctx.textAlign='center';
+    ctx.fillText('⚽ COPA 2026', 400, 90);
+    ctx.font='18px Arial';
+    ctx.fillStyle='#9ab6f0';
+    ctx.fillText('Palpites da Família', 400, 120);
+
+    // Troféu/resultado
+    ctx.font='bold 60px Arial';
+    ctx.fillStyle='#fff';
+    ctx.fillText(txt.includes('Exato')?'🏆':'✅', 400, 230);
+
+    // Times
+    ctx.font='bold 32px Arial';
+    ctx.fillStyle='#fff';
+    ctx.fillText(`${nomePT(j.time1)}  ${j.gols1} × ${j.gols2}  ${nomePT(j.time2)}`, 400, 320);
+
+    // Palpite
+    ctx.font='22px Arial';
+    ctx.fillStyle='#9ab6f0';
+    ctx.fillText(`Meu palpite: ${pal.p1} × ${pal.p2}`, 400, 380);
+
+    // Pontos ganhos — bem grande
+    ctx.font='bold 100px Arial';
+    ctx.fillStyle='#ffdf00';
+    ctx.fillText(`+${pts}`, 400, 540);
+    ctx.font='bold 28px Arial';
+    ctx.fillStyle='#fff';
+    ctx.fillText('PONTOS', 400, 580);
+
+    // Nome da pessoa
+    ctx.font='bold 26px Arial';
+    ctx.fillStyle='#00d44f';
+    ctx.fillText(usuarioAtual.nome, 400, 680);
+
+    ctx.font='16px Arial';
+    ctx.fillStyle='#7aab85';
+    ctx.fillText(fmtData(j.data), 400, 715);
+
+    // Converte pra blob e compartilha
+    canvas.toBlob(async(blob)=>{
+      const file=new File([blob],'copa2026-resultado.png',{type:'image/png'});
+      const textoCompartilha=`⚽ Acertei ${nomePT(j.time1)} ${j.gols1}×${j.gols2} ${nomePT(j.time2)}! +${pts} pontos na Copa 2026 da família! 🏆`;
+
+      if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+        try{
+          await navigator.share({files:[file],title:'Copa 2026',text:textoCompartilha});
+        }catch(e){/* usuário cancelou, sem problema */}
+      }else{
+        // Fallback: baixa a imagem
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');
+        a.href=url; a.download='copa2026-resultado.png';
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('📥 Imagem baixada! Compartilhe no WhatsApp');
+      }
+    },'image/png');
+  }catch(e){
+    console.error(e);
+    showToast('❌ Erro ao gerar imagem');
+  }
+}
+
 function vincularPalpites(c){
   c.querySelectorAll('.btn-salvar-pal').forEach(btn=>btn.addEventListener('click',()=>salvarPalpite(btn.dataset.jogo)));
   c.querySelectorAll('.palpite-n').forEach(inp=>inp.addEventListener('keydown',e=>{if(e.key==='Enter'){const id=inp.id.replace(/^pn[12]_/,'');salvarPalpite(id)}}));
+}
+
+// ═══════════════════════════════════════════
+// APOSTA EXTRA 🎯⚽ — "Quem marca primeiro?" (só clicar, sem digitar)
+// ═══════════════════════════════════════════
+function extraApostaHTML(j){
+  const uid=usuarioAtual?.id;
+  if(!uid)return'';
+  const escolha=(apostasExtras[j.id]||{})[uid];
+  const ata1=getAtacantes(j.time1), ata2=getAtacantes(j.time2);
+  const opcoes=[
+    {id:'t1a',nome:ata1[0],time:j.time1},
+    {id:'t1b',nome:ata1[1],time:j.time1},
+    {id:'t2a',nome:ata2[0],time:j.time2},
+    {id:'t2b',nome:ata2[1],time:j.time2},
+  ];
+  return`<div class="palpite-row" style="flex-direction:column;align-items:stretch;gap:.5rem">
+    <span class="palpite-label">⚽ Quem marca primeiro?</span>
+    <div class="extra-aposta-grid">
+      ${opcoes.map(o=>`<button class="extra-aposta-btn${escolha===o.nome?' selected':''}" onclick="salvarApostaExtra('${j.id}','${o.nome.replace(/'/g,"\\'")}')">${getFlagSmall(o.time)} ${o.nome}</button>`).join('')}
+    </div>
+  </div>`;
+}
+
+async function salvarApostaExtra(jogoId, jogador){
+  if(!usuarioAtual)return;
+  try{
+    await sbUpsert('apostas_extras',{usuario_id:usuarioAtual.id,jogo_id:jogoId,jogador},'usuario_id,jogo_id');
+    if(!apostasExtras[jogoId])apostasExtras[jogoId]={};
+    apostasExtras[jogoId][usuarioAtual.id]=jogador;
+    showToast(`⚽ Aposta: ${jogador} marca primeiro!`);
+    const j=todosJogos.find(x=>x.id===jogoId);
+    const card=document.getElementById('card_'+jogoId);
+    if(card&&j){card.outerHTML=jogoCardHTML(j,true);const n=document.getElementById('card_'+jogoId);if(n)vincularPalpites(n)}
+  }catch(e){showToast('❌ Erro ao salvar aposta');console.warn(e)}
 }
 
 // ═══════════════════════════════════════════
@@ -1732,8 +2135,8 @@ function renderRanking(){
   const ord=top.length>=3?[top[1],top[0],top[2]]:top;
   const cls=['segundo','primeiro','terceiro'];
   const emj=['🥈','🥇','🥉'];
-  podio.innerHTML=ord.map((u,i)=>u?`<div class="rank-podio-card ${cls[i]}"><span class="podio-emoji">${emj[i]}</span><div class="podio-avatar" style="background:${corU(u.id)}20;color:${corU(u.id)};border-color:${corU(u.id)}60">${u.nome.charAt(0).toUpperCase()}</div><div class="podio-nome">${u.nome}</div><div class="podio-pts">${u.total}<small>pontos</small></div></div>`:'<div></div>').join('');
-  lista.innerHTML=ranked.map((u,i)=>`<div class="rank-row"><div class="rank-pos">${i+1}º</div><div class="rank-avatar-sm" style="background:${corU(u.id)}18;color:${corU(u.id)};border:1.5px solid ${corU(u.id)}40">${u.nome.charAt(0).toUpperCase()}</div><div class="rank-info"><div class="rank-nome-txt">${u.nome}</div><div class="rank-detalhe">🏆${u.exatos} · ✅${u.resultados}</div></div><div class="rank-pts-val">${u.total}<small>pts</small></div></div>`).join('');
+  podio.innerHTML=ord.map((u,i)=>u?`<div class="rank-podio-card ${cls[i]}"><span class="podio-emoji">${emj[i]}</span><div style="margin:0 auto .35rem;width:40px">${renderAvatar(u,40)}</div><div class="podio-nome">${u.nome}</div><div class="podio-pts">${u.total}<small>pontos</small></div></div>`:'<div></div>').join('');
+  lista.innerHTML=ranked.map((u,i)=>`<div class="rank-row"><div class="rank-pos">${i+1}º</div>${renderAvatar(u,34)}<div class="rank-info"><div class="rank-nome-txt">${u.nome}</div><div class="rank-detalhe">🏆${u.exatos} · ✅${u.resultados}</div></div><div class="rank-pts-val">${u.total}<small>pts</small></div></div>`).join('');
 }
 
 // ═══════════════════════════════════════════
@@ -1782,17 +2185,44 @@ function renderChat(){
   document.getElementById('badge-chat').classList.remove('show');
   if(!chatMsgs.length){c.innerHTML='<div class="empty-state" style="padding:1.5rem"><p>Nenhuma mensagem ainda. Comece o papo! ⚽</p></div>';return}
   const uid=usuarioAtual?.id;
+  const EMOJIS_RAPIDOS=['👏','😂','🔥','💀'];
   c.innerHTML=chatMsgs.map(m=>{
     const minha=m.usuario_id===uid;
-    const cor=corU(m.usuario_id||'?');
+    const u=todosUsuarios.find(x=>x.id===m.usuario_id)||{id:m.usuario_id,nome:m.nome};
     const t=new Date(m.criado_em).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    const reacoes=m.reacoes||{};
+    const reacoesHtml=Object.entries(reacoes).filter(([,uids])=>uids.length>0).map(([emo,uids])=>
+      `<span class="reacao-pill${uids.includes(uid)?' minha-reacao':''}" onclick="reagirChat('${m.id}','${emo}')">${emo} ${uids.length}</span>`
+    ).join('');
+    const botoesRapidos=EMOJIS_RAPIDOS.map(emo=>`<span class="reacao-add-btn" onclick="reagirChat('${m.id}','${emo}')">${emo}</span>`).join('');
     return`<div class="chat-msg${minha?' minha':''}">
-      <div class="chat-avatar" style="background:${cor}">${(m.nome||'?').charAt(0).toUpperCase()}</div>
-      <div><div class="chat-bubble">${escHtml(m.texto)}</div><div class="chat-meta">${minha?'Você':escHtml(m.nome)} · ${t}</div></div>
+      ${renderAvatar(u,28)}
+      <div style="max-width:75%">
+        <div class="chat-bubble">${escHtml(m.texto)}</div>
+        <div class="chat-meta">${minha?'Você':escHtml(m.nome)} · ${t}</div>
+        <div class="chat-reacoes-row">${reacoesHtml}<span class="reacao-add-wrap">${botoesRapidos}</span></div>
+      </div>
     </div>`;
   }).join('');
   c.scrollTop=c.scrollHeight;
   document.getElementById('chat-inp').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();enviarChat()}});
+}
+
+async function reagirChat(msgId, emoji){
+  if(!usuarioAtual)return;
+  const msg=chatMsgs.find(m=>m.id===msgId);
+  if(!msg)return;
+  const reacoes=msg.reacoes||{};
+  if(!reacoes[emoji])reacoes[emoji]=[];
+  const uid=usuarioAtual.id;
+  const idx=reacoes[emoji].indexOf(uid);
+  if(idx>=0)reacoes[emoji].splice(idx,1); // remove se já reagiu (toggle)
+  else reacoes[emoji].push(uid);
+  msg.reacoes=reacoes;
+  renderChat();
+  try{
+    await sbPatch('chat',`id=eq.${msgId}`,{reacoes});
+  }catch(e){console.warn('Reação não salva:',e.message)}
 }
 async function enviarChat(){
   const inp=document.getElementById('chat-inp');
@@ -1841,6 +2271,73 @@ function renderMata(){
 // ═══════════════════════════════════════════
 // BOLÃO DO CAMPEÃO 👑
 // ═══════════════════════════════════════════
+// ═══════════════════════════════════════════
+// RESUMO SEMANAL 📊 — toda segunda-feira, automático
+// ═══════════════════════════════════════════
+function checarResumoSemanal(){
+  const hoje=new Date();
+  const ehSegunda=hoje.getDay()===1; // 0=domingo, 1=segunda
+  if(!ehSegunda)return;
+  const chaveSemana=`copa_resumo_${hoje.toISOString().split('T')[0]}`;
+  // Já mostrou hoje? não repete
+  const jaViuHoje=localStorage.getItem('copa_resumo_ultima_data')===hoje.toISOString().split('T')[0];
+  if(jaViuHoje)return;
+  setTimeout(()=>mostrarResumoSemanal(true),2500);
+}
+
+function mostrarResumoSemanal(automatico){
+  const uid=usuarioAtual?.id;
+  if(!uid)return;
+  const hoje=new Date();
+  const seteDiasAtras=new Date(hoje.getTime()-7*86400000);
+
+  // Jogos encerrados nos últimos 7 dias com palpite do usuário
+  const jogosSemana=todosJogos.filter(j=>{
+    if(j.status!=='encerrado')return false;
+    const dtJ=new Date(j.data);
+    return dtJ>=seteDiasAtras && dtJ<=hoje;
+  });
+  const comPalpiteSemana=jogosSemana.filter(j=>(todosPalpites[j.id]||{})[uid]);
+
+  let ptsSemana=0,melhorJogo=null,melhorPts=0;
+  comPalpiteSemana.forEach(j=>{
+    const pal=(todosPalpites[j.id]||{})[uid];
+    const{pts}=calcPts(j,pal);
+    ptsSemana+=pts;
+    if(pts>melhorPts){melhorPts=pts;melhorJogo=j}
+  });
+
+  // Posição no ranking (atual vs estimativa simples)
+  const ranked=todosUsuarios.map(u=>({...u,...calcPtsTotal(u.id)})).sort((a,b)=>b.total-a.total);
+  const minhaPos=ranked.findIndex(u=>u.id===uid)+1;
+
+  if(automatico)localStorage.setItem('copa_resumo_ultima_data',hoje.toISOString().split('T')[0]);
+
+  const overlay=document.createElement('div');
+  overlay.className='modal-overlay show';
+  overlay.id='modal-resumo-semanal';
+  overlay.onclick=(e)=>{if(e.target===overlay)fecharResumoSemanal()};
+  overlay.innerHTML=`
+    <div class="modal-sheet" style="text-align:center">
+      <div class="modal-handle"></div>
+      <div style="font-size:2.2rem;margin-bottom:.3rem">📊</div>
+      <div class="modal-title" style="font-size:1.4rem">Resumo da Semana</div>
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:1.2rem">${usuarioAtual.nome}, veja como você se saiu!</p>
+      <div class="meu-resumo" style="grid-template-columns:repeat(2,1fr);margin-bottom:1rem">
+        <div class="resumo-card"><div class="resumo-num">${ptsSemana}</div><div class="resumo-label">Pontos na semana</div></div>
+        <div class="resumo-card"><div class="resumo-num">${minhaPos}º</div><div class="resumo-label">Posição atual</div></div>
+        <div class="resumo-card"><div class="resumo-num">${comPalpiteSemana.length}</div><div class="resumo-label">Jogos palpitados</div></div>
+        <div class="resumo-card"><div class="resumo-num">${jogosSemana.length-comPalpiteSemana.length}</div><div class="resumo-label">Jogos perdidos</div></div>
+      </div>
+      ${melhorJogo?`<div class="card" style="text-align:left"><div class="card-title">⭐ Seu melhor jogo</div><div style="font-size:.85rem">${nomePT(melhorJogo.time1)} ${melhorJogo.gols1}×${melhorJogo.gols2} ${nomePT(melhorJogo.time2)} <strong style="color:var(--amarelo)">+${melhorPts}pts</strong></div></div>`:''}
+      <button class="btn-primary" style="margin-top:1rem" onclick="fecharResumoSemanal()">Beleza! ⚽</button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+function fecharResumoSemanal(){
+  document.getElementById('modal-resumo-semanal')?.remove();
+}
+
 function renderBolao(){
   const c=document.getElementById('bolao-grid');
   const status=document.getElementById('bolao-status');
@@ -1886,9 +2383,16 @@ function renderPerfil(){
   jogosComPal.forEach(j=>{const pal=(todosPalpites[j.id]||{})[uid];const{pts}=calcPts(j,pal);if(pts>melhorPts){melhorPts=pts;melhorJogo=j}});
   const camp=bolaoAtual[uid];
   const cor=corU(uid||'?');
+  const fotoHtml = usuarioAtual.foto_url
+    ? `<img src="${usuarioAtual.foto_url}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;margin:0 auto .75rem;display:block;border:3px solid ${cor}" alt="">`
+    : `<div class="perfil-avatar-big" style="background:${cor}22;color:${cor};border-color:${cor}">${usuarioAtual.nome.charAt(0).toUpperCase()}</div>`;
   c.innerHTML=`
     <div class="perfil-hero">
-      <div class="perfil-avatar-big" style="background:${cor}22;color:${cor};border-color:${cor}">${usuarioAtual.nome.charAt(0).toUpperCase()}</div>
+      <div style="position:relative;width:64px;margin:0 auto .75rem">
+        ${fotoHtml.replace('margin:0 auto .75rem;','')}
+        <button onclick="document.getElementById('input-foto-perfil').click()" style="position:absolute;bottom:-2px;right:-2px;width:24px;height:24px;border-radius:50%;background:var(--verde);border:2px solid var(--card);color:#fff;font-size:.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center">📷</button>
+      </div>
+      <input type="file" id="input-foto-perfil" accept="image/*" style="display:none" onchange="trocarFotoPerfil(this)">
       <div class="perfil-nome">${usuarioAtual.nome}</div>
       <div style="font-size:.75rem;color:var(--muted);margin-top:.2rem">@${usuarioAtual.usuario}</div>
       <div class="perfil-stats">
