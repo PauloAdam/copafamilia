@@ -588,7 +588,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '43';
+const APP_VERSION = '44';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -978,6 +978,7 @@ function fmtHora(s){return s?s+' (Brasília)':'';}
 let usuarioAtual=null, todosJogos=[], todosUsuarios=[], todosPalpites={};
 let filtroGrupoAtivo='todos', filtroStatusAtivo='proximos', ultimaAtualizacao=null;
 let placaresPrev={}, chatMsgs=[], ultimoChat=0, bolaoAtual={}, apostasExtras={};
+let bloqueandoAutoRefresh=false; // true enquanto uma ação (salvar palpite, etc) está em andamento
 
 // ═══════════════════════════════════════════
 // SUPABASE
@@ -1093,16 +1094,19 @@ async function iniciarApp(){
   checarMudancaRanking();
   registrarAcessoDispositivo();
   setInterval(async()=>{
+    if(bloqueandoAutoRefresh)return; // alguma ação está em andamento (salvando palpite, etc) — espera a próxima rodada
     const prevPlacares={...placaresPrev};
     await carregarTudo();
+    if(bloqueandoAutoRefresh)return; // checagem dupla: pode ter começado uma ação durante o carregamento
     verificarGols(prevPlacares);
     // Se a pessoa estiver digitando um palpite agora, não re-renderiza a tela
-    // (evita apagar o que ela estava escrevendo no meio da atualização automática)
     const elementoAtivo=document.activeElement;
     const digitandoPalpite=elementoAtivo&&elementoAtivo.classList&&elementoAtivo.classList.contains('palpite-n');
-    if(!digitandoPalpite){
-      const pag=document.querySelector('.page.active')?.id?.replace('page-','');
-      if(pag)renderPagina(pag);
+    // Páginas onde a pessoa pode estar navegando/lendo (não recarrega para não "puxar" a tela)
+    const paginaAtual=document.querySelector('.page.active')?.id?.replace('page-','');
+    const paginaSensivel=paginaAtual==='auditoria'||paginaAtual==='admin';
+    if(!digitandoPalpite&&!paginaSensivel){
+      if(paginaAtual)renderPagina(paginaAtual);
     }
     carregarChat();
   },15000); // atualiza a cada 15s (mais rápido para placares ao vivo)
@@ -2156,22 +2160,20 @@ async function salvarPalpite(jogoId){
     if(btn.disabled)return; // já está salvando, evita clique duplo
     btn.disabled=true;btn.textContent='…';
   }
+  bloqueandoAutoRefresh=true; // trava qualquer atualização automática até terminar
   try{
     await sbUpsert('palpites',{usuario_id:usuarioAtual.id,jogo_id:jogoId,gols1:g1,gols2:g2},'usuario_id,jogo_id');
     if(!todosPalpites[jogoId])todosPalpites[jogoId]={};
     todosPalpites[jogoId][usuarioAtual.id]={p1:g1,p2:g2};
     const j=todosJogos.find(x=>x.id===jogoId);
     showToast(`✅ Palpite ${g1}×${g2} salvo! ${j?`(${nomePT(j.time1)} vs ${nomePT(j.time2)})`:''}`)
-    // IMPORTANTE: re-renderiza a página inteira em vez de só trocar outerHTML do card.
-    // outerHTML destrói o elemento DOM original — se a atualização automática (15s)
-    // tentasse usar uma referência antiga depois disso, o clique no botão parava de
-    // funcionar até a pessoa recarregar a página manualmente. Re-renderizar a página
-    // inteira sempre recria tudo do zero corretamente, sem esse problema.
     const pag=document.querySelector('.page.active')?.id?.replace('page-','');
     if(pag)renderPagina(pag);
   }catch(e){
     showToast('❌ Erro ao salvar. Verifique internet.');
     if(btn){btn.disabled=false;btn.textContent='💾 Salvar'}
+  }finally{
+    bloqueandoAutoRefresh=false; // libera o auto-refresh de novo
   }
 }
 
