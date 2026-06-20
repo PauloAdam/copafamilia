@@ -658,7 +658,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '61';
+const APP_VERSION = '62';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -960,8 +960,9 @@ const NOMES_PT = {
 
 function getFlag(nome) {
   if (!nome) return '<span style="font-size:1.8rem">🏳️</span>';
+  const nomeNorm = normalizarNomeTime(nome); // remove acentos (ex: "Curaçao" → "curacao")
   for (const [k,code] of Object.entries(FLAG_CODES)) {
-    if (nome.toLowerCase().includes(k.toLowerCase())) {
+    if (nomeNorm.includes(normalizarNomeTime(k))) {
       const img = document.createElement('img');
       img.src = `https://flagcdn.com/h40/${code}.png`;
       img.style.cssText = 'width:46px;height:auto;border-radius:3px;display:block;margin:0 auto';
@@ -973,16 +974,18 @@ function getFlag(nome) {
 }
 function getFlagSmall(nome) {
   if (!nome) return '';
+  const nomeNorm = normalizarNomeTime(nome);
   for (const [k,code] of Object.entries(FLAG_CODES)) {
-    if (nome.toLowerCase().includes(k.toLowerCase()))
+    if (nomeNorm.includes(normalizarNomeTime(k)))
       return `<img src="https://flagcdn.com/h20/${code}.png" style="width:20px;height:auto;border-radius:2px" alt="">`;
   }
   return '';
 }
 function nomePT(n) {
   if (!n) return '?';
+  const nNorm = normalizarNomeTime(n);
   for (const [en,pt] of Object.entries(NOMES_PT))
-    if (n.toLowerCase().includes(en.toLowerCase())) return pt;
+    if (nNorm.includes(normalizarNomeTime(en))) return pt;
   return n.replace(/UEFA Path \w+ winner/,'Playoff').replace(/IC Path \d+ winner/,'IC Playoff')
           .replace('winner','Vencedor').replace('Loser','Perdedor');
 }
