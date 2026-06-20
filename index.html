@@ -156,7 +156,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 /* APOSTA EXTRA — botões grandes, fáceis de clicar (acessível p/ idosos) */
 .extra-aposta-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
-.extra-aposta-btn{background:rgba(255,255,255,.05);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'Inter',sans-serif;font-size:.9rem;font-weight:700;padding:.85rem .5rem;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:.5rem;text-align:center}
+.extra-aposta-btn{background:rgba(255,255,255,.05);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'Inter',sans-serif;font-size:.75rem;font-weight:700;padding:.7rem .3rem;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem;text-align:center;line-height:1.2}
 .extra-aposta-btn:active{transform:scale(.97)}
 .extra-aposta-btn.selected{background:rgba(0,156,59,.18);border-color:var(--verde);color:var(--verde-light);font-weight:700}
 .palpite-resultado{font-size:.7rem;color:var(--muted)}
@@ -447,7 +447,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;font-size:.78rem">
           <div>🏆 Placar exato <strong style="color:var(--amarelo)">40 pts</strong></div>
           <div>✅ Resultado certo <strong style="color:var(--amarelo)">15 pts</strong></div>
-          <div>⚽ Quem marca 1º <strong style="color:var(--amarelo)">+5 pts</strong></div>
+          <div>⏱️ Vence 1º tempo <strong style="color:var(--amarelo)">+5 pts</strong></div>
           <div>🇧🇷 Bônus Brasil <strong style="color:var(--amarelo)">+5 pts</strong></div>
           <div>👑 Campeão certo <strong style="color:var(--amarelo)">50 pts</strong></div>
         </div>
@@ -563,7 +563,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '33';
+const APP_VERSION = '34';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -870,7 +870,7 @@ function fmtHora(s){return s?s+' (Brasília)':'';}
 // ═══════════════════════════════════════════
 let usuarioAtual=null, todosJogos=[], todosUsuarios=[], todosPalpites={};
 let filtroGrupoAtivo='todos', filtroStatusAtivo='proximos', ultimaAtualizacao=null;
-let placaresPrev={}, chatMsgs=[], ultimoChat=0, bolaoAtual={}, apostasExtras={}, primeiroGol={};
+let placaresPrev={}, chatMsgs=[], ultimoChat=0, bolaoAtual={}, apostasExtras={};
 
 // ═══════════════════════════════════════════
 // SUPABASE
@@ -1205,17 +1205,11 @@ async function carregarDadosSupabase(){
     // Bolão campeão
     const b=await sbGet('bolao','select=*');
     bolaoAtual={};b.forEach(r=>bolaoAtual[r.usuario_id]=r.campeao);
-    // Apostas extras (quem marca primeiro)
+    // Apostas extras (quem vence o 1º tempo)
     try{
       const ex=await sbGet('apostas_extras','select=*');
       apostasExtras={};
       ex.forEach(a=>{if(!apostasExtras[a.jogo_id])apostasExtras[a.jogo_id]={};apostasExtras[a.jogo_id][a.usuario_id]=a.jogador});
-    }catch(e){/* tabela pode não existir ainda */}
-    // Quem marcou o primeiro gol de cada jogo (definido pelo admin)
-    try{
-      const pg=await sbGet('primeiro_gol','select=*');
-      primeiroGol={};
-      pg.forEach(r=>{primeiroGol[r.jogo_id]=r.time_marcou});
     }catch(e){/* tabela pode não existir ainda */}
   }catch(e){console.warn('Supabase:',e)}
 }
@@ -1931,21 +1925,23 @@ function extraApostaHTML(j){
   if(!uid)return'';
   const escolha=(apostasExtras[j.id]||{})[uid];
   return`<div class="palpite-row" style="flex-direction:column;align-items:stretch;gap:.5rem">
-    <span class="palpite-label">⚽ Quem marca primeiro?</span>
-    <div class="extra-aposta-grid" style="grid-template-columns:1fr 1fr">
+    <span class="palpite-label">⏱️ Quem vence o 1º tempo?</span>
+    <div class="extra-aposta-grid" style="grid-template-columns:1fr 1fr 1fr">
       <button class="extra-aposta-btn${escolha===j.time1?' selected':''}" onclick="salvarApostaExtra('${j.id}','${j.time1.replace(/'/g,"\\'")}')">${getFlagSmall(j.time1)} ${nomePT(j.time1)}</button>
+      <button class="extra-aposta-btn${escolha==='empate'?' selected':''}" onclick="salvarApostaExtra('${j.id}','empate')">🤝 Empate</button>
       <button class="extra-aposta-btn${escolha===j.time2?' selected':''}" onclick="salvarApostaExtra('${j.id}','${j.time2.replace(/'/g,"\\'")}')">${getFlagSmall(j.time2)} ${nomePT(j.time2)}</button>
     </div>
   </div>`;
 }
 
-async function salvarApostaExtra(jogoId, time){
+async function salvarApostaExtra(jogoId, escolha){
   if(!usuarioAtual)return;
   try{
-    await sbUpsert('apostas_extras',{usuario_id:usuarioAtual.id,jogo_id:jogoId,jogador:time},'usuario_id,jogo_id');
+    await sbUpsert('apostas_extras',{usuario_id:usuarioAtual.id,jogo_id:jogoId,jogador:escolha},'usuario_id,jogo_id');
     if(!apostasExtras[jogoId])apostasExtras[jogoId]={};
-    apostasExtras[jogoId][usuarioAtual.id]=time;
-    showToast(`⚽ Aposta: ${nomePT(time)} marca primeiro!`);
+    apostasExtras[jogoId][usuarioAtual.id]=escolha;
+    const txt=escolha==='empate'?'Empate no 1º tempo':`${nomePT(escolha)} vence o 1º tempo`;
+    showToast(`⏱️ Aposta: ${txt}!`);
     const j=todosJogos.find(x=>x.id===jogoId);
     const card=document.getElementById('card_'+jogoId);
     if(card&&j){card.outerHTML=jogoCardHTML(j,true);const n=document.getElementById('card_'+jogoId);if(n)vincularPalpites(n)}
@@ -2042,7 +2038,7 @@ function calcPts(j,pal){
   return{pts:0,txt:'❌ Errou'};
 }
 function calcPtsTotal(uid){
-  let total=0,exatos=0,resultados=0,erros=0,acertosPrimeiroGol=0;
+  let total=0,exatos=0,resultados=0,erros=0,acertosPrimeiroTempo=0;
   todosJogos.forEach(j=>{
     if(j.status!=='encerrado'||j.gols1===null)return;
     const pal=(todosPalpites[j.id]||{})[uid];if(!pal)return;
@@ -2051,13 +2047,17 @@ function calcPtsTotal(uid){
     else if(txt.includes('Resultado'))resultados++;
     else if(txt.includes('Errou'))erros++;
   });
-  // Apostas extras: "quem marca primeiro?" — +5 pts se acertar
+  // Apostas extras: "quem vence o 1º tempo?" — +5 pts se acertar
+  // Calculado automaticamente a partir do placar do intervalo (golsHT), sem precisar de admin
   todosJogos.forEach(j=>{
-    if(j.status!=='encerrado')return;
+    if(j.status!=='encerrado'||j.golsHT1===null||j.golsHT2===null)return;
     const escolha=(apostasExtras[j.id]||{})[uid];
-    const realQuemMarcou=primeiroGol[j.id];
-    if(!escolha||!realQuemMarcou)return;
-    if(escolha===realQuemMarcou){total+=5;acertosPrimeiroGol++}
+    if(!escolha)return;
+    let resultadoReal;
+    if(j.golsHT1>j.golsHT2)resultadoReal=j.time1;
+    else if(j.golsHT2>j.golsHT1)resultadoReal=j.time2;
+    else resultadoReal='empate';
+    if(escolha===resultadoReal){total+=5;acertosPrimeiroTempo++}
   });
   // Bônus campeão
   const camp=bolaoAtual[uid];
@@ -2065,7 +2065,7 @@ function calcPtsTotal(uid){
     const finalJ=todosJogos.find(j=>j.round==='Final'&&j.status==='encerrado');
     if(finalJ){const venc=finalJ.gols1>finalJ.gols2?finalJ.time1:finalJ.time2;if(venc===camp)total+=50}
   }
-  return{total,exatos,resultados,erros,acertosPrimeiroGol};
+  return{total,exatos,resultados,erros,acertosPrimeiroTempo};
 }
 
 // ═══════════════════════════════════════════
@@ -2409,9 +2409,7 @@ function renderAdmin(){
     return;
   }
   const jogosEdit=todosJogos.filter(j=>j.status==='ao-vivo'||j.status==='encerrado').slice(-20);
-  c.innerHTML=jogosEdit.map(j=>{
-    const golAtual=primeiroGol[j.id]||'';
-    return`
+  c.innerHTML=jogosEdit.map(j=>`
     <div class="admin-card">
       <div style="font-size:.8rem;font-weight:600;margin-bottom:.5rem">${nomePT(j.time1)} × ${nomePT(j.time2)} · ${fmtData(j.data)}</div>
       <div class="admin-jogo-row">
@@ -2426,18 +2424,7 @@ function renderAdmin(){
         </select>
         <button class="btn-admin-save" onclick="adminSalvar('${j.id}')">Salvar</button>
       </div>
-      <div class="admin-jogo-row" style="margin-top:.4rem">
-        <span style="font-size:.75rem;color:var(--muted)">⚽ Quem marcou primeiro:</span>
-        <select id="adm_golprimeiro_${j.id}" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:3px 6px;font-size:.72rem;flex:1">
-          <option value="">— não definido —</option>
-          <option value="${j.time1}"${golAtual===j.time1?' selected':''}>${nomePT(j.time1)}</option>
-          <option value="${j.time2}"${golAtual===j.time2?' selected':''}>${nomePT(j.time2)}</option>
-          <option value="nenhum"${golAtual==='nenhum'?' selected':''}>Sem gols (0×0)</option>
-        </select>
-        <button class="btn-admin-save" onclick="adminSalvarPrimeiroGol('${j.id}')">Salvar</button>
-      </div>
-    </div>`;
-  }).join('');
+    </div>`).join('');
 }
 function adminSalvar(id){
   if(!isAdmin())return; // proteção extra na própria ação
@@ -2450,19 +2437,6 @@ function adminSalvar(id){
   showToast(`✅ Jogo atualizado manualmente!`);
   renderAdmin();
   registrarLogAuditoria('placar_editado', `${nomePT(j.time1)} ${g1}x${g2} ${nomePT(j.time2)}`);
-}
-
-async function adminSalvarPrimeiroGol(jogoId){
-  if(!isAdmin())return;
-  const time=document.getElementById('adm_golprimeiro_'+jogoId)?.value;
-  if(!time)return;
-  try{
-    await sbUpsert('primeiro_gol',{jogo_id:jogoId,time_marcou:time},'jogo_id');
-    primeiroGol[jogoId]=time;
-    showToast(`✅ Primeiro gol registrado!`);
-    const j=todosJogos.find(x=>x.id===jogoId);
-    registrarLogAuditoria('primeiro_gol_editado', `${j?nomePT(j.time1)+' x '+nomePT(j.time2):jogoId}: ${time==='nenhum'?'sem gols':nomePT(time)}`);
-  }catch(e){showToast('❌ Erro ao salvar (tabela pode não existir ainda)');console.warn(e)}
 }
 
 // ═══════════════════════════════════════════
