@@ -53,6 +53,17 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .gol-banner.show{transform:translateY(0)}
 
 /* ── AUTH ── */
+/* SPLASH SCREEN */
+#splash-screen{position:fixed;inset:0;z-index:10000;background:linear-gradient(135deg,#001a0d 0%,#002310 100%);display:flex;align-items:center;justify-content:center;animation:splashFadeOut .4s ease 1.1s forwards}
+.splash-content{text-align:center}
+.splash-ball{font-size:4.5rem;line-height:1;animation:splashBounce .55s cubic-bezier(.5,0,.5,1) infinite alternate}
+.splash-titulo{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--amarelo);letter-spacing:3px;margin-top:1rem;opacity:0;animation:splashTextIn .3s ease .3s forwards}
+.splash-titulo span{color:var(--verde-light)}
+.splash-sub{font-size:.8rem;color:var(--muted);margin-top:.3rem;opacity:0;animation:splashTextIn .3s ease .5s forwards}
+@keyframes splashBounce{from{transform:translateY(0) scaleY(1)}to{transform:translateY(-30px) scaleY(1.05)}}
+@keyframes splashTextIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes splashFadeOut{to{opacity:0;visibility:hidden;pointer-events:none}}
+
 #auth-screen{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:1rem;background:var(--bg)}
 .auth-box{width:100%;max-width:380px;background:var(--card);border:1px solid var(--border2);border-radius:18px;padding:2rem 1.75rem;position:relative;overflow:hidden}
 .auth-box::before{content:'';position:absolute;top:-60px;left:-60px;width:180px;height:180px;background:radial-gradient(circle,rgba(255,223,0,.06) 0%,transparent 70%);pointer-events:none}
@@ -235,6 +246,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .grupo-table th:first-child{text-align:left;padding-left:.75rem}
 .grupo-table td{padding:.4rem .5rem;text-align:center;border-bottom:1px solid rgba(0,156,59,.08)}
 .grupo-table td:first-child{text-align:left;padding-left:.75rem}
+.grupo-progresso-track{width:100%;max-width:140px;height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:4px;overflow:hidden}
+.grupo-progresso-fill{height:100%;border-radius:2px;transition:width .3s}
 .grupo-table tr:last-child td{border-bottom:none}
 .grupo-table .g-pts{font-weight:700;color:var(--amarelo)}
 .g-q{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;vertical-align:middle}
@@ -347,6 +360,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 </style>
 </head>
 <body>
+
+<!-- SPLASH SCREEN -->
+<div id="splash-screen">
+  <div class="splash-content">
+    <div class="splash-ball">⚽</div>
+    <div class="splash-titulo">COPA <span>2026</span></div>
+    <div class="splash-sub">Palpites da Família</div>
+  </div>
+</div>
 
 <!-- GOL BANNER -->
 <div class="gol-banner" id="gol-banner"></div>
@@ -563,7 +585,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '37';
+const APP_VERSION = '38';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -716,7 +738,7 @@ async function trocarFotoPerfil(input){
     showToast('✅ Foto atualizada!');
     renderPerfil();
     const avWrap = document.getElementById('topbar-avatar');
-    if (avWrap) avWrap.outerHTML = renderAvatar(usuarioAtual, 24).replace('<img ', '<img id="topbar-avatar" ').replace('<div ', '<div id="topbar-avatar" ');
+    if (avWrap) avWrap.outerHTML = renderAvatar(usuarioAtual, 24, calcPtsTotal(usuarioAtual.id).total).replace('<img ', '<img id="topbar-avatar" ').replace('<div ', '<div id="topbar-avatar" ');
   } catch(e) {
     console.error('[Foto] Erro inesperado:', e);
     showToast(`❌ Erro inesperado: ${String(e.message||e).substring(0,60)}`);
@@ -895,14 +917,52 @@ const CORES=['#009c3b','#002776','#c8191a','#e07000','#7b2d8b','#0088cc','#88440
 function corU(id){let n=0;String(id).split('').forEach(c=>n=(n*31+c.charCodeAt(0))&0xffff);return CORES[n%CORES.length]}
 
 // Renderiza avatar (foto se tiver, senão letra inicial colorida)
-function renderAvatar(usuario, tamanho){
+// ═══════════════════════════════════════════
+// SISTEMA DE MOLDURAS 🏅 — desbloqueadas por pontuação
+// ═══════════════════════════════════════════
+const NIVEIS_MOLDURA = [
+  { min: 0,   nome: 'Sem moldura', cor: null,      emoji: '' },
+  { min: 50,  nome: 'Bronze',      cor: '#cd7f32', emoji: '🥉' },
+  { min: 100, nome: 'Prata',       cor: '#c0c0c0', emoji: '🥈' },
+  { min: 200, nome: 'Ouro',        cor: '#ffd700', emoji: '🥇' },
+  { min: 350, nome: 'Platina',     cor: '#00e5ff', emoji: '💎' },
+  { min: 500, nome: 'Diamante',    cor: '#b388ff', emoji: '👑' },
+];
+function getNivelMoldura(pts){
+  let nivel = NIVEIS_MOLDURA[0];
+  for (const n of NIVEIS_MOLDURA) { if (pts >= n.min) nivel = n; }
+  return nivel;
+}
+function getProximoNivel(pts){
+  return NIVEIS_MOLDURA.find(n => n.min > pts) || null;
+}
+
+function renderAvatar(usuario, tamanho, pontosParaMoldura){
   tamanho = tamanho || 34;
   const cor = corU(usuario?.id || usuario?.usuario || '?');
   const inicial = (usuario?.nome || '?').charAt(0).toUpperCase();
-  if (usuario?.foto_url) {
-    return `<img src="${usuario.foto_url}" style="width:${tamanho}px;height:${tamanho}px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1.5px solid ${cor}40" alt="${inicial}">`;
+  let borderStyle = `1.5px solid ${cor}40`;
+  let glowStyle = '';
+  let badgeHtml = '';
+
+  if (pontosParaMoldura !== undefined) {
+    const nivel = getNivelMoldura(pontosParaMoldura);
+    if (nivel.cor) {
+      const espessura = Math.max(2, Math.round(tamanho * 0.08));
+      borderStyle = `${espessura}px solid ${nivel.cor}`;
+      glowStyle = `box-shadow:0 0 ${Math.round(tamanho*0.25)}px ${nivel.cor}80;`;
+      const tamanhoBadge = Math.max(12, Math.round(tamanho*0.4));
+      badgeHtml = `<span style="position:absolute;bottom:-2px;right:-2px;font-size:${tamanhoBadge}px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))">${nivel.emoji}</span>`;
+    }
   }
-  return `<div style="width:${tamanho}px;height:${tamanho}px;border-radius:50%;background:${cor}22;color:${cor};border:1.5px solid ${cor}40;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${tamanho*0.4}px;flex-shrink:0">${inicial}</div>`;
+
+  const wrapStart = badgeHtml ? `<span style="position:relative;display:inline-flex;flex-shrink:0">` : '';
+  const wrapEnd = badgeHtml ? `</span>` : '';
+
+  if (usuario?.foto_url) {
+    return `${wrapStart}<img src="${usuario.foto_url}" style="width:${tamanho}px;height:${tamanho}px;border-radius:50%;object-fit:cover;flex-shrink:0;border:${borderStyle};${glowStyle}" alt="${inicial}">${badgeHtml}${wrapEnd}`;
+  }
+  return `${wrapStart}<div style="width:${tamanho}px;height:${tamanho}px;border-radius:50%;background:${cor}22;color:${cor};border:${borderStyle};${glowStyle}display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${tamanho*0.4}px;flex-shrink:0">${inicial}</div>${badgeHtml}${wrapEnd}`;
 }
 const DIAS=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
@@ -1003,7 +1063,7 @@ async function iniciarApp(){
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app').style.display='block';
   const avWrap=document.getElementById('topbar-avatar');
-  if(avWrap) avWrap.outerHTML=renderAvatar(usuarioAtual,24).replace('<img ','<img id="topbar-avatar" ').replace('<div ','<div id="topbar-avatar" ');
+  if(avWrap) avWrap.outerHTML=renderAvatar(usuarioAtual,24,calcPtsTotal(usuarioAtual.id).total).replace('<img ','<img id="topbar-avatar" ').replace('<div ','<div id="topbar-avatar" ');
   // Admin?
   if(isAdmin()){
     document.getElementById('btn-admin-menu').style.display='flex';
@@ -1027,6 +1087,7 @@ async function iniciarApp(){
   registrarSW();
   pedirNotificacao();
   checarResumoSemanal();
+  checarMudancaRanking();
   setInterval(async()=>{
     const prevPlacares={...placaresPrev};
     await carregarTudo();
@@ -2149,8 +2210,8 @@ function renderRanking(){
   const ord=top.length>=3?[top[1],top[0],top[2]]:top;
   const cls=['segundo','primeiro','terceiro'];
   const emj=['🥈','🥇','🥉'];
-  podio.innerHTML=ord.map((u,i)=>u?`<div class="rank-podio-card ${cls[i]}"><span class="podio-emoji">${emj[i]}</span><div style="margin:0 auto .35rem;width:40px">${renderAvatar(u,40)}</div><div class="podio-nome">${u.nome}</div><div class="podio-pts">${u.total}<small>pontos</small></div></div>`:'<div></div>').join('');
-  lista.innerHTML=ranked.map((u,i)=>`<div class="rank-row"><div class="rank-pos">${i+1}º</div>${renderAvatar(u,34)}<div class="rank-info"><div class="rank-nome-txt">${u.nome}</div><div class="rank-detalhe">🏆${u.exatos} · ✅${u.resultados}</div></div><div class="rank-pts-val">${u.total}<small>pts</small></div></div>`).join('');
+  podio.innerHTML=ord.map((u,i)=>u?`<div class="rank-podio-card ${cls[i]}"><span class="podio-emoji">${emj[i]}</span><div style="margin:0 auto .35rem;width:40px">${renderAvatar(u,40,u.total)}</div><div class="podio-nome">${u.nome}</div><div class="podio-pts">${u.total}<small>pontos</small></div></div>`:'<div></div>').join('');
+  lista.innerHTML=ranked.map((u,i)=>`<div class="rank-row"><div class="rank-pos">${i+1}º</div>${renderAvatar(u,34,u.total)}<div class="rank-info"><div class="rank-nome-txt">${u.nome}</div><div class="rank-detalhe">🏆${u.exatos} · ✅${u.resultados}</div></div><div class="rank-pts-val">${u.total}<small>pts</small></div></div>`).join('');
 }
 
 // ═══════════════════════════════════════════
@@ -2174,7 +2235,28 @@ function renderGrupos(){
   if(!keys.length){c.innerHTML='<div class="empty-state"><span class="ei">📊</span><p>Carregando…</p></div>';return}
   c.innerHTML=keys.map(g=>{
     const ts=Object.entries(grupos[g]).map(([n,s])=>({n,...s,SG:s.GP-s.GC})).sort((a,b)=>b.Pts-a.Pts||b.SG-a.SG||b.GP-a.GP);
-    return`<div class="grupo-card"><div class="grupo-header">⚽ ${g.replace('Group ','Grupo ')}</div><table class="grupo-table"><thead><tr><th>Seleção</th><th>J</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th><th>Pts</th></tr></thead><tbody>${ts.map((t,i)=>`<tr${t.n==='Brazil'?' style="background:rgba(255,223,0,.05)"':''}><td><span class="g-q" style="background:${i<2?'var(--verde-light)':'#444'}"></span>${getFlagSmall(t.n)} ${nomePT(t.n)}</td><td>${t.J}</td><td>${t.V}</td><td>${t.E}</td><td>${t.D}</td><td>${t.GP}</td><td>${t.GC}</td><td style="color:${t.SG>=0?'var(--verde-light)':'#f88'}">${t.SG>0?'+':''}${t.SG}</td><td class="g-pts">${t.Pts}</td></tr>`).join('')}</tbody></table></div>`;
+    const totalJogosGrupo=3; // fase de grupos = 3 jogos por time
+    const linhas=ts.map((t,i)=>{
+      const classificado=i<2;
+      const jogosRestantes=totalJogosGrupo-t.J;
+      const corBarra=classificado?'var(--verde-light)':'#ff5555';
+      const pctBarra=Math.min(100,Math.round((t.J/totalJogosGrupo)*100));
+      const statusTxt = t.J===0 ? '' : (classificado
+        ? (jogosRestantes===0?'✅ Classificado':'🟢 Classificando')
+        : (jogosRestantes===0?'❌ Eliminado':'🔴 Fora da zona'));
+      return`<tr${t.n==='Brazil'?' style="background:rgba(255,223,0,.05)"':''}>
+        <td>
+          <div style="display:flex;align-items:center;gap:5px">
+            <span class="g-q" style="background:${i<2?'var(--verde-light)':'#444'}"></span>${getFlagSmall(t.n)} ${nomePT(t.n)}
+          </div>
+          ${t.J>0?`<div class="grupo-progresso-track"><div class="grupo-progresso-fill" style="width:${pctBarra}%;background:${corBarra}"></div></div>${statusTxt?`<div style="font-size:.58rem;color:${classificado?'var(--verde-light)':'#ff8888'};margin-top:1px">${statusTxt}</div>`:''}`:''}
+        </td>
+        <td>${t.J}</td><td>${t.V}</td><td>${t.E}</td><td>${t.D}</td><td>${t.GP}</td><td>${t.GC}</td>
+        <td style="color:${t.SG>=0?'var(--verde-light)':'#f88'}">${t.SG>0?'+':''}${t.SG}</td>
+        <td class="g-pts">${t.Pts}</td>
+      </tr>`;
+    }).join('');
+    return`<div class="grupo-card"><div class="grupo-header">⚽ ${g.replace('Group ','Grupo ')}</div><table class="grupo-table"><thead><tr><th>Seleção</th><th>J</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GC</th><th>SG</th><th>Pts</th></tr></thead><tbody>${linhas}</tbody></table></div>`;
   }).join('');
 }
 
@@ -2209,8 +2291,9 @@ function renderChat(){
       `<span class="reacao-pill${uids.includes(uid)?' minha-reacao':''}" onclick="reagirChat('${m.id}','${emo}')">${emo} ${uids.length}</span>`
     ).join('');
     const botoesRapidos=EMOJIS_RAPIDOS.map(emo=>`<span class="reacao-add-btn" onclick="reagirChat('${m.id}','${emo}')">${emo}</span>`).join('');
+    const ptsAutor=calcPtsTotal(m.usuario_id).total;
     return`<div class="chat-msg${minha?' minha':''}">
-      ${renderAvatar(u,28)}
+      ${renderAvatar(u,28,ptsAutor)}
       <div style="max-width:75%">
         <div class="chat-bubble">${escHtml(m.texto)}</div>
         <div class="chat-meta">${minha?'Você':escHtml(m.nome)} · ${t}</div>
@@ -2297,6 +2380,31 @@ function checarResumoSemanal(){
   const jaViuHoje=localStorage.getItem('copa_resumo_ultima_data')===hoje.toISOString().split('T')[0];
   if(jaViuHoje)return;
   setTimeout(()=>mostrarResumoSemanal(true),2500);
+}
+
+// ═══════════════════════════════════════════
+// NOTIFICAÇÃO DE MUDANÇA DE POSIÇÃO 🎉 — ao abrir o app
+// ═══════════════════════════════════════════
+function checarMudancaRanking(){
+  const uid=usuarioAtual?.id;
+  if(!uid||!todosUsuarios.length)return;
+  const ranked=todosUsuarios.map(u=>({...u,...calcPtsTotal(u.id)})).sort((a,b)=>b.total-a.total);
+  const posicaoAtual=ranked.findIndex(u=>u.id===uid)+1;
+  if(posicaoAtual===0)return; // não encontrado, ignora
+
+  const chave='copa_ultima_posicao_'+uid;
+  const posicaoAnterior=parseInt(localStorage.getItem(chave)||'0');
+
+  // Só notifica se já tínhamos uma posição salva antes (não na primeira vez)
+  if(posicaoAnterior>0&&posicaoAtual<posicaoAnterior){
+    const subiu=posicaoAnterior-posicaoAtual;
+    setTimeout(()=>{
+      showToast(`🎉 Você subiu para ${posicaoAtual}º lugar!`);
+      // Confete leve para comemorar (sem ser exagerado)
+      if(posicaoAtual<=3)lancarConfete();
+    },1800);
+  }
+  localStorage.setItem(chave,String(posicaoAtual));
 }
 
 function mostrarResumoSemanal(automatico){
@@ -2397,22 +2505,39 @@ function renderPerfil(){
   jogosComPal.forEach(j=>{const pal=(todosPalpites[j.id]||{})[uid];const{pts}=calcPts(j,pal);if(pts>melhorPts){melhorPts=pts;melhorJogo=j}});
   const camp=bolaoAtual[uid];
   const cor=corU(uid||'?');
-  const fotoHtml = usuarioAtual.foto_url
-    ? `<img src="${usuarioAtual.foto_url}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;margin:0 auto .75rem;display:block;border:3px solid ${cor}" alt="">`
-    : `<div class="perfil-avatar-big" style="background:${cor}22;color:${cor};border-color:${cor}">${usuarioAtual.nome.charAt(0).toUpperCase()}</div>`;
+  const nivelAtual=getNivelMoldura(total);
+  const proximoNivel=getProximoNivel(total);
+  const avatarGrandeHtml=renderAvatar(usuarioAtual,72,total);
   c.innerHTML=`
     <div class="perfil-hero">
-      <div style="position:relative;width:64px;margin:0 auto .75rem">
-        ${fotoHtml.replace('margin:0 auto .75rem;','')}
-        <button onclick="document.getElementById('input-foto-perfil').click()" style="position:absolute;bottom:-2px;right:-2px;width:24px;height:24px;border-radius:50%;background:var(--verde);border:2px solid var(--card);color:#fff;font-size:.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center">📷</button>
+      <div style="position:relative;width:72px;margin:0 auto .75rem">
+        ${avatarGrandeHtml}
+        <button onclick="document.getElementById('input-foto-perfil').click()" style="position:absolute;top:-4px;right:-4px;width:24px;height:24px;border-radius:50%;background:var(--verde);border:2px solid var(--card);color:#fff;font-size:.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2">📷</button>
       </div>
       <input type="file" id="input-foto-perfil" accept="image/*" style="display:none" onchange="trocarFotoPerfil(this)">
       <div class="perfil-nome">${usuarioAtual.nome}</div>
       <div style="font-size:.75rem;color:var(--muted);margin-top:.2rem">@${usuarioAtual.usuario}</div>
+      ${nivelAtual.cor?`<div style="margin-top:.4rem;font-size:.78rem;font-weight:700;color:${nivelAtual.cor}">${nivelAtual.emoji} Nível ${nivelAtual.nome}</div>`:''}
       <div class="perfil-stats">
         <div class="pstat"><div class="pstat-num">${total}</div><div class="pstat-label">Pontos</div></div>
         <div class="pstat"><div class="pstat-num">${taxa}%</div><div class="pstat-label">Taxa acerto</div></div>
         <div class="pstat"><div class="pstat-num">${maxSeq}</div><div class="pstat-label">Seq. máx.</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🏅 Moldura do avatar</div>
+      ${proximoNivel
+        ? `<div style="font-size:.8rem;color:var(--muted);margin-bottom:.5rem">Faltam <strong style="color:var(--amarelo)">${proximoNivel.min-total} pts</strong> para desbloquear ${proximoNivel.emoji} <strong style="color:${proximoNivel.cor}">${proximoNivel.nome}</strong></div>`
+        : `<div style="font-size:.8rem;color:var(--amarelo);margin-bottom:.5rem">🎉 Você desbloqueou o nível máximo!</div>`}
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+        ${NIVEIS_MOLDURA.filter(n=>n.cor).map(n=>{
+          const desbloqueado=total>=n.min;
+          return `<div style="flex:1;min-width:55px;text-align:center;padding:.5rem .3rem;border-radius:8px;background:${desbloqueado?n.cor+'18':'rgba(255,255,255,.03)'};border:1px solid ${desbloqueado?n.cor+'50':'var(--border)'};opacity:${desbloqueado?1:.45}">
+            <div style="font-size:1.3rem">${n.emoji}</div>
+            <div style="font-size:.6rem;font-weight:700;color:${desbloqueado?n.cor:'var(--muted)'};margin-top:.2rem">${n.nome}</div>
+            <div style="font-size:.58rem;color:var(--muted)">${n.min}pts</div>
+          </div>`;
+        }).join('')}
       </div>
     </div>
     ${camp?`<div class="card"><div class="card-title">👑 Bolão do Campeão</div><div style="display:flex;align-items:center;gap:.75rem">${getFlag(camp)}<div><div style="font-weight:700">${nomePT(camp)}</div><div style="font-size:.75rem;color:var(--muted)">+50 pts se acertar</div></div></div></div>`:''}
