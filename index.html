@@ -600,7 +600,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '50';
+const APP_VERSION = '51';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -1274,7 +1274,12 @@ async function tentarESPN(){
     jogo.hora=horaReal;
     jogo.horaTxt=`${horaReal} (Brasília)`;
     matched++;
-    if(isLive){jogo.status='ao-vivo';if(s1>=0){jogo.gols1=s1;jogo.gols2=s2}jogo.minuto=clock}
+    if(isLive){
+      jogo.status='ao-vivo';
+      if(s1>=0){jogo.gols1=s1;jogo.gols2=s2}
+      jogo.minuto=clock;
+      jogo.statusEspn=st; // guarda o status exato (ex: STATUS_HALFTIME) para diferenciar intervalo de jogo rolando
+    }
     else if(isDone){jogo.status='encerrado';if(s1>=0){jogo.gols1=s1;jogo.gols2=s2}}
     else{
       const agora=new Date();
@@ -1944,11 +1949,13 @@ function filtrarGrupo(g,btn){
 // ═══════════════════════════════════════════
 function jogoCardHTML(j,comPalpite){
   const enc=j.status==='encerrado',live=j.status==='ao-vivo';
+  const ehIntervalo=live&&j.statusEspn==='STATUS_HALFTIME';
   const placar=enc?`<span class="placar encerrado">${j.gols1}<span class="placar-dash"> : </span>${j.gols2}</span>`
     :live&&j.gols1!==null?`<span class="placar live-score">${j.gols1}<span class="placar-dash"> : </span>${j.gols2}</span>`
     :`<span class="placar">–<span class="placar-dash"> : </span>–</span>`;
   const min=j.minuto?` ${j.minuto}`:'';
-  const pill=live?`<span class="status-pill sp-live"><span class="live-dot"></span>AO VIVO${min}</span>`
+  const pill=ehIntervalo?`<span class="status-pill sp-live"><span class="live-dot"></span>⏸️ INTERVALO</span>`
+    :live?`<span class="status-pill sp-live"><span class="live-dot"></span>AO VIVO${min}</span>`
     :enc?`<span class="status-pill sp-done">✓ Encerrado</span>`
     :`<span class="status-pill sp-futuro">⏰ ${j.horaTxt}</span>`;
   const grp=j.isMata?j.round.replace('Round of ','R32 ').replace('Quarter-final','Quartas').replace('Semi-final','Semis').replace('Match for third place','3º Lugar').replace('Final','Final'):j.grupo.replace('Group ','Grupo ');
