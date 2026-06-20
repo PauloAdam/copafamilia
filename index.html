@@ -284,7 +284,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .rank-lista .rank-row:last-child{border-bottom:none}
 .rank-lista .rank-row.rank-subiu{background:rgba(0,156,59,.12);box-shadow:0 0 0 1px rgba(0,156,59,.3)}
 .rank-lista .rank-row.rank-desceu{background:rgba(255,80,80,.08);box-shadow:0 0 0 1px rgba(255,80,80,.2)}
-.rank-lista .rank-row.rank-subiu,.rank-lista .rank-row.rank-desceu{transition:background .6s ease,box-shadow .6s ease}
+.rank-lista .rank-row.rank-subiu,.rank-lista .rank-row.rank-desceu{transition:background 1.2s ease,box-shadow 1.2s ease}
 .rank-pos{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--muted);min-width:28px;text-align:center}
 .rank-avatar-sm{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
 .rank-info{flex:1;min-width:0}
@@ -658,7 +658,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '63';
+const APP_VERSION = '64';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -2556,9 +2556,9 @@ function renderRanking(){
       const subiu=delta>0;
       el.classList.add(subiu?'rank-subiu':'rank-desceu');
       requestAnimationFrame(()=>{
-        el.style.transition='transform .5s cubic-bezier(.4,0,.2,1)';
+        el.style.transition='transform 1.1s cubic-bezier(.4,0,.2,1)';
         el.style.transform='translateY(0)';
-        setTimeout(()=>{el.classList.remove('rank-subiu','rank-desceu');el.style.zIndex='';},900);
+        setTimeout(()=>{el.classList.remove('rank-subiu','rank-desceu');el.style.zIndex='';},1800);
       });
     });
   }
