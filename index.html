@@ -221,8 +221,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .podio-nome{font-size:.72rem;font-weight:700;margin-bottom:.2rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .podio-pts{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--amarelo)}
 .podio-pts small{font-size:.6rem;font-family:'Inter',sans-serif;color:var(--muted);display:block;line-height:1}
-.rank-lista .rank-row{display:flex;align-items:center;gap:.75rem;padding:.65rem .25rem;border-bottom:1px solid var(--border)}
+.rank-lista .rank-row{display:flex;align-items:center;gap:.75rem;padding:.65rem .25rem;border-bottom:1px solid var(--border);position:relative;border-radius:8px}
 .rank-lista .rank-row:last-child{border-bottom:none}
+.rank-lista .rank-row.rank-subiu{background:rgba(0,156,59,.12);box-shadow:0 0 0 1px rgba(0,156,59,.3)}
+.rank-lista .rank-row.rank-desceu{background:rgba(255,80,80,.08);box-shadow:0 0 0 1px rgba(255,80,80,.2)}
+.rank-lista .rank-row.rank-subiu,.rank-lista .rank-row.rank-desceu{transition:background .6s ease,box-shadow .6s ease}
 .rank-pos{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--muted);min-width:28px;text-align:center}
 .rank-avatar-sm{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
 .rank-info{flex:1;min-width:0}
@@ -585,7 +588,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '39';
+const APP_VERSION = '40';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -2211,7 +2214,37 @@ function renderRanking(){
   const cls=['segundo','primeiro','terceiro'];
   const emj=['🥈','🥇','🥉'];
   podio.innerHTML=ord.map((u,i)=>u?`<div class="rank-podio-card ${cls[i]}"><span class="podio-emoji">${emj[i]}</span><div style="margin:0 auto .35rem;width:52px">${renderAvatar(u,52,u.total)}</div><div class="podio-nome">${u.nome}</div><div class="podio-pts">${u.total}<small>pontos</small></div></div>`:'<div></div>').join('');
-  lista.innerHTML=ranked.map((u,i)=>`<div class="rank-row"><div class="rank-pos">${i+1}º</div>${renderAvatar(u,44,u.total)}<div class="rank-info"><div class="rank-nome-txt">${u.nome}</div><div class="rank-detalhe">🏆${u.exatos} · ✅${u.resultados}</div></div><div class="rank-pts-val">${u.total}<small>pts</small></div></div>`).join('');
+
+  // ── FLIP ANIMATION: captura posições ANTES de re-renderizar ──
+  const posicoesAntes={};
+  lista.querySelectorAll('.rank-row[data-uid]').forEach(el=>{
+    posicoesAntes[el.dataset.uid]=el.getBoundingClientRect().top;
+  });
+
+  lista.innerHTML=ranked.map((u,i)=>`<div class="rank-row" data-uid="${u.id}"><div class="rank-pos">${i+1}º</div>${renderAvatar(u,44,u.total)}<div class="rank-info"><div class="rank-nome-txt">${u.nome}</div><div class="rank-detalhe">🏆${u.exatos} · ✅${u.resultados}</div></div><div class="rank-pts-val">${u.total}<small>pts</small></div></div>`).join('');
+
+  // ── FLIP: calcula diferença e anima (só se já tínhamos posições salvas) ──
+  if(Object.keys(posicoesAntes).length>0){
+    lista.querySelectorAll('.rank-row[data-uid]').forEach(el=>{
+      const uid=el.dataset.uid;
+      const posAntes=posicoesAntes[uid];
+      if(posAntes===undefined)return; // pessoa nova, sem posição anterior — não anima
+      const posDepois=el.getBoundingClientRect().top;
+      const delta=posAntes-posDepois;
+      if(Math.abs(delta)<2)return; // não mudou de posição, sem animação
+      el.style.transform=`translateY(${delta}px)`;
+      el.style.transition='none';
+      el.style.zIndex='5';
+      // Destaca brevemente quem subiu ou desceu
+      const subiu=delta>0;
+      el.classList.add(subiu?'rank-subiu':'rank-desceu');
+      requestAnimationFrame(()=>{
+        el.style.transition='transform .5s cubic-bezier(.4,0,.2,1)';
+        el.style.transform='translateY(0)';
+        setTimeout(()=>{el.classList.remove('rank-subiu','rank-desceu');el.style.zIndex='';},900);
+      });
+    });
+  }
 }
 
 // ═══════════════════════════════════════════
