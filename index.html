@@ -585,7 +585,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '38';
+const APP_VERSION = '39';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -738,7 +738,7 @@ async function trocarFotoPerfil(input){
     showToast('✅ Foto atualizada!');
     renderPerfil();
     const avWrap = document.getElementById('topbar-avatar');
-    if (avWrap) avWrap.outerHTML = renderAvatar(usuarioAtual, 24, calcPtsTotal(usuarioAtual.id).total).replace('<img ', '<img id="topbar-avatar" ').replace('<div ', '<div id="topbar-avatar" ');
+    if (avWrap) avWrap.outerHTML = renderAvatar(usuarioAtual, 32, calcPtsTotal(usuarioAtual.id).total).replace('<img ', '<img id="topbar-avatar" ').replace('<div ', '<div id="topbar-avatar" ');
   } catch(e) {
     console.error('[Foto] Erro inesperado:', e);
     showToast(`❌ Erro inesperado: ${String(e.message||e).substring(0,60)}`);
@@ -1063,7 +1063,7 @@ async function iniciarApp(){
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app').style.display='block';
   const avWrap=document.getElementById('topbar-avatar');
-  if(avWrap) avWrap.outerHTML=renderAvatar(usuarioAtual,24,calcPtsTotal(usuarioAtual.id).total).replace('<img ','<img id="topbar-avatar" ').replace('<div ','<div id="topbar-avatar" ');
+  if(avWrap) avWrap.outerHTML=renderAvatar(usuarioAtual,32,calcPtsTotal(usuarioAtual.id).total).replace('<img ','<img id="topbar-avatar" ').replace('<div ','<div id="topbar-avatar" ');
   // Admin?
   if(isAdmin()){
     document.getElementById('btn-admin-menu').style.display='flex';
@@ -2210,8 +2210,8 @@ function renderRanking(){
   const ord=top.length>=3?[top[1],top[0],top[2]]:top;
   const cls=['segundo','primeiro','terceiro'];
   const emj=['🥈','🥇','🥉'];
-  podio.innerHTML=ord.map((u,i)=>u?`<div class="rank-podio-card ${cls[i]}"><span class="podio-emoji">${emj[i]}</span><div style="margin:0 auto .35rem;width:40px">${renderAvatar(u,40,u.total)}</div><div class="podio-nome">${u.nome}</div><div class="podio-pts">${u.total}<small>pontos</small></div></div>`:'<div></div>').join('');
-  lista.innerHTML=ranked.map((u,i)=>`<div class="rank-row"><div class="rank-pos">${i+1}º</div>${renderAvatar(u,34,u.total)}<div class="rank-info"><div class="rank-nome-txt">${u.nome}</div><div class="rank-detalhe">🏆${u.exatos} · ✅${u.resultados}</div></div><div class="rank-pts-val">${u.total}<small>pts</small></div></div>`).join('');
+  podio.innerHTML=ord.map((u,i)=>u?`<div class="rank-podio-card ${cls[i]}"><span class="podio-emoji">${emj[i]}</span><div style="margin:0 auto .35rem;width:52px">${renderAvatar(u,52,u.total)}</div><div class="podio-nome">${u.nome}</div><div class="podio-pts">${u.total}<small>pontos</small></div></div>`:'<div></div>').join('');
+  lista.innerHTML=ranked.map((u,i)=>`<div class="rank-row"><div class="rank-pos">${i+1}º</div>${renderAvatar(u,44,u.total)}<div class="rank-info"><div class="rank-nome-txt">${u.nome}</div><div class="rank-detalhe">🏆${u.exatos} · ✅${u.resultados}</div></div><div class="rank-pts-val">${u.total}<small>pts</small></div></div>`).join('');
 }
 
 // ═══════════════════════════════════════════
@@ -2293,7 +2293,7 @@ function renderChat(){
     const botoesRapidos=EMOJIS_RAPIDOS.map(emo=>`<span class="reacao-add-btn" onclick="reagirChat('${m.id}','${emo}')">${emo}</span>`).join('');
     const ptsAutor=calcPtsTotal(m.usuario_id).total;
     return`<div class="chat-msg${minha?' minha':''}">
-      ${renderAvatar(u,28,ptsAutor)}
+      ${renderAvatar(u,36,ptsAutor)}
       <div style="max-width:75%">
         <div class="chat-bubble">${escHtml(m.texto)}</div>
         <div class="chat-meta">${minha?'Você':escHtml(m.nome)} · ${t}</div>
@@ -2507,12 +2507,12 @@ function renderPerfil(){
   const cor=corU(uid||'?');
   const nivelAtual=getNivelMoldura(total);
   const proximoNivel=getProximoNivel(total);
-  const avatarGrandeHtml=renderAvatar(usuarioAtual,72,total);
+  const avatarGrandeHtml=renderAvatar(usuarioAtual,88,total);
   c.innerHTML=`
     <div class="perfil-hero">
-      <div style="position:relative;width:72px;margin:0 auto .75rem">
+      <div style="position:relative;width:88px;margin:0 auto .75rem">
         ${avatarGrandeHtml}
-        <button onclick="document.getElementById('input-foto-perfil').click()" style="position:absolute;top:-4px;right:-4px;width:24px;height:24px;border-radius:50%;background:var(--verde);border:2px solid var(--card);color:#fff;font-size:.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2">📷</button>
+        <button onclick="document.getElementById('input-foto-perfil').click()" style="position:absolute;top:-4px;right:-4px;width:28px;height:28px;border-radius:50%;background:var(--verde);border:2px solid var(--card);color:#fff;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2">📷</button>
       </div>
       <input type="file" id="input-foto-perfil" accept="image/*" style="display:none" onchange="trocarFotoPerfil(this)">
       <div class="perfil-nome">${usuarioAtual.nome}</div>
