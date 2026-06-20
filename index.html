@@ -563,7 +563,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '36';
+const APP_VERSION = '37';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -671,14 +671,46 @@ async function trocarFotoPerfil(input){
 
   showToast('📷 Processando foto…');
   try {
-    // Tenta comprimir com qualidade decrescente até caber num tamanho seguro
-    // (evita erro de "imagem grande demais" — sempre funciona, não importa o arquivo original)
-    let dataUrl = await comprimirImagem(file, 300, 300, 0.8);
-    // Se ainda ficou grande (>500KB em base64), comprime mais
-    if (dataUrl.length > 500000) dataUrl = await comprimirImagem(file, 220, 220, 0.6);
-    if (dataUrl.length > 500000) dataUrl = await comprimirImagem(file, 180, 180, 0.45);
+    console.info('[Foto] Arquivo selecionado:', file.name, file.type, Math.round(file.size/1024)+'KB');
 
-    await sbPatch('usuarios', `id=eq.${usuarioAtual.id}`, { foto_url: dataUrl });
+    // Tenta comprimir com qualidade decrescente até caber num tamanho seguro
+    let dataUrl;
+    try {
+      dataUrl = await comprimirImagem(file, 300, 300, 0.8);
+      console.info('[Foto] Comprimida (300px):', Math.round(dataUrl.length/1024)+'KB base64');
+    } catch(errComprimir) {
+      console.error('[Foto] Falha na compressão:', errComprimir);
+      showToast('❌ Não consegui processar essa imagem. Tente outra.');
+      return;
+    }
+    if (dataUrl.length > 500000) {
+      dataUrl = await comprimirImagem(file, 220, 220, 0.6);
+      console.info('[Foto] Recomprimida (220px):', Math.round(dataUrl.length/1024)+'KB base64');
+    }
+    if (dataUrl.length > 500000) {
+      dataUrl = await comprimirImagem(file, 180, 180, 0.45);
+      console.info('[Foto] Recomprimida (180px):', Math.round(dataUrl.length/1024)+'KB base64');
+    }
+
+    // Tenta salvar no banco — aqui é onde mais provavelmente falha
+    try {
+      const resultado = await sbPatch('usuarios', `id=eq.${usuarioAtual.id}`, { foto_url: dataUrl });
+      console.info('[Foto] Salvo no Supabase:', resultado);
+    } catch(errSalvar) {
+      console.error('[Foto] Falha ao salvar no Supabase:', errSalvar);
+      const msgErro = String(errSalvar.message || errSalvar);
+      if (msgErro.includes('column') || msgErro.includes('foto_url')) {
+        showToast('❌ Erro: coluna foto_url não existe no banco ainda.');
+      } else if (msgErro.includes('413') || msgErro.includes('too large') || msgErro.includes('payload')) {
+        showToast('❌ Imagem ainda grande demais para o banco.');
+      } else if (msgErro.includes('RLS') || msgErro.includes('policy') || msgErro.includes('permission')) {
+        showToast('❌ Sem permissão para salvar (RLS do Supabase).');
+      } else {
+        showToast(`❌ Erro ao salvar: ${msgErro.substring(0,60)}`);
+      }
+      return;
+    }
+
     usuarioAtual.foto_url = dataUrl;
     localStorage.setItem('copa_user', JSON.stringify(usuarioAtual));
     showToast('✅ Foto atualizada!');
@@ -686,15 +718,8 @@ async function trocarFotoPerfil(input){
     const avWrap = document.getElementById('topbar-avatar');
     if (avWrap) avWrap.outerHTML = renderAvatar(usuarioAtual, 24).replace('<img ', '<img id="topbar-avatar" ').replace('<div ', '<div id="topbar-avatar" ');
   } catch(e) {
-    console.error('Erro ao salvar foto:', e);
-    // Mensagem específica baseada no tipo de erro
-    if (e.message && e.message.includes('decode')) {
-      showToast('❌ Esse formato de foto não é suportado. Tente um print da galeria.');
-    } else if (e.name === 'AbortError' || (e.message && e.message.includes('fetch'))) {
-      showToast('❌ Sem internet no momento. Tente novamente.');
-    } else {
-      showToast('❌ Não consegui salvar a foto. Tente outra imagem.');
-    }
+    console.error('[Foto] Erro inesperado:', e);
+    showToast(`❌ Erro inesperado: ${String(e.message||e).substring(0,60)}`);
   }
 }
 
@@ -707,21 +732,24 @@ function comprimirImagem(file, larguraMax, alturaMax, qualidade){
       img.onload = () => {
         try {
           let { width, height } = img;
-          if (!width || !height) { reject(new Error('Imagem inválida ou corrompida')); return; }
+          if (!width || !height) { reject(new Error('Imagem inválida ou corrompida (sem dimensões)')); return; }
           // Recorte quadrado central
           const lado = Math.min(width, height);
           const sx = (width - lado) / 2, sy = (height - lado) / 2;
           const canvas = document.createElement('canvas');
           canvas.width = larguraMax; canvas.height = alturaMax;
           const ctx = canvas.getContext('2d');
+          if (!ctx) { reject(new Error('Canvas não disponível neste navegador')); return; }
           ctx.drawImage(img, sx, sy, lado, lado, 0, 0, larguraMax, alturaMax);
-          resolve(canvas.toDataURL('image/jpeg', qualidade));
+          const resultado = canvas.toDataURL('image/jpeg', qualidade);
+          if (!resultado || resultado === 'data:,') { reject(new Error('Canvas gerou imagem vazia')); return; }
+          resolve(resultado);
         } catch(err) { reject(err); }
       };
-      img.onerror = () => reject(new Error('Não foi possível decodificar essa imagem (formato pode não ser suportado)'));
+      img.onerror = () => reject(new Error('Não foi possível decodificar essa imagem (formato HEIC/HEIF do iPhone pode não ser suportado pelo navegador)'));
       img.src = e.target.result;
     };
-    reader.onerror = () => reject(new Error('Não foi possível ler o arquivo'));
+    reader.onerror = () => reject(new Error('Não foi possível ler o arquivo do celular'));
     reader.readAsDataURL(file);
   });
 }
@@ -905,6 +933,10 @@ async function sbUpsert(t,d,c){
 }
 async function sbDelete(t,f){
   await fetch(`${CFG.supabase_url}/rest/v1/${t}?${f}`,{method:'DELETE',headers:{'apikey':CFG.supabase_key,'Authorization':`Bearer ${CFG.supabase_key}`}});
+}
+async function sbPatch(t,f,d){
+  const r=await fetch(`${CFG.supabase_url}/rest/v1/${t}?${f}`,{method:'PATCH',headers:{'apikey':CFG.supabase_key,'Authorization':`Bearer ${CFG.supabase_key}`,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(d)});
+  if(!r.ok)throw new Error(await r.text());return r.json();
 }
 
 // ═══════════════════════════════════════════
