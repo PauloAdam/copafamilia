@@ -658,7 +658,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '60';
+const APP_VERSION = '61';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -1530,7 +1530,12 @@ function converterHoraBrasilia(date,timeStr){
 // ═══════════════════════════════════════════
 function verificarGols(prev){
   todosJogos.forEach(j=>{
-    if(j.status!=='ao-vivo'&&j.status!=='encerrado')return;
+    // CRÍTICO: só dispara notificação de gol para jogos REALMENTE ao vivo agora.
+    // Antes também aceitava 'encerrado', o que causava notificação de "gol" falsa
+    // quando um jogo pulava direto de "ao vivo" pra "encerrado" entre duas
+    // atualizações (a diferença de placar era lida como gol novo, mesmo o jogo
+    // já tendo terminado há tempo).
+    if(j.status!=='ao-vivo')return;
     if(j.gols1===null)return;
     const ant=prev[j.id];
     if(!ant)return;
@@ -1579,11 +1584,19 @@ function verificarJogosRecemEncerrados(){
     statusJogosAnteriores[j.id]=j.status;
   });
   if(jogosNovosEncerrados.length){
-    // Mostra os stories do primeiro jogo que encerrou (se vários encerrarem juntos, enfileira)
     jogosNovosEncerrados.forEach(j=>{
       filaStoriesPosJogo.push(j.id);
     });
-    if(!storiesPosJogoAtivo)processarFilaStoriesPosJogo();
+    if(!storiesPosJogoAtivo){
+      // Espera um ciclo extra de atualização (12s) antes de montar o story —
+      // garante que os palpites de todo mundo já estejam 100% sincronizados
+      // do Supabase, evitando calcular "melhor/pior" com dados incompletos
+      storiesPosJogoAtivo=true;
+      setTimeout(async()=>{
+        await carregarTudo(); // força uma busca fresca de jogos E palpites antes de montar
+        processarFilaStoriesPosJogo();
+      },12000);
+    }
   }
 }
 
