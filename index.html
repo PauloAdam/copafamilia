@@ -145,11 +145,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .jogo-grupo{background:var(--azul);color:#aabcff;font-weight:700;font-size:.62rem;padding:2px 8px;border-radius:20px;letter-spacing:.5px}
 .jogo-body{padding:.75rem .9rem;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:.5rem}
 .time-lado{display:flex;flex-direction:column;align-items:center;gap:.25rem}
-.time-flag{font-size:2rem;line-height:1;width:46px;margin:0 auto;animation:flagWave 3s ease-in-out infinite;transform-origin:50% 0%}
+.time-flag{font-size:2.5rem;line-height:1;width:58px;margin:0 auto;animation:flagWave 3s ease-in-out infinite;transform-origin:50% 0%}
 .time-flag:nth-child(odd){animation-delay:.4s}
 @keyframes flagWave{0%,100%{transform:rotate(0deg)}25%{transform:rotate(-3deg)}75%{transform:rotate(3deg)}}
-.time-flag img{display:block;width:46px;height:auto;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.4)}
-.time-nome{font-size:.75rem;font-weight:600;text-align:center;color:var(--text);max-width:80px;line-height:1.2}
+.time-flag img{display:block;width:58px;height:auto;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.time-nome{font-size:.85rem;font-weight:600;text-align:center;color:var(--text);max-width:95px;line-height:1.2}
 .centro{display:flex;flex-direction:column;align-items:center;min-width:90px;gap:.2rem}
 .placar{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:4px;line-height:1;color:var(--verde-light)}
 .placar.encerrado{color:var(--amarelo)}
@@ -365,8 +365,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .update-bar{background:rgba(0,156,59,.08);border:1px solid rgba(0,156,59,.2);border-radius:var(--radius-sm);padding:.45rem .9rem;font-size:.72rem;color:var(--muted);display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem}
 
 @media(max-width:380px){
-  .time-flag{font-size:1.7rem;width:38px}
-  .time-flag img{width:38px}
+  .time-flag{font-size:2.1rem;width:46px}
+  .time-flag img{width:46px}
+  .time-nome{font-size:.76rem;max-width:78px}
   .placar{font-size:1.7rem}
   .centro{min-width:75px}
   .meu-resumo{grid-template-columns:repeat(2,1fr)}
@@ -599,7 +600,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '46';
+const APP_VERSION = '47';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
