@@ -215,6 +215,26 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .stories-destaque-jogo{font-size:.85rem;color:#fff;font-weight:600;text-align:center}
 .stories-craque{display:flex;align-items:center;gap:.6rem;color:#fff}
 
+/* STORIES PÓS-JOGO — melhor/mediano/pior palpite, com navegação */
+.stories-posjogo{text-align:center;border-width:1.5px}
+.stories-progress-row{display:flex;gap:4px;margin-bottom:1.1rem;padding-top:.2rem}
+.stories-progress-bar{flex:1;height:3px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden}
+.stories-progress-bar.filled{background:rgba(255,255,255,.7)}
+.stories-progress-bar.active{background:rgba(255,255,255,.4);position:relative}
+.stories-progress-bar.active::after{content:'';position:absolute;inset:0;background:#fff;animation:storiesBarFill 4s linear forwards}
+@keyframes storiesBarFill{from{width:0}to{width:100%}}
+.stories-posjogo-jogo{font-size:.72rem;color:rgba(255,255,255,.6);margin-bottom:1.2rem}
+.stories-posjogo-emoji{font-size:3rem;margin-bottom:.4rem;animation:storiesEmojiPop .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes storiesEmojiPop{from{transform:scale(0)}to{transform:scale(1)}}
+.stories-posjogo-titulo{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;margin-bottom:1rem}
+.stories-posjogo-avatar{display:flex;justify-content:center;margin-bottom:.6rem}
+.stories-posjogo-nome{font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:.3rem}
+.stories-posjogo-palpite{font-size:.85rem;color:rgba(255,255,255,.75);margin-bottom:.3rem}
+.stories-posjogo-resultado{font-size:.8rem;font-weight:700;margin-bottom:1.3rem}
+.stories-posjogo-nav{display:flex;justify-content:space-between;align-items:center;gap:.5rem}
+.stories-nav-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:.78rem;font-weight:600;padding:.55rem 1rem;border-radius:20px;cursor:pointer;font-family:'Inter',sans-serif}
+.stories-nav-btn.principal{background:var(--verde);border-color:var(--verde);flex:1}
+
 .modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--amarelo);letter-spacing:1px}
 .modal-close{background:var(--card2);border:none;color:var(--muted);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:1rem}
 .modal-jogo-resumo{display:flex;align-items:center;justify-content:center;gap:1rem;background:var(--card2);border-radius:var(--radius-sm);padding:.9rem;margin-bottom:1rem}
@@ -627,7 +647,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '57';
+const APP_VERSION = '58';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -1136,6 +1156,11 @@ async function iniciarApp(){
   }
 
   await carregarTudo();
+  // Inicializa o "status anterior" de cada jogo com o estado atual, para que
+  // jogos que JÁ estavam encerrados antes de abrir o app não disparem os
+  // Stories pós-jogo incorretamente (só dispara para jogos que terminam
+  // DEPOIS que a pessoa já está usando o app)
+  todosJogos.forEach(j=>{statusJogosAnteriores[j.id]=j.status});
   renderHoje();
   registrarSW();
   pedirNotificacao();
@@ -1506,7 +1531,30 @@ function verificarGols(prev){
       for(let i=0;i<golsT2;i++)notificarGol(j.time2,j.gols1,j.gols2,j);
     }
   });
+  verificarJogosRecemEncerrados();
 }
+
+// Detecta jogos que ACABARAM DE terminar (transição futuro/ao-vivo → encerrado)
+// para disparar os Stories pós-jogo automaticamente
+let statusJogosAnteriores={};
+function verificarJogosRecemEncerrados(){
+  const jogosNovosEncerrados=[];
+  todosJogos.forEach(j=>{
+    const statusAnterior=statusJogosAnteriores[j.id];
+    if(statusAnterior&&statusAnterior!=='encerrado'&&j.status==='encerrado'){
+      jogosNovosEncerrados.push(j);
+    }
+    statusJogosAnteriores[j.id]=j.status;
+  });
+  if(jogosNovosEncerrados.length){
+    // Mostra os stories do primeiro jogo que encerrou (se vários encerrarem juntos, enfileira)
+    jogosNovosEncerrados.forEach(j=>{
+      filaStoriesPosJogo.push(j.id);
+    });
+    if(!storiesPosJogoAtivo)processarFilaStoriesPosJogo();
+  }
+}
+
 function notificarGol(time,g1,g2,jogo){
   // Som
   tocarSomGol(jogo.isBrasil);
@@ -2761,6 +2809,113 @@ function mostrarStoriesDoDia(automatico){
 }
 function fecharStoriesDoDia(){
   document.getElementById('modal-stories-dia')?.remove();
+}
+
+// ═══════════════════════════════════════════
+// STORIES PÓS-JOGO 🏆😐🥶 — melhor, mediano e pior palpite
+// Dispara automaticamente assim que um jogo termina, com 3 cards navegáveis
+// ═══════════════════════════════════════════
+let filaStoriesPosJogo=[];
+let storiesPosJogoAtivo=false;
+let storiesPosJogoIndiceAtual=0;
+let storiesPosJogoCards=[];
+let storiesPosJogoAtual=null;
+
+function processarFilaStoriesPosJogo(){
+  if(!filaStoriesPosJogo.length){storiesPosJogoAtivo=false;return}
+  const jogoId=filaStoriesPosJogo.shift();
+  storiesPosJogoAtivo=true;
+  montarStoriesPosJogo(jogoId);
+}
+
+function montarStoriesPosJogo(jogoId){
+  const j=todosJogos.find(x=>x.id===jogoId);
+  if(!j||j.gols1===null){processarFilaStoriesPosJogo();return}
+  storiesPosJogoAtual=j;
+
+  // Calcula os pontos de cada pessoa que palpitou esse jogo
+  const pals=todosPalpites[jogoId]||{};
+  const entradas=Object.entries(pals).map(([uid,pal])=>{
+    const u=todosUsuarios.find(x=>x.id===uid);
+    const{pts,txt}=calcPts(j,pal);
+    return{uid,nome:u?.nome||'?',pal,pts,txt,usuario:u};
+  });
+
+  if(entradas.length<2){
+    // Não tem gente suficiente pra fazer melhor/mediano/pior — pula
+    processarFilaStoriesPosJogo();
+    return;
+  }
+
+  entradas.sort((a,b)=>b.pts-a.pts);
+  const melhor=entradas[0];
+  const pior=entradas[entradas.length-1];
+  const indiceMeio=Math.floor(entradas.length/2);
+  const mediano=entradas[indiceMeio];
+
+  storiesPosJogoCards=[
+    {tipo:'melhor',emoji:'🏆',titulo:'MELHOR PALPITE',cor:'#ffd700',pessoa:melhor},
+    {tipo:'mediano',emoji:'😐',titulo:'PALPITE MEDIANO',cor:'#7aab85',pessoa:mediano},
+    {tipo:'pior',emoji:'🥶',titulo:'PIOR PALPITE',cor:'#5588ff',pessoa:pior},
+  ];
+  storiesPosJogoIndiceAtual=0;
+  exibirStoriesPosJogo();
+}
+
+function exibirStoriesPosJogo(){
+  const jogo=storiesPosJogoAtual;
+  if(!jogo)return;
+  let overlay=document.getElementById('modal-stories-posjogo');
+  const card=storiesPosJogoCards[storiesPosJogoIndiceAtual];
+  const total=storiesPosJogoCards.length;
+
+  const barrasProgresso=storiesPosJogoCards.map((c,i)=>
+    `<div class="stories-progress-bar${i<storiesPosJogoIndiceAtual?' filled':''}${i===storiesPosJogoIndiceAtual?' active':''}"></div>`
+  ).join('');
+
+  const conteudoHtml=`
+    <div class="stories-card stories-posjogo" style="border-color:${card.cor}55">
+      <div class="stories-progress-row">${barrasProgresso}</div>
+      <button class="stories-close" onclick="fecharStoriesPosJogo()">✕</button>
+      <div class="stories-posjogo-jogo">
+        ${getFlagSmall(jogo.time1)} ${nomePT(jogo.time1)} ${jogo.gols1}×${jogo.gols2} ${nomePT(jogo.time2)} ${getFlagSmall(jogo.time2)}
+      </div>
+      <div class="stories-posjogo-emoji">${card.emoji}</div>
+      <div class="stories-posjogo-titulo" style="color:${card.cor}">${card.titulo}</div>
+      <div class="stories-posjogo-avatar">${renderAvatar(card.pessoa.usuario,72,calcPtsTotal(card.pessoa.uid).total)}</div>
+      <div class="stories-posjogo-nome">${card.pessoa.nome}</div>
+      <div class="stories-posjogo-palpite">Palpite: <strong>${card.pessoa.pal.p1}×${card.pessoa.pal.p2}</strong></div>
+      <div class="stories-posjogo-resultado" style="color:${card.cor}">${card.pessoa.txt} ${card.pessoa.pts>0?`· +${card.pessoa.pts} pts`:''}</div>
+      <div class="stories-posjogo-nav">
+        ${storiesPosJogoIndiceAtual>0?`<button class="stories-nav-btn" onclick="navegarStoriesPosJogo(-1)">← Anterior</button>`:'<span></span>'}
+        ${storiesPosJogoIndiceAtual<total-1?`<button class="stories-nav-btn principal" onclick="navegarStoriesPosJogo(1)">Próximo →</button>`:`<button class="stories-nav-btn principal" onclick="fecharStoriesPosJogo()">Fechar ✓</button>`}
+      </div>
+    </div>`;
+
+  if(overlay){
+    overlay.innerHTML=conteudoHtml;
+  }else{
+    overlay=document.createElement('div');
+    overlay.className='modal-overlay show';
+    overlay.style.alignItems='center';
+    overlay.id='modal-stories-posjogo';
+    overlay.onclick=(e)=>{if(e.target===overlay)fecharStoriesPosJogo()};
+    overlay.innerHTML=conteudoHtml;
+    document.body.appendChild(overlay);
+  }
+}
+
+function navegarStoriesPosJogo(direcao){
+  const novoIndice=storiesPosJogoIndiceAtual+direcao;
+  if(novoIndice<0||novoIndice>=storiesPosJogoCards.length)return;
+  storiesPosJogoIndiceAtual=novoIndice;
+  exibirStoriesPosJogo();
+}
+
+function fecharStoriesPosJogo(){
+  document.getElementById('modal-stories-posjogo')?.remove();
+  storiesPosJogoAtual=null;
+  processarFilaStoriesPosJogo(); // mostra o próximo jogo da fila, se tiver
 }
 
 // ═══════════════════════════════════════════
