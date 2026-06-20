@@ -599,7 +599,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '45';
+const APP_VERSION = '46';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -1779,7 +1779,6 @@ function renderHoje(){
   const amanha=new Date(Date.now()+86400000).toISOString().split('T')[0];
   const porHorario=(a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora);
   const aoVivo=todosJogos.filter(j=>j.status==='ao-vivo').sort(porHorario);
-  const encHoje=todosJogos.filter(j=>j.data===hoje&&j.status==='encerrado').sort(porHorario);
   const futHoje=todosJogos.filter(j=>j.data===hoje&&j.status==='futuro').sort(porHorario);
   const amJs=todosJogos.filter(j=>j.data===amanha).sort(porHorario);
   let html='';
@@ -1794,16 +1793,12 @@ function renderHoje(){
     html+=`<div class="hoje-hero"><span class="icon">🔴</span><div><h3>AO VIVO AGORA</h3><p>${aoVivo.length} jogo${aoVivo.length>1?'s':''} acontecendo agora</p></div></div>`;
     aoVivo.forEach(j=>{html+=jogoCardHTML(j,true)});
   }
-  if(encHoje.length){
-    html+=divider('hoje','✅ Encerrados hoje');
-    encHoje.forEach(j=>{html+=jogoCardHTML(j,true)});
-  }
   if(futHoje.length){
     html+=divider('hoje','📅 Próximos hoje');
     futHoje.forEach(j=>{html+=jogoCardHTML(j,true)});
   }
-  if(!aoVivo.length&&!futHoje.length&&!encHoje.length)
-    html+=`<div class="hoje-hero"><span class="icon">⏳</span><div><h3>SEM JOGOS HOJE</h3><p>Próximos jogos amanhã</p></div></div>`;
+  if(!aoVivo.length&&!futHoje.length)
+    html+=`<div class="hoje-hero"><span class="icon">⏳</span><div><h3>SEM MAIS JOGOS HOJE</h3><p>Veja os resultados na aba Jogos → Encerrados</p></div></div>`;
   if(amJs.length){
     html+=divider('','⏰ Amanhã');
     amJs.forEach(j=>{html+=jogoCardHTML(j,true)});
