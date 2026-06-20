@@ -563,7 +563,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '34';
+const APP_VERSION = '36';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -789,6 +789,22 @@ if (!jaInstalado && ehAndroidChrome && !localStorage.getItem('copa_install_dispe
 // ═══════════════════════════════════════════
 // FLAGS & NOMES
 // ═══════════════════════════════════════════
+// Normaliza nomes de times para comparação: remove acentos e aplica aliases
+// conhecidos (ex: "Türkiye" é o nome oficial atual da Turquia usado pela FIFA/ESPN,
+// mas o openfootball ainda usa "Turkey" — sem isso, o matching falha silenciosamente)
+const ALIASES_TIME = {
+  'turkiye':'turkey', 'türkiye':'turkey',
+  'usa':'united states', 'united states':'usa',
+  'south korea':'korea republic', 'korea republic':'south korea',
+  'ivory coast':"cote d'ivoire", "cote d'ivoire":'ivory coast',
+};
+function normalizarNomeTime(nome){
+  if(!nome)return'';
+  let n=nome.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,''); // remove acentos
+  return ALIASES_TIME[n]||n;
+}
+
 const FLAG_CODES = {
   'Mexico':'mx','South Africa':'za','South Korea':'kr','Czech Republic':'cz',
   'Canada':'ca','Qatar':'qa','Switzerland':'ch','Brazil':'br','Morocco':'ma',
@@ -1064,7 +1080,7 @@ async function tentarESPN(){
     const comp=ev.competitions?.[0];if(!comp)return;
     const t1raw=comp.competitors?.[0]?.team?.displayName||'';
     const t2raw=comp.competitors?.[1]?.team?.displayName||'';
-    const t1=t1raw.toLowerCase(),t2=t2raw.toLowerCase();
+    const t1=normalizarNomeTime(t1raw),t2=normalizarNomeTime(t2raw);
     const rawS1=comp.competitors?.[0]?.score;
     const rawS2=comp.competitors?.[1]?.score;
     const s1=(rawS1!==undefined&&rawS1!==null&&rawS1!=='')?parseInt(rawS1):-1;
@@ -1081,10 +1097,10 @@ async function tentarESPN(){
     const horaReal=String(dtBrasilia.getUTCHours()).padStart(2,'0')+':'+String(dtBrasilia.getUTCMinutes()).padStart(2,'0');
 
     const candidatos=todosJogos.filter(j=>{
-      const n1=j.time1.toLowerCase(),n2=j.time2.toLowerCase();
+      const n1=normalizarNomeTime(j.time1),n2=normalizarNomeTime(j.time2);
       const w1=n1.split(' '),w2=n2.split(' ');
-      const m1=w1.some(w=>w.length>2&&t1.includes(w))||t1.split(' ').some(w=>w.length>2&&n1.includes(w));
-      const m2=w2.some(w=>w.length>2&&t2.includes(w))||t2.split(' ').some(w=>w.length>2&&n2.includes(w));
+      const m1=n1===t1||w1.some(w=>w.length>2&&t1.includes(w))||t1.split(' ').some(w=>w.length>2&&n1.includes(w));
+      const m2=n2===t2||w2.some(w=>w.length>2&&t2.includes(w))||t2.split(' ').some(w=>w.length>2&&n2.includes(w));
       return m1&&m2;
     });
     if(!candidatos.length)return;
@@ -1127,13 +1143,13 @@ async function tentarSportsDB(){
     if(!events.length)return false;
     let matched=0;
     events.forEach(ev=>{
-      const t1=(ev.strHomeTeam||'').toLowerCase(),t2=(ev.strAwayTeam||'').toLowerCase();
+      const t1=normalizarNomeTime(ev.strHomeTeam||''),t2=normalizarNomeTime(ev.strAwayTeam||'');
       const s1=ev.intHomeScore!==null?parseInt(ev.intHomeScore):-1;
       const s2=ev.intAwayScore!==null?parseInt(ev.intAwayScore):-1;
       const st=(ev.strStatus||'').toLowerCase();
       const evDateSdb = ev.dateEvent || hoje;
       const jogo=todosJogos.find(j=>{
-        const n1=j.time1.toLowerCase().split(' ')[0],n2=j.time2.toLowerCase().split(' ')[0];
+        const n1=normalizarNomeTime(j.time1).split(' ')[0],n2=normalizarNomeTime(j.time2).split(' ')[0];
         const m1=t1.includes(n1)||n1.includes(t1.split(' ')[0]);
         const m2=t2.includes(n2)||n2.includes(t2.split(' ')[0]);
         if(!m1||!m2)return false;
@@ -2379,17 +2395,42 @@ function renderPerfil(){
       </div>
     </div>
     <div class="card">
-      <div class="card-title">📋 Histórico completo</div>
+      <div class="card-title">📋 Histórico completo — de onde vieram seus pontos</div>
       ${jogosComPal.length?jogosComPal.slice().reverse().map(j=>{
         const pal=(todosPalpites[j.id]||{})[uid];
         const{pts,txt}=calcPts(j,pal);
-        return`<div class="historico-item">
-          <div class="hist-times">${getFlagSmall(j.time1)} ${nomePT(j.time1)} ${j.gols1}×${j.gols2} ${nomePT(j.time2)} ${getFlagSmall(j.time2)}</div>
-          <div style="text-align:right">
-            <div class="hist-palpite" style="color:var(--muted)">${pal.p1}×${pal.p2}</div>
-            <div style="font-size:.65rem">${txt}</div>
+
+        // Detalhe da aposta extra (vence 1º tempo)
+        const escolhaExtra=(apostasExtras[j.id]||{})[uid];
+        let extraHtml='', ptsExtra=0;
+        if(escolhaExtra&&j.golsHT1!==null&&j.golsHT2!==null){
+          let resultadoRealHT;
+          if(j.golsHT1>j.golsHT2)resultadoRealHT=j.time1;
+          else if(j.golsHT2>j.golsHT1)resultadoRealHT=j.time2;
+          else resultadoRealHT='empate';
+          const acertouExtra=escolhaExtra===resultadoRealHT;
+          if(acertouExtra)ptsExtra=5;
+          const txtEscolha=escolhaExtra==='empate'?'Empate':nomePT(escolhaExtra);
+          extraHtml=`<div style="font-size:.68rem;color:${acertouExtra?'var(--verde-light)':'var(--muted)'};margin-top:.25rem">
+            ⏱️ 1º tempo: apostou "${txtEscolha}" ${acertouExtra?`<strong>✓ Acertou! +5pts</strong>`:'✗ não bateu'}
+          </div>`;
+        }
+        const ptsTotalJogo=pts+ptsExtra;
+
+        // Detalhe se teve bônus Brasil somado no placar
+        const bonusBrasilHtml = (j.isBrasil&&pts>0&&(txt.includes('Exato')||txt.includes('Resultado')))
+          ? `<span style="color:var(--amarelo);font-size:.65rem"> (+5 bônus 🇧🇷)</span>` : '';
+
+        return`<div class="historico-item" style="flex-direction:column;align-items:stretch">
+          <div style="display:flex;align-items:center;gap:.5rem">
+            <div class="hist-times" style="flex:1">${getFlagSmall(j.time1)} ${nomePT(j.time1)} ${j.gols1}×${j.gols2} ${nomePT(j.time2)} ${getFlagSmall(j.time2)}</div>
+            <div style="text-align:right">
+              <div class="hist-palpite" style="color:var(--muted)">${pal.p1}×${pal.p2}</div>
+              <div style="font-size:.65rem">${txt}${bonusBrasilHtml}</div>
+            </div>
+            <div class="hist-pts" style="color:${ptsTotalJogo>0?'var(--verde-light)':'#f88'}">${ptsTotalJogo>0?'+'+ptsTotalJogo:'0'}</div>
           </div>
-          <div class="hist-pts" style="color:${pts>0?'var(--verde-light)':'#f88'}">${pts>0?'+'+pts:'0'}</div>
+          ${extraHtml}
         </div>`;
       }).join(''):'<div class="empty-state" style="padding:1rem"><p>Sem palpites ainda.</p></div>'}
     </div>`;
