@@ -198,6 +198,23 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 1rem}
 .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+
+/* STORIES DO DIA — card vertical estilo Instagram */
+.stories-card{background:linear-gradient(165deg,#002776 0%,#001a4d 50%,#000d26 100%);border-radius:24px;width:100%;max-width:340px;max-height:90vh;overflow-y:auto;padding:1.5rem 1.25rem;position:relative;animation:storiesPopIn .35s cubic-bezier(.34,1.56,.64,1);box-shadow:0 20px 60px rgba(0,0,0,.6);border:1px solid rgba(255,223,0,.2)}
+@keyframes storiesPopIn{from{opacity:0;transform:scale(.85) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.stories-close{position:absolute;top:.9rem;right:.9rem;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:.85rem;cursor:pointer;z-index:2}
+.stories-header{text-align:center;margin-bottom:1.25rem;padding-top:.5rem}
+.stories-data{font-size:.7rem;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:.3rem}
+.stories-titulo{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--amarelo);letter-spacing:2px}
+.stories-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:1.1rem}
+.stories-stat{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:.7rem .3rem;text-align:center}
+.stories-stat-num{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;color:#fff;line-height:1}
+.stories-stat-label{font-size:.62rem;color:rgba(255,255,255,.6);margin-top:.2rem;text-transform:uppercase;letter-spacing:.5px}
+.stories-destaque{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:.8rem .9rem;margin-bottom:.7rem}
+.stories-destaque-label{font-size:.62rem;font-weight:700;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.8px;margin-bottom:.4rem}
+.stories-destaque-jogo{font-size:.85rem;color:#fff;font-weight:600;text-align:center}
+.stories-craque{display:flex;align-items:center;gap:.6rem;color:#fff}
+
 .modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--amarelo);letter-spacing:1px}
 .modal-close{background:var(--card2);border:none;color:var(--muted);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:1rem}
 .modal-jogo-resumo{display:flex;align-items:center;justify-content:center;gap:1rem;background:var(--card2);border-radius:var(--radius-sm);padding:.9rem;margin-bottom:1rem}
@@ -437,6 +454,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <div class="update-bar"><span class="live-dot" style="width:7px;height:7px;background:var(--verde-light);border-radius:50%;flex-shrink:0;animation:pulse 2s infinite"></span><span id="update-txt">Atualizando…</span></div>
       <div id="hoje-install-banner"></div>
       <div id="hoje-notif-banner"></div>
+      <button class="btn-ver-palpites" style="margin-bottom:.75rem;background:rgba(255,223,0,.1);border-color:rgba(255,223,0,.3);color:var(--amarelo)" onclick="mostrarStoriesDoDia(false)">📱 Ver resumo do dia (Stories)</button>
       <div id="hoje-container"><div class="loading-spinner"><div class="spinner"></div><span>Carregando jogos…</span></div></div>
     </div>
 
@@ -485,6 +503,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
           <div>🏆 Placar exato <strong style="color:var(--amarelo)">40 pts</strong></div>
           <div>✅ Resultado certo <strong style="color:var(--amarelo)">15 pts</strong></div>
           <div>⏱️ Vence 1º tempo <strong style="color:var(--amarelo)">+5 pts</strong></div>
+          <div>🎯 Time classificado <strong style="color:var(--amarelo)">+10 pts</strong></div>
           <div>🇧🇷 Bônus Brasil <strong style="color:var(--amarelo)">+5 pts</strong></div>
           <div>👑 Campeão certo <strong style="color:var(--amarelo)">50 pts</strong></div>
         </div>
@@ -523,6 +542,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <p style="font-size:.78rem;color:var(--muted);margin-bottom:.75rem">Você pode alterar seu palpite até o início das quartas de final.</p>
         <div class="bolao-grid" id="bolao-grid"></div>
         <div id="bolao-status" style="text-align:center;margin-top:.5rem;font-size:.8rem;color:var(--verde-light)"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🎯 Quem vai se classificar? (+10 pts por acerto)</div>
+        <p style="font-size:.78rem;color:var(--muted);margin-bottom:.75rem">Escolha 2 times de cada grupo que vão avançar. Pode mudar até o grupo terminar.</p>
+        <div class="filtro-bar" id="bolao-grupo-tabs" style="margin-bottom:.75rem"></div>
+        <div id="bolao-classificacao-grid"></div>
+        <div id="bolao-classificacao-status" style="text-align:center;margin-top:.5rem;font-size:.78rem;color:var(--verde-light)"></div>
       </div>
     </div>
 
@@ -600,7 +627,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '56';
+const APP_VERSION = '57';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -999,7 +1026,7 @@ function fmtHora(s){return s?s+' (Brasília)':'';}
 // ═══════════════════════════════════════════
 let usuarioAtual=null, todosJogos=[], todosUsuarios=[], todosPalpites={};
 let filtroGrupoAtivo='todos', filtroStatusAtivo='proximos', ultimaAtualizacao=null;
-let placaresPrev={}, chatMsgs=[], ultimoChat=0, bolaoAtual={}, apostasExtras={};
+let placaresPrev={}, chatMsgs=[], ultimoChat=0, bolaoAtual={}, apostasExtras={}, classificacaoBolao={};
 let bloqueandoAutoRefresh=false; // true enquanto uma ação (salvar palpite, etc) está em andamento
 
 // ═══════════════════════════════════════════
@@ -1113,6 +1140,7 @@ async function iniciarApp(){
   registrarSW();
   pedirNotificacao();
   checarResumoSemanal();
+  checarStoriesDoDia();
   checarMudancaRanking();
   registrarAcessoDispositivo();
   setInterval(async()=>{
@@ -1396,6 +1424,15 @@ async function carregarDadosSupabase(){
       const ex=await sbGet('apostas_extras','select=*');
       apostasExtras={};
       ex.forEach(a=>{if(!apostasExtras[a.jogo_id])apostasExtras[a.jogo_id]={};apostasExtras[a.jogo_id][a.usuario_id]=a.jogador});
+    }catch(e){/* tabela pode não existir ainda */}
+    // Bolão de classificação (quem vai se classificar de cada grupo)
+    try{
+      const cb=await sbGet('classificacao_bolao','select=*');
+      classificacaoBolao={};
+      cb.forEach(r=>{
+        if(!classificacaoBolao[r.grupo])classificacaoBolao[r.grupo]={};
+        classificacaoBolao[r.grupo][r.usuario_id]=r.times||[];
+      });
     }catch(e){/* tabela pode não existir ainda */}
   }catch(e){console.warn('Supabase:',e)}
 }
@@ -2333,7 +2370,30 @@ function calcPtsTotal(uid){
     const finalJ=todosJogos.find(j=>j.round==='Final'&&j.status==='encerrado');
     if(finalJ){const venc=finalJ.gols1>finalJ.gols2?finalJ.time1:finalJ.time2;if(venc===camp)total+=50}
   }
-  return{total,exatos,resultados,erros,acertosPrimeiroTempo};
+  // Bolão de classificação: +10 pts por time que a pessoa acertou que ia se classificar
+  // Só conta quando o grupo já terminou (todos os 3 jogos de todos os times do grupo)
+  let acertosClassificacao=0;
+  getGruposDisponiveis().forEach(g=>{
+    const jogosGrupo=todosJogos.filter(j=>!j.isMata&&j.grupo===g);
+    if(!jogosGrupo.length)return;
+    const todosEncerrados=jogosGrupo.every(j=>j.status==='encerrado');
+    if(!todosEncerrados)return;
+    const escolha=(classificacaoBolao[g]||{})[uid];
+    if(!escolha||!escolha.length)return;
+    // Recalcula a tabela final do grupo para saber quem realmente se classificou
+    const tabela={};
+    jogosGrupo.forEach(j=>{
+      [j.time1,j.time2].forEach(t=>{if(!tabela[t])tabela[t]={Pts:0,GP:0,GC:0}});
+      const e1=tabela[j.time1],e2=tabela[j.time2];
+      e1.GP+=j.gols1;e1.GC+=j.gols2;e2.GP+=j.gols2;e2.GC+=j.gols1;
+      if(j.gols1>j.gols2)e1.Pts+=3;
+      else if(j.gols2>j.gols1)e2.Pts+=3;
+      else{e1.Pts++;e2.Pts++}
+    });
+    const classificados=Object.entries(tabela).map(([n,s])=>({n,...s,SG:s.GP-s.GC})).sort((a,b)=>b.Pts-a.Pts||b.SG-a.SG||b.GP-a.GP).slice(0,2).map(t=>t.n);
+    escolha.forEach(t=>{if(classificados.includes(t)){total+=10;acertosClassificacao++}});
+  });
+  return{total,exatos,resultados,erros,acertosPrimeiroTempo,acertosClassificacao};
 }
 
 // ═══════════════════════════════════════════
@@ -2425,20 +2485,42 @@ function renderGrupos(){
   c.innerHTML=keys.map(g=>{
     const ts=Object.entries(grupos[g]).map(([n,s])=>({n,...s,SG:s.GP-s.GC})).sort((a,b)=>b.Pts-a.Pts||b.SG-a.SG||b.GP-a.GP);
     const totalJogosGrupo=3; // fase de grupos = 3 jogos por time
+    const todosJogaramTudo=ts.every(t=>t.J>=totalJogosGrupo);
+    // Pontuação máxima que o 3º colocado ainda pode alcançar (se vencer todos os jogos restantes)
+    const pts3=ts[2]?ts[2].Pts:0;
+    const maxPossivel3=ts[2]?ts[2].Pts+(totalJogosGrupo-ts[2].J)*3:0;
+
     const linhas=ts.map((t,i)=>{
-      const classificado=i<2;
+      const naZona=i<2;
       const jogosRestantes=totalJogosGrupo-t.J;
-      const corBarra=classificado?'var(--verde-light)':'#ff5555';
+      const jogouTudo=jogosRestantes===0;
+      // Matematicamente classificado: está na zona E nem o 3º colocado pode mais alcançar
+      // (considerando o cenário mais favorável possível pro time de fora)
+      const maxPossivelTime=t.Pts+jogosRestantes*3;
+      const matematicamenteClassificado=naZona&&jogouTudo;
+      const matematicamenteEliminado=!naZona&&maxPossivelTime<(ts[1]?ts[1].Pts:0)&&t.J>0;
+
+      let corBarra,statusTxt,statusCor,iconeStatus;
+      if(t.J===0){
+        corBarra='var(--border)';statusTxt='';statusCor='';iconeStatus='';
+      }else if(matematicamenteClassificado){
+        corBarra='var(--verde-light)';statusTxt='CLASSIFICADO';statusCor='var(--verde-light)';iconeStatus='✅';
+      }else if(matematicamenteEliminado){
+        corBarra='#ff4444';statusTxt='ELIMINADO';statusCor='#ff6868';iconeStatus='❌';
+      }else if(naZona){
+        corBarra='#ffd700';statusTxt='Classificando';statusCor='var(--amarelo)';iconeStatus='🟡';
+      }else{
+        corBarra='#ff8855';statusTxt='Fora da zona';statusCor='#ff8855';iconeStatus='🔶';
+      }
       const pctBarra=Math.min(100,Math.round((t.J/totalJogosGrupo)*100));
-      const statusTxt = t.J===0 ? '' : (classificado
-        ? (jogosRestantes===0?'✅ Classificado':'🟢 Classificando')
-        : (jogosRestantes===0?'❌ Eliminado':'🔴 Fora da zona'));
+
       return`<tr${t.n==='Brazil'?' style="background:rgba(255,223,0,.05)"':''}>
         <td>
           <div style="display:flex;align-items:center;gap:5px">
-            <span class="g-q" style="background:${i<2?'var(--verde-light)':'#444'}"></span>${getFlagSmall(t.n)} ${nomePT(t.n)}
+            <span class="g-q" style="background:${naZona?'var(--verde-light)':'#444'}"></span>${getFlagSmall(t.n)} ${nomePT(t.n)}
           </div>
-          ${t.J>0?`<div class="grupo-progresso-track"><div class="grupo-progresso-fill" style="width:${pctBarra}%;background:${corBarra}"></div></div>${statusTxt?`<div style="font-size:.58rem;color:${classificado?'var(--verde-light)':'#ff8888'};margin-top:1px">${statusTxt}</div>`:''}`:''}
+          ${t.J>0?`<div class="grupo-progresso-track"><div class="grupo-progresso-fill" style="width:${pctBarra}%;background:${corBarra}"></div></div>`:''}
+          ${statusTxt?`<div style="display:inline-flex;align-items:center;gap:3px;font-size:.6rem;font-weight:700;color:${statusCor};margin-top:2px;padding:1px 6px;border-radius:8px;background:${statusCor}18">${iconeStatus} ${statusTxt}</div>`:''}
         </td>
         <td>${t.J}</td><td>${t.V}</td><td>${t.E}</td><td>${t.D}</td><td>${t.GP}</td><td>${t.GC}</td>
         <td style="color:${t.SG>=0?'var(--verde-light)':'#f88'}">${t.SG>0?'+':''}${t.SG}</td>
@@ -2569,6 +2651,116 @@ function checarResumoSemanal(){
   const jaViuHoje=localStorage.getItem('copa_resumo_ultima_data')===hoje.toISOString().split('T')[0];
   if(jaViuHoje)return;
   setTimeout(()=>mostrarResumoSemanal(true),2500);
+}
+
+// ═══════════════════════════════════════════
+// STORIES DO DIA 📱 — card vertical estilo Instagram
+// ═══════════════════════════════════════════
+function checarStoriesDoDia(){
+  const hoje=new Date().toISOString().split('T')[0];
+  const jaViuHoje=localStorage.getItem('copa_stories_ultima_data')===hoje;
+  if(jaViuHoje)return;
+  // Só mostra automaticamente se já tiver pelo menos 1 jogo encerrado hoje
+  const jogosHoje=todosJogos.filter(j=>j.data===hoje&&j.status==='encerrado');
+  if(!jogosHoje.length)return;
+  setTimeout(()=>mostrarStoriesDoDia(true),3500);
+}
+
+function mostrarStoriesDoDia(automatico){
+  const hoje=new Date().toISOString().split('T')[0];
+  const jogosHoje=todosJogos.filter(j=>j.data===hoje&&j.status==='encerrado');
+
+  if(automatico)localStorage.setItem('copa_stories_ultima_data',hoje);
+
+  // Estatísticas do dia
+  const totalGols=jogosHoje.reduce((acc,j)=>acc+(j.gols1||0)+(j.gols2||0),0);
+  const totalJogos=jogosHoje.length;
+  const mediaGols=totalJogos?Math.round((totalGols/totalJogos)*10)/10:0;
+
+  // Maior goleada do dia
+  let maiorGoleada=null,maiorDiff=-1;
+  jogosHoje.forEach(j=>{
+    const diff=Math.abs(j.gols1-j.gols2);
+    if(diff>maiorDiff){maiorDiff=diff;maiorGoleada=j}
+  });
+
+  // Craque do dia: quem mais pontuou nos jogos de hoje
+  const pontosPorPessoa={};
+  jogosHoje.forEach(j=>{
+    Object.entries(todosPalpites[j.id]||{}).forEach(([uid,pal])=>{
+      const{pts}=calcPts(j,pal);
+      pontosPorPessoa[uid]=(pontosPorPessoa[uid]||0)+pts;
+    });
+  });
+  let craqueDoDia=null,craquePts=0;
+  Object.entries(pontosPorPessoa).forEach(([uid,pts])=>{
+    if(pts>craquePts){craquePts=pts;craqueDoDia=todosUsuarios.find(u=>u.id===uid)}
+  });
+
+  // Quantos placares exatos saíram hoje (de qualquer pessoa)
+  let totalExatosHoje=0;
+  jogosHoje.forEach(j=>{
+    Object.values(todosPalpites[j.id]||{}).forEach(pal=>{
+      const{txt}=calcPts(j,pal);
+      if(txt.includes('Exato'))totalExatosHoje++;
+    });
+  });
+
+  const overlay=document.createElement('div');
+  overlay.className='modal-overlay show';
+  overlay.style.alignItems='center';
+  overlay.id='modal-stories-dia';
+  overlay.onclick=(e)=>{if(e.target===overlay)fecharStoriesDoDia()};
+  overlay.innerHTML=`
+    <div class="stories-card">
+      <button class="stories-close" onclick="fecharStoriesDoDia()">✕</button>
+      <div class="stories-header">
+        <div class="stories-data">${fmtData(hoje)}</div>
+        <div class="stories-titulo">⚽ RESUMO DO DIA</div>
+      </div>
+      <div class="stories-stats-grid">
+        <div class="stories-stat">
+          <div class="stories-stat-num">${totalJogos}</div>
+          <div class="stories-stat-label">Jogo${totalJogos!==1?'s':''}</div>
+        </div>
+        <div class="stories-stat">
+          <div class="stories-stat-num">${totalGols}</div>
+          <div class="stories-stat-label">Gols</div>
+        </div>
+        <div class="stories-stat">
+          <div class="stories-stat-num">${mediaGols}</div>
+          <div class="stories-stat-label">Média/jogo</div>
+        </div>
+      </div>
+      ${maiorGoleada?`
+      <div class="stories-destaque">
+        <div class="stories-destaque-label">⚡ MAIOR GOLEADA</div>
+        <div class="stories-destaque-jogo">
+          ${getFlagSmall(maiorGoleada.time1)} ${nomePT(maiorGoleada.time1)} ${maiorGoleada.gols1}×${maiorGoleada.gols2} ${nomePT(maiorGoleada.time2)} ${getFlagSmall(maiorGoleada.time2)}
+        </div>
+      </div>`:''}
+      ${craqueDoDia?`
+      <div class="stories-destaque" style="border-color:rgba(255,223,0,.4);background:rgba(255,223,0,.06)">
+        <div class="stories-destaque-label" style="color:var(--amarelo)">🏆 CRAQUE DO DIA</div>
+        <div class="stories-craque">
+          ${renderAvatar(craqueDoDia,40,calcPtsTotal(craqueDoDia.id).total)}
+          <div>
+            <div style="font-weight:700">${craqueDoDia.nome}</div>
+            <div style="font-size:.72rem;color:var(--amarelo)">+${craquePts} pts hoje</div>
+          </div>
+        </div>
+      </div>`:''}
+      ${totalExatosHoje>0?`
+      <div class="stories-destaque" style="border-color:rgba(0,156,59,.4);background:rgba(0,156,59,.06)">
+        <div class="stories-destaque-label" style="color:var(--verde-light)">🎯 PLACARES EXATOS HOJE</div>
+        <div style="font-size:1.4rem;font-weight:700;color:var(--verde-light);text-align:center;padding:.3rem 0">${totalExatosHoje}</div>
+      </div>`:''}
+      <button class="btn-primary" style="margin-top:1rem" onclick="fecharStoriesDoDia()">Show de bola! ⚽</button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+function fecharStoriesDoDia(){
+  document.getElementById('modal-stories-dia')?.remove();
 }
 
 // ═══════════════════════════════════════════
@@ -2715,6 +2907,7 @@ function renderBolao(){
       <div>${getFlag(t)}</div>${nomePT(t)}
     </div>`).join('');
   status.textContent=meuCampeao?`✅ Seu palpite: ${nomePT(meuCampeao)} 👑`:'Escolha o campeão!';
+  renderBolaoClassificacao();
 }
 async function selecionarCampeao(time){
   if(!usuarioAtual)return;
@@ -2724,6 +2917,83 @@ async function selecionarCampeao(time){
     showToast(`👑 ${nomePT(time)} é seu palpite de campeão!`);
     renderBolao();
   }catch(e){showToast('❌ Erro ao salvar bolão')}
+}
+
+// ═══════════════════════════════════════════
+// BOLÃO: QUEM VAI SE CLASSIFICAR? 🎯 (+10 pts por acerto)
+// ═══════════════════════════════════════════
+let grupoBolaoAtivo=null;
+function getGruposDisponiveis(){
+  const grupos=new Set();
+  todosJogos.filter(j=>!j.isMata&&j.grupo).forEach(j=>grupos.add(j.grupo));
+  return[...grupos].sort();
+}
+function renderBolaoClassificacao(){
+  const tabsEl=document.getElementById('bolao-grupo-tabs');
+  if(!tabsEl)return;
+  const grupos=getGruposDisponiveis();
+  if(!grupos.length){tabsEl.innerHTML='';return}
+  if(!grupoBolaoAtivo||!grupos.includes(grupoBolaoAtivo))grupoBolaoAtivo=grupos[0];
+
+  tabsEl.innerHTML=grupos.map(g=>`<button class="filtro-btn${g===grupoBolaoAtivo?' active':''}" onclick="trocarGrupoBolao('${g}',this)">${g.replace('Group ','Grupo ')}</button>`).join('');
+  renderBolaoClassificacaoGrid();
+}
+function trocarGrupoBolao(g,btn){
+  grupoBolaoAtivo=g;
+  document.querySelectorAll('#bolao-grupo-tabs .filtro-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderBolaoClassificacaoGrid();
+}
+function renderBolaoClassificacaoGrid(){
+  const grid=document.getElementById('bolao-classificacao-grid');
+  const statusEl=document.getElementById('bolao-classificacao-status');
+  if(!grid||!grupoBolaoAtivo)return;
+  const uid=usuarioAtual?.id;
+
+  // Times do grupo ativo
+  const times=[...new Set(todosJogos.filter(j=>!j.isMata&&j.grupo===grupoBolaoAtivo).flatMap(j=>[j.time1,j.time2]))].sort((a,b)=>nomePT(a).localeCompare(nomePT(b)));
+
+  const minhaEscolha=(classificacaoBolao[grupoBolaoAtivo]||{})[uid]||[];
+
+  grid.innerHTML=`<div class="extra-aposta-grid" style="grid-template-columns:repeat(2,1fr)">
+    ${times.map(t=>{
+      const selecionado=minhaEscolha.includes(t);
+      return`<button class="extra-aposta-btn${selecionado?' selected':''}" onclick="toggleClassificacaoTime('${grupoBolaoAtivo}','${t.replace(/'/g,"\\'")}')">${getFlagSmall(t)} ${nomePT(t)}</button>`;
+    }).join('')}
+  </div>`;
+
+  if(minhaEscolha.length===2){
+    statusEl.textContent=`✅ Você escolheu: ${minhaEscolha.map(nomePT).join(' e ')}`;
+  }else if(minhaEscolha.length===1){
+    statusEl.textContent=`Escolha mais 1 time (selecionou ${minhaEscolha.length}/2)`;
+  }else{
+    statusEl.textContent='Escolha 2 times que vão se classificar';
+  }
+}
+async function toggleClassificacaoTime(grupo,time){
+  if(!usuarioAtual)return;
+  const uid=usuarioAtual.id;
+  if(!classificacaoBolao[grupo])classificacaoBolao[grupo]={};
+  let escolha=classificacaoBolao[grupo][uid]||[];
+
+  if(escolha.includes(time)){
+    escolha=escolha.filter(t=>t!==time); // desmarca
+  }else{
+    if(escolha.length>=2){
+      showToast('⚠️ Você já escolheu 2 times — desmarque um primeiro');
+      return;
+    }
+    escolha=[...escolha,time];
+  }
+  classificacaoBolao[grupo][uid]=escolha;
+  renderBolaoClassificacaoGrid();
+
+  try{
+    await sbUpsert('classificacao_bolao',{usuario_id:uid,grupo,times:escolha},'usuario_id,grupo');
+  }catch(e){
+    showToast('❌ Erro ao salvar (verifique conexão)');
+    console.warn(e);
+  }
 }
 
 // ═══════════════════════════════════════════
