@@ -600,7 +600,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '53';
+const APP_VERSION = '54';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -2277,7 +2277,7 @@ function abrirRankingAoVivo(jogoId){
         </div>
         <div style="text-align:right">
           <div class="pp-palpite">${e.pal.p1}×${e.pal.p2}</div>
-          ${e.temAlgumDado?`<div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--amarelo)">${e.ptsTotal>0?'+'+e.ptsTotal:'0'}pts</div>`:''}
+          ${e.temAlgumDado?`<div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--amarelo)">${e.ptsTotal>0?'+'+e.ptsTotal:'0'} <span style="font-family:'Inter',sans-serif;font-size:.65rem;font-weight:600;color:var(--muted)">pts</span></div>`:''}
         </div>
       </div>`;
     }).join('');
