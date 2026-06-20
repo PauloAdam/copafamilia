@@ -447,6 +447,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;font-size:.78rem">
           <div>🏆 Placar exato <strong style="color:var(--amarelo)">40 pts</strong></div>
           <div>✅ Resultado certo <strong style="color:var(--amarelo)">15 pts</strong></div>
+          <div>⚽ Quem marca 1º <strong style="color:var(--amarelo)">+5 pts</strong></div>
           <div>🇧🇷 Bônus Brasil <strong style="color:var(--amarelo)">+5 pts</strong></div>
           <div>👑 Campeão certo <strong style="color:var(--amarelo)">50 pts</strong></div>
         </div>
@@ -562,7 +563,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '32';
+const APP_VERSION = '33';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -666,11 +667,17 @@ function dispensarInstalar() {
 async function trocarFotoPerfil(input){
   const file = input.files?.[0];
   if (!file || !usuarioAtual) return;
-  if (!file.type.startsWith('image/')) { showToast('⚠️ Escolha uma imagem'); return; }
+  if (!file.type.startsWith('image/')) { showToast('⚠️ Escolha uma imagem (JPG, PNG ou similar)'); return; }
 
   showToast('📷 Processando foto…');
   try {
-    const dataUrl = await comprimirImagem(file, 256, 256, 0.75);
+    // Tenta comprimir com qualidade decrescente até caber num tamanho seguro
+    // (evita erro de "imagem grande demais" — sempre funciona, não importa o arquivo original)
+    let dataUrl = await comprimirImagem(file, 300, 300, 0.8);
+    // Se ainda ficou grande (>500KB em base64), comprime mais
+    if (dataUrl.length > 500000) dataUrl = await comprimirImagem(file, 220, 220, 0.6);
+    if (dataUrl.length > 500000) dataUrl = await comprimirImagem(file, 180, 180, 0.45);
+
     await sbPatch('usuarios', `id=eq.${usuarioAtual.id}`, { foto_url: dataUrl });
     usuarioAtual.foto_url = dataUrl;
     localStorage.setItem('copa_user', JSON.stringify(usuarioAtual));
@@ -679,8 +686,15 @@ async function trocarFotoPerfil(input){
     const avWrap = document.getElementById('topbar-avatar');
     if (avWrap) avWrap.outerHTML = renderAvatar(usuarioAtual, 24).replace('<img ', '<img id="topbar-avatar" ').replace('<div ', '<div id="topbar-avatar" ');
   } catch(e) {
-    console.error(e);
-    showToast('❌ Erro ao salvar foto. Tente uma imagem menor.');
+    console.error('Erro ao salvar foto:', e);
+    // Mensagem específica baseada no tipo de erro
+    if (e.message && e.message.includes('decode')) {
+      showToast('❌ Esse formato de foto não é suportado. Tente um print da galeria.');
+    } else if (e.name === 'AbortError' || (e.message && e.message.includes('fetch'))) {
+      showToast('❌ Sem internet no momento. Tente novamente.');
+    } else {
+      showToast('❌ Não consegui salvar a foto. Tente outra imagem.');
+    }
   }
 }
 
@@ -691,20 +705,23 @@ function comprimirImagem(file, larguraMax, alturaMax, qualidade){
     reader.onload = (e) => {
       const img = new Image();
       img.onload = () => {
-        let { width, height } = img;
-        // Recorte quadrado central
-        const lado = Math.min(width, height);
-        const sx = (width - lado) / 2, sy = (height - lado) / 2;
-        const canvas = document.createElement('canvas');
-        canvas.width = larguraMax; canvas.height = alturaMax;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, sx, sy, lado, lado, 0, 0, larguraMax, alturaMax);
-        resolve(canvas.toDataURL('image/jpeg', qualidade));
+        try {
+          let { width, height } = img;
+          if (!width || !height) { reject(new Error('Imagem inválida ou corrompida')); return; }
+          // Recorte quadrado central
+          const lado = Math.min(width, height);
+          const sx = (width - lado) / 2, sy = (height - lado) / 2;
+          const canvas = document.createElement('canvas');
+          canvas.width = larguraMax; canvas.height = alturaMax;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, sx, sy, lado, lado, 0, 0, larguraMax, alturaMax);
+          resolve(canvas.toDataURL('image/jpeg', qualidade));
+        } catch(err) { reject(err); }
       };
-      img.onerror = reject;
+      img.onerror = () => reject(new Error('Não foi possível decodificar essa imagem (formato pode não ser suportado)'));
       img.src = e.target.result;
     };
-    reader.onerror = reject;
+    reader.onerror = () => reject(new Error('Não foi possível ler o arquivo'));
     reader.readAsDataURL(file);
   });
 }
@@ -853,7 +870,7 @@ function fmtHora(s){return s?s+' (Brasília)':'';}
 // ═══════════════════════════════════════════
 let usuarioAtual=null, todosJogos=[], todosUsuarios=[], todosPalpites={};
 let filtroGrupoAtivo='todos', filtroStatusAtivo='proximos', ultimaAtualizacao=null;
-let placaresPrev={}, chatMsgs=[], ultimoChat=0, bolaoAtual={}, apostasExtras={};
+let placaresPrev={}, chatMsgs=[], ultimoChat=0, bolaoAtual={}, apostasExtras={}, primeiroGol={};
 
 // ═══════════════════════════════════════════
 // SUPABASE
@@ -969,7 +986,7 @@ async function iniciarApp(){
     const pag=document.querySelector('.page.active')?.id?.replace('page-','');
     if(pag)renderPagina(pag);
     carregarChat();
-  },30000); // atualiza a cada 30s
+  },15000); // atualiza a cada 15s (mais rápido para placares ao vivo)
 }
 
 // ═══════════════════════════════════════════
@@ -979,7 +996,7 @@ async function carregarTudo(){
   await Promise.allSettled([carregarJogos(),carregarDadosSupabase()]);
   ultimaAtualizacao=new Date();
   const el=document.getElementById('update-txt');
-  if(el)el.textContent=`Paulinho gostosinho atualizou às ${ultimaAtualizacao.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · dados reais`;
+  if(el)el.textContent=`Atualizado às ${ultimaAtualizacao.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · dados reais`;
   // Salvar placares antes de atualizar (para detectar gols)
   todosJogos.forEach(j=>{ if(j.gols1!==null)placaresPrev[j.id]={g1:j.gols1,g2:j.gols2}; });
 }
@@ -1017,86 +1034,86 @@ async function sobreporScoresAoVivo(){
 
 async function tentarESPN(){
   const slugs=['fifa.world','fifa.world.2026'];
-  // CRÍTICO: sem o parâmetro 'dates', a API da ESPN às vezes retorna um dia
-  // desatualizado/cacheado em vez do dia atual. Forçamos uma janela de 3 dias
-  // (ontem, hoje, amanhã em UTC) para garantir que o jogo de hoje sempre apareça,
-  // não importa o fuso horário do servidor da ESPN.
   const hoje=new Date();
   const fmtYYYYMMDD=d=>`${d.getUTCFullYear()}${String(d.getUTCMonth()+1).padStart(2,'0')}${String(d.getUTCDate()).padStart(2,'0')}`;
   const ontem=new Date(hoje.getTime()-86400000);
   const amanha=new Date(hoje.getTime()+86400000);
   const datesParam=`${fmtYYYYMMDD(ontem)}-${fmtYYYYMMDD(amanha)}`;
 
-  for(const slug of slugs){
-    try{
-      const url=`https://site.api.espn.com/apis/site/v2/sports/soccer/${slug}/scoreboard?dates=${datesParam}&limit=100`;
-      const res=await fetch(url,{signal:AbortSignal.timeout(6000)});
-      if(!res.ok)continue;
-      const data=await res.json();
-      const events=data.events||[];
-      if(!events.length)continue;
-      let matched=0;
-      events.forEach(ev=>{
-        const comp=ev.competitions?.[0];if(!comp)return;
-        const t1raw=comp.competitors?.[0]?.team?.displayName||'';
-        const t2raw=comp.competitors?.[1]?.team?.displayName||'';
-        const t1=t1raw.toLowerCase(),t2=t2raw.toLowerCase();
-        // Parsing robusto: ESPN pode mandar score como "", null, undefined ou string numérica
-        const rawS1=comp.competitors?.[0]?.score;
-        const rawS2=comp.competitors?.[1]?.score;
-        const s1=(rawS1!==undefined&&rawS1!==null&&rawS1!=='')?parseInt(rawS1):-1;
-        const s2=(rawS2!==undefined&&rawS2!==null&&rawS2!=='')?parseInt(rawS2):-1;
-        const st=ev.status?.type?.name||'';
-        const clock=ev.status?.displayClock||'';
-        const isLive=st==='STATUS_IN_PROGRESS'||st==='STATUS_FIRST_HALF'||st==='STATUS_SECOND_HALF'||st==='STATUS_HALFTIME'||st==='STATUS_END_PERIOD'||st==='STATUS_OVERTIME';
-        const isDone=st==='STATUS_FULL_TIME'||st==='STATUS_FINAL'||st==='STATUS_FULL_PEN'||st.includes('FINAL');
+  // Tenta os slugs EM PARALELO (não sequencial) para reduzir latência total
+  const resultados=await Promise.allSettled(slugs.map(slug=>
+    fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${slug}/scoreboard?dates=${datesParam}&limit=100`,{signal:AbortSignal.timeout(5000)})
+      .then(r=>r.ok?r.json():null)
+  ));
 
-        // ESPN manda ev.date em UTC ISO (ex: "2026-06-20T03:00Z") — é a VERDADE OFICIAL do horário
-        if(!ev.date)return;
-        const dtEspnUTC=new Date(ev.date);
-        const dtBrasilia=new Date(dtEspnUTC.getTime()-3*3600*1000);
-        const dataReal=dtBrasilia.toISOString().split('T')[0];
-        const horaReal=String(dtBrasilia.getUTCHours()).padStart(2,'0')+':'+String(dtBrasilia.getUTCMinutes()).padStart(2,'0');
+  let eventosTotais=[];
+  resultados.forEach(r=>{
+    if(r.status==='fulfilled'&&r.value?.events?.length) eventosTotais=eventosTotais.concat(r.value.events);
+  });
+  if(!eventosTotais.length) return false;
 
-        const candidatos=todosJogos.filter(j=>{
-          const n1=j.time1.toLowerCase(),n2=j.time2.toLowerCase();
-          const w1=n1.split(' '),w2=n2.split(' ');
-          const m1=w1.some(w=>w.length>2&&t1.includes(w))||t1.split(' ').some(w=>w.length>2&&n1.includes(w));
-          const m2=w2.some(w=>w.length>2&&t2.includes(w))||t2.split(' ').some(w=>w.length>2&&n2.includes(w));
-          return m1&&m2;
-        });
-        if(!candidatos.length)return;
-        let jogo=candidatos[0];
-        if(candidatos.length>1){
-          jogo=candidatos.reduce((best,j)=>{
-            const dBest=Math.abs(new Date(best.data)-new Date(dataReal));
-            const dJ=Math.abs(new Date(j.data)-new Date(dataReal));
-            return dJ<dBest?j:best;
-          },candidatos[0]);
-        }
-        const diffDiasDaFonte=Math.abs((new Date(jogo.data)-new Date(dataReal))/86400000);
-        if(diffDiasDaFonte>2)return;
+  // Remove duplicatas (mesmo jogo pode vir dos 2 slugs)
+  const vistos=new Set();
+  const events=eventosTotais.filter(ev=>{
+    if(vistos.has(ev.id))return false;
+    vistos.add(ev.id);return true;
+  });
 
-        jogo.data=dataReal;
-        jogo.hora=horaReal;
-        jogo.horaTxt=`${horaReal} (Brasília)`;
-        matched++;
-        // LOG de debug: mostra exatamente o que a ESPN mandou para esse jogo
-        console.info(`ESPN match: ${jogo.time1} ${rawS1}→${s1} x ${rawS2}→${s2} ${jogo.time2} | status=${st} live=${isLive} done=${isDone}`);
-        if(isLive){jogo.status='ao-vivo';if(s1>=0){jogo.gols1=s1;jogo.gols2=s2}jogo.minuto=clock}
-        else if(isDone){jogo.status='encerrado';if(s1>=0){jogo.gols1=s1;jogo.gols2=s2}}
-        else{
-          const agora=new Date();
-          const dtJ=new Date(dataReal+'T'+horaReal+':00-03:00');
-          const minDesde=(agora-dtJ)/60000;
-          if(minDesde>0&&minDesde<130)jogo.status='ao-vivo';
-          else if(minDesde<=0)jogo.status='futuro';
-        }
-      });
-      if(matched>0){console.info(`ESPN[${slug}] dates=${datesParam}: ${events.length}ev, ${matched}match`);return true}
-      else console.info(`ESPN[${slug}] dates=${datesParam}: ${events.length}ev, 0 match`);
-    }catch(e){console.warn('ESPN:',e.message)}
-  }
+  let matched=0;
+  events.forEach(ev=>{
+    const comp=ev.competitions?.[0];if(!comp)return;
+    const t1raw=comp.competitors?.[0]?.team?.displayName||'';
+    const t2raw=comp.competitors?.[1]?.team?.displayName||'';
+    const t1=t1raw.toLowerCase(),t2=t2raw.toLowerCase();
+    const rawS1=comp.competitors?.[0]?.score;
+    const rawS2=comp.competitors?.[1]?.score;
+    const s1=(rawS1!==undefined&&rawS1!==null&&rawS1!=='')?parseInt(rawS1):-1;
+    const s2=(rawS2!==undefined&&rawS2!==null&&rawS2!=='')?parseInt(rawS2):-1;
+    const st=ev.status?.type?.name||'';
+    const clock=ev.status?.displayClock||'';
+    const isLive=st==='STATUS_IN_PROGRESS'||st==='STATUS_FIRST_HALF'||st==='STATUS_SECOND_HALF'||st==='STATUS_HALFTIME'||st==='STATUS_END_PERIOD'||st==='STATUS_OVERTIME';
+    const isDone=st==='STATUS_FULL_TIME'||st==='STATUS_FINAL'||st==='STATUS_FULL_PEN'||st.includes('FINAL');
+
+    if(!ev.date)return;
+    const dtEspnUTC=new Date(ev.date);
+    const dtBrasilia=new Date(dtEspnUTC.getTime()-3*3600*1000);
+    const dataReal=dtBrasilia.toISOString().split('T')[0];
+    const horaReal=String(dtBrasilia.getUTCHours()).padStart(2,'0')+':'+String(dtBrasilia.getUTCMinutes()).padStart(2,'0');
+
+    const candidatos=todosJogos.filter(j=>{
+      const n1=j.time1.toLowerCase(),n2=j.time2.toLowerCase();
+      const w1=n1.split(' '),w2=n2.split(' ');
+      const m1=w1.some(w=>w.length>2&&t1.includes(w))||t1.split(' ').some(w=>w.length>2&&n1.includes(w));
+      const m2=w2.some(w=>w.length>2&&t2.includes(w))||t2.split(' ').some(w=>w.length>2&&n2.includes(w));
+      return m1&&m2;
+    });
+    if(!candidatos.length)return;
+    let jogo=candidatos[0];
+    if(candidatos.length>1){
+      jogo=candidatos.reduce((best,j)=>{
+        const dBest=Math.abs(new Date(best.data)-new Date(dataReal));
+        const dJ=Math.abs(new Date(j.data)-new Date(dataReal));
+        return dJ<dBest?j:best;
+      },candidatos[0]);
+    }
+    const diffDiasDaFonte=Math.abs((new Date(jogo.data)-new Date(dataReal))/86400000);
+    if(diffDiasDaFonte>2)return;
+
+    jogo.data=dataReal;
+    jogo.hora=horaReal;
+    jogo.horaTxt=`${horaReal} (Brasília)`;
+    matched++;
+    if(isLive){jogo.status='ao-vivo';if(s1>=0){jogo.gols1=s1;jogo.gols2=s2}jogo.minuto=clock}
+    else if(isDone){jogo.status='encerrado';if(s1>=0){jogo.gols1=s1;jogo.gols2=s2}}
+    else{
+      const agora=new Date();
+      const dtJ=new Date(dataReal+'T'+horaReal+':00-03:00');
+      const minDesde=(agora-dtJ)/60000;
+      if(minDesde>0&&minDesde<130)jogo.status='ao-vivo';
+      else if(minDesde<=0)jogo.status='futuro';
+    }
+  });
+  if(matched>0){console.info(`ESPN (paralelo) dates=${datesParam}: ${events.length}ev, ${matched}match`);return true}
   return false;
 }
 
@@ -1193,6 +1210,12 @@ async function carregarDadosSupabase(){
       const ex=await sbGet('apostas_extras','select=*');
       apostasExtras={};
       ex.forEach(a=>{if(!apostasExtras[a.jogo_id])apostasExtras[a.jogo_id]={};apostasExtras[a.jogo_id][a.usuario_id]=a.jogador});
+    }catch(e){/* tabela pode não existir ainda */}
+    // Quem marcou o primeiro gol de cada jogo (definido pelo admin)
+    try{
+      const pg=await sbGet('primeiro_gol','select=*');
+      primeiroGol={};
+      pg.forEach(r=>{primeiroGol[r.jogo_id]=r.time_marcou});
     }catch(e){/* tabela pode não existir ainda */}
   }catch(e){console.warn('Supabase:',e)}
 }
@@ -2019,7 +2042,7 @@ function calcPts(j,pal){
   return{pts:0,txt:'❌ Errou'};
 }
 function calcPtsTotal(uid){
-  let total=0,exatos=0,resultados=0,erros=0;
+  let total=0,exatos=0,resultados=0,erros=0,acertosPrimeiroGol=0;
   todosJogos.forEach(j=>{
     if(j.status!=='encerrado'||j.gols1===null)return;
     const pal=(todosPalpites[j.id]||{})[uid];if(!pal)return;
@@ -2028,13 +2051,21 @@ function calcPtsTotal(uid){
     else if(txt.includes('Resultado'))resultados++;
     else if(txt.includes('Errou'))erros++;
   });
+  // Apostas extras: "quem marca primeiro?" — +5 pts se acertar
+  todosJogos.forEach(j=>{
+    if(j.status!=='encerrado')return;
+    const escolha=(apostasExtras[j.id]||{})[uid];
+    const realQuemMarcou=primeiroGol[j.id];
+    if(!escolha||!realQuemMarcou)return;
+    if(escolha===realQuemMarcou){total+=5;acertosPrimeiroGol++}
+  });
   // Bônus campeão
   const camp=bolaoAtual[uid];
   if(camp){
     const finalJ=todosJogos.find(j=>j.round==='Final'&&j.status==='encerrado');
     if(finalJ){const venc=finalJ.gols1>finalJ.gols2?finalJ.time1:finalJ.time2;if(venc===camp)total+=50}
   }
-  return{total,exatos,resultados,erros};
+  return{total,exatos,resultados,erros,acertosPrimeiroGol};
 }
 
 // ═══════════════════════════════════════════
@@ -2378,7 +2409,9 @@ function renderAdmin(){
     return;
   }
   const jogosEdit=todosJogos.filter(j=>j.status==='ao-vivo'||j.status==='encerrado').slice(-20);
-  c.innerHTML=jogosEdit.map(j=>`
+  c.innerHTML=jogosEdit.map(j=>{
+    const golAtual=primeiroGol[j.id]||'';
+    return`
     <div class="admin-card">
       <div style="font-size:.8rem;font-weight:600;margin-bottom:.5rem">${nomePT(j.time1)} × ${nomePT(j.time2)} · ${fmtData(j.data)}</div>
       <div class="admin-jogo-row">
@@ -2393,7 +2426,18 @@ function renderAdmin(){
         </select>
         <button class="btn-admin-save" onclick="adminSalvar('${j.id}')">Salvar</button>
       </div>
-    </div>`).join('');
+      <div class="admin-jogo-row" style="margin-top:.4rem">
+        <span style="font-size:.75rem;color:var(--muted)">⚽ Quem marcou primeiro:</span>
+        <select id="adm_golprimeiro_${j.id}" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:3px 6px;font-size:.72rem;flex:1">
+          <option value="">— não definido —</option>
+          <option value="${j.time1}"${golAtual===j.time1?' selected':''}>${nomePT(j.time1)}</option>
+          <option value="${j.time2}"${golAtual===j.time2?' selected':''}>${nomePT(j.time2)}</option>
+          <option value="nenhum"${golAtual==='nenhum'?' selected':''}>Sem gols (0×0)</option>
+        </select>
+        <button class="btn-admin-save" onclick="adminSalvarPrimeiroGol('${j.id}')">Salvar</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 function adminSalvar(id){
   if(!isAdmin())return; // proteção extra na própria ação
@@ -2406,6 +2450,19 @@ function adminSalvar(id){
   showToast(`✅ Jogo atualizado manualmente!`);
   renderAdmin();
   registrarLogAuditoria('placar_editado', `${nomePT(j.time1)} ${g1}x${g2} ${nomePT(j.time2)}`);
+}
+
+async function adminSalvarPrimeiroGol(jogoId){
+  if(!isAdmin())return;
+  const time=document.getElementById('adm_golprimeiro_'+jogoId)?.value;
+  if(!time)return;
+  try{
+    await sbUpsert('primeiro_gol',{jogo_id:jogoId,time_marcou:time},'jogo_id');
+    primeiroGol[jogoId]=time;
+    showToast(`✅ Primeiro gol registrado!`);
+    const j=todosJogos.find(x=>x.id===jogoId);
+    registrarLogAuditoria('primeiro_gol_editado', `${j?nomePT(j.time1)+' x '+nomePT(j.time2):jogoId}: ${time==='nenhum'?'sem gols':nomePT(time)}`);
+  }catch(e){showToast('❌ Erro ao salvar (tabela pode não existir ainda)');console.warn(e)}
 }
 
 // ═══════════════════════════════════════════
