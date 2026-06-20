@@ -600,7 +600,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '49';
+const APP_VERSION = '50';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -1131,7 +1131,7 @@ async function iniciarApp(){
       if(paginaAtual)renderPagina(paginaAtual);
     }
     carregarChat();
-  },15000); // atualiza a cada 15s (mais rápido para placares ao vivo)
+  },10000); // atualiza a cada 10s (mais rápido para placares ao vivo)
 }
 
 // ═══════════════════════════════════════════
@@ -1181,20 +1181,26 @@ function registrarTentativaAPI(fonte,sucesso,ms){
 }
 
 async function sobreporScoresAoVivo(){
+  // Roda as 3 fontes EM PARALELO (não mais sequencial) — usa a primeira que responder
+  // com sucesso. Antes, se a ESPN demorasse/falhasse, o app esperava o timeout dela
+  // (5s) e SÓ DEPOIS tentava a próxima (mais 6s), e a próxima (mais 7s) — até 18s
+  // perdidos só em timeouts antes de qualquer dado chegar. Agora todas começam juntas.
   const t0=performance.now();
-  const okEspn=await tentarESPN();
-  registrarTentativaAPI('espn',okEspn,Math.round(performance.now()-t0));
-  if(okEspn)return;
+  const resultados=await Promise.allSettled([
+    tentarESPN().then(ok=>({fonte:'espn',ok})),
+    tentarSportsDB().then(ok=>({fonte:'sportsdb',ok})),
+    tentarWC26viaProxy().then(ok=>({fonte:'proxy',ok})),
+  ]);
+  const tempoTotal=Math.round(performance.now()-t0);
 
-  const t1=performance.now();
-  const okSdb=await tentarSportsDB();
-  registrarTentativaAPI('sportsdb',okSdb,Math.round(performance.now()-t1));
-  if(okSdb)return;
-
-  const t2=performance.now();
-  const okProxy=await tentarWC26viaProxy();
-  registrarTentativaAPI('proxy',okProxy,Math.round(performance.now()-t2));
-  if(!okProxy)console.info('Sem score ao vivo externo');
+  let algumSucesso=false;
+  resultados.forEach(r=>{
+    if(r.status==='fulfilled'){
+      registrarTentativaAPI(r.value.fonte,r.value.ok,tempoTotal);
+      if(r.value.ok)algumSucesso=true;
+    }
+  });
+  if(!algumSucesso)console.info('Sem score ao vivo externo (todas as fontes falharam ou não tinham dados)');
 }
 
 async function tentarESPN(){
@@ -1207,7 +1213,7 @@ async function tentarESPN(){
 
   // Tenta os slugs EM PARALELO (não sequencial) para reduzir latência total
   const resultados=await Promise.allSettled(slugs.map(slug=>
-    fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${slug}/scoreboard?dates=${datesParam}&limit=100`,{signal:AbortSignal.timeout(5000)})
+    fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${slug}/scoreboard?dates=${datesParam}&limit=100`,{signal:AbortSignal.timeout(4000)})
       .then(r=>r.ok?r.json():null)
   ));
 
@@ -1285,7 +1291,7 @@ async function tentarESPN(){
 async function tentarSportsDB(){
   try{
     const hoje=new Date().toISOString().split('T')[0];
-    const res=await fetch(`https://www.thesportsdb.com/api/v1/json/3/eventsday.php?d=${hoje}&s=Soccer`,{signal:AbortSignal.timeout(6000)});
+    const res=await fetch(`https://www.thesportsdb.com/api/v1/json/3/eventsday.php?d=${hoje}&s=Soccer`,{signal:AbortSignal.timeout(4000)});
     if(!res.ok)return false;
     const data=await res.json();
     const events=(data.events||[]).filter(e=>(e.strLeague||'').toLowerCase().includes('world'));
@@ -1325,7 +1331,7 @@ async function tentarSportsDB(){
 async function tentarWC26viaProxy(){
   try{
     const target=encodeURIComponent('https://worldcup26.ir/get/games');
-    const res=await fetch(`https://api.allorigins.win/get?url=${target}`,{signal:AbortSignal.timeout(7000)});
+    const res=await fetch(`https://api.allorigins.win/get?url=${target}`,{signal:AbortSignal.timeout(5000)});
     if(!res.ok)return false;
     const w=await res.json();
     const data=JSON.parse(w.contents||'{}');
