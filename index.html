@@ -600,7 +600,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '47';
+const APP_VERSION = '48';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -1958,8 +1958,12 @@ function jogoCardHTML(j,comPalpite){
       if(enc&&pts>0){
         palHtml+=`<div style="padding:.5rem .9rem 0"><button class="btn-ver-palpites" style="background:rgba(255,223,0,.12);border-color:rgba(255,223,0,.35);color:var(--amarelo)" onclick="compartilharResultado('${j.id}')">📤 Compartilhar acerto</button></div>`;
       }
+      if(live){
+        palHtml+=`<div style="padding:.5rem .9rem 0"><button class="btn-ver-palpites" style="background:rgba(0,156,59,.12);border-color:rgba(0,156,59,.35);color:var(--verde-light)" onclick="abrirRankingAoVivo('${j.id}')">📊 Ver pontuação de todos em tempo real</button></div>`;
+      }
     }else if(live&&!pal){
       palHtml=`<div class="palpite-row" style="opacity:.65"><span style="font-size:.75rem;color:#ff8888">🔒 Jogo em andamento — palpites encerrados</span></div>`;
+      palHtml+=`<div style="padding:.5rem .9rem 0"><button class="btn-ver-palpites" style="background:rgba(0,156,59,.12);border-color:rgba(0,156,59,.35);color:var(--verde-light)" onclick="abrirRankingAoVivo('${j.id}')">📊 Ver pontuação de todos em tempo real</button></div>`;
     }else if(!enc&&!live){
       const v1=pal?.p1??'',v2=pal?.p2??'';
       palHtml=`<div class="palpite-row"><span class="palpite-label">🎯</span><div class="palpite-inputs"><input type="number" min="0" max="20" class="palpite-n" id="pn1_${j.id}" value="${v1}" placeholder="0"><span class="palpite-sep">×</span><input type="number" min="0" max="20" class="palpite-n" id="pn2_${j.id}" value="${v2}" placeholder="0"></div><button class="btn-salvar-pal" data-jogo="${j.id}">${pal?'✏️ Atualizar':'💾 Salvar'}</button>${pal?`<span class="palpite-ok" style="font-size:.68rem">✓${pal.p1}×${pal.p2}</span>`:''}</div>`;
@@ -2163,6 +2167,64 @@ function abrirModalPalpites(jogoId){
 }
 function fecharModalPalpites(){
   document.getElementById('modal-palpites').classList.remove('show');
+}
+
+// ═══════════════════════════════════════════
+// RANKING AO VIVO 📊 — pontuação simulada com o placar atual do jogo
+// ═══════════════════════════════════════════
+function abrirRankingAoVivo(jogoId){
+  const j=todosJogos.find(x=>x.id===jogoId);
+  if(!j)return;
+  const pals=todosPalpites[jogoId]||{};
+  const temPlacar=j.gols1!==null&&j.gols2!==null;
+
+  document.getElementById('modal-jogo-info').innerHTML=`
+    <div class="modal-jogo-resumo">
+      <div class="modal-time">${getFlag(j.time1)}<span>${nomePT(j.time1)}</span></div>
+      <div class="modal-vs" style="color:#ff8888">${temPlacar?`${j.gols1} : ${j.gols2}`:'– : –'}</div>
+      <div class="modal-time">${getFlag(j.time2)}<span>${nomePT(j.time2)}</span></div>
+    </div>
+    <p style="font-size:.72rem;color:var(--verde-light);text-align:center;margin-bottom:.75rem">
+      🔴 <strong>Pontuação simulada</strong> com o placar de agora — atualiza junto com o jogo!
+    </p>
+  `;
+
+  // Simula a pontuação de cada um SE o jogo terminasse com o placar atual
+  const jogoSimulado={...j, gols1:j.gols1, gols2:j.gols2};
+  let entradas=Object.entries(pals).map(([uid,pal])=>{
+    const u=todosUsuarios.find(x=>x.id===uid);
+    const nome=u?.nome||'?';
+    let resultTag='',rowClass='',pts=0,txt='';
+    if(temPlacar){
+      const r=calcPts(jogoSimulado,pal);
+      pts=r.pts;txt=r.txt;
+      if(txt.includes('Exato')){resultTag=`<span class="pp-resultado-tag" style="background:rgba(255,223,0,.2);color:var(--amarelo)">🏆 +${pts}</span>`;rowClass='acertou-exato'}
+      else if(txt.includes('Resultado')){resultTag=`<span class="pp-resultado-tag" style="background:rgba(0,156,59,.2);color:var(--verde-light)">✅ +${pts}</span>`;rowClass='acertou-resultado'}
+      else{resultTag=`<span class="pp-resultado-tag" style="background:rgba(200,50,50,.15);color:#ff8888">❌ se acabasse agora</span>`}
+    }else{
+      resultTag=`<span class="pp-resultado-tag" style="background:rgba(255,255,255,.08);color:var(--muted)">⏳ aguardando 1º gol</span>`;
+    }
+    return{uid,nome,pal,resultTag,rowClass,pts};
+  });
+  entradas.sort((a,b)=>b.pts-a.pts||a.nome.localeCompare(b.nome));
+
+  const lista=document.getElementById('modal-palpites-lista');
+  if(!entradas.length){
+    lista.innerHTML='<div class="empty-state" style="padding:1rem"><p>Ninguém palpitou nesse jogo.</p></div>';
+  }else{
+    lista.innerHTML=entradas.map(e=>{
+      const cor=corU(e.uid);
+      const souEu=e.uid===usuarioAtual?.id;
+      return`<div class="palpite-pessoa-row ${e.rowClass}">
+        <div class="pp-avatar" style="background:${cor}22;color:${cor}">${e.nome.charAt(0).toUpperCase()}</div>
+        <div class="pp-nome">${e.nome}${souEu?' <span style="color:var(--muted);font-size:.7rem">(você)</span>':''}</div>
+        <div class="pp-palpite">${e.pal.p1}×${e.pal.p2}</div>
+        ${e.resultTag}
+      </div>`;
+    }).join('');
+  }
+
+  document.getElementById('modal-palpites').classList.add('show');
 }
 
 async function salvarPalpite(jogoId){
