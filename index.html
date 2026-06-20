@@ -588,7 +588,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '41';
+const APP_VERSION = '42';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -1091,6 +1091,7 @@ async function iniciarApp(){
   pedirNotificacao();
   checarResumoSemanal();
   checarMudancaRanking();
+  registrarAcessoDispositivo();
   setInterval(async()=>{
     const prevPlacares={...placaresPrev};
     await carregarTudo();
@@ -2457,6 +2458,60 @@ function checarMudancaRanking(){
   localStorage.setItem(chave,String(posicaoAtual));
 }
 
+// ═══════════════════════════════════════════
+// DADOS TÉCNICOS DO DISPOSITIVO 📱 — visível só para admin na Auditoria
+// Captura apenas info que o próprio navegador já expõe publicamente
+// (navegator/SO/tela) — NUNCA captura IP, localização ou dados pessoais.
+// ═══════════════════════════════════════════
+function detectarDispositivo(){
+  const ua=navigator.userAgent;
+  let navegador='Desconhecido';
+  if(/Edg\//.test(ua))navegador='Edge';
+  else if(/OPR\//.test(ua))navegador='Opera';
+  else if(/Chrome\//.test(ua)&&!/Chromium/.test(ua))navegador='Chrome';
+  else if(/Firefox\//.test(ua))navegador='Firefox';
+  else if(/Safari\//.test(ua)&&!/Chrome/.test(ua))navegador='Safari';
+  else if(/Chromium/.test(ua))navegador='Chromium';
+
+  let sistema='Desconhecido';
+  if(/Android/.test(ua))sistema='Android';
+  else if(/iPhone|iPad|iPod/.test(ua))sistema='iOS';
+  else if(/Windows/.test(ua))sistema='Windows';
+  else if(/Mac OS/.test(ua))sistema='macOS';
+  else if(/Linux/.test(ua))sistema='Linux';
+
+  const tipoDispositivo=/Mobi|Android|iPhone/.test(ua)?'Celular':(/iPad|Tablet/.test(ua)?'Tablet':'Computador');
+  const instaladoComoApp=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
+
+  return{
+    navegador,sistema,tipoDispositivo,instaladoComoApp,
+    tela:`${window.screen.width}x${window.screen.height}`,
+    idioma:navigator.language||'?',
+  };
+}
+
+async function registrarAcessoDispositivo(){
+  if(!usuarioAtual)return;
+  try{
+    const info=detectarDispositivo();
+    await sbUpsert('acessos_dispositivo',{
+      usuario_id:usuarioAtual.id,
+      usuario_nome:usuarioAtual.nome,
+      navegador:info.navegador,
+      sistema:info.sistema,
+      tipo_dispositivo:info.tipoDispositivo,
+      instalado_como_app:info.instaladoComoApp,
+      tela:info.tela,
+      idioma:info.idioma,
+      ultimo_acesso:new Date().toISOString(),
+    },'usuario_id');
+    // Incrementa contador de acessos via RPC seria ideal, mas fazemos leitura+escrita simples
+    const atual=await sbGet('acessos_dispositivo',`usuario_id=eq.${usuarioAtual.id}&select=total_acessos`);
+    const totalAtual=atual?.[0]?.total_acessos||0;
+    await sbUpsert('acessos_dispositivo',{usuario_id:usuarioAtual.id,total_acessos:totalAtual+1},'usuario_id');
+  }catch(e){console.warn('Registro de dispositivo falhou (tabela pode não existir ainda):',e.message)}
+}
+
 function mostrarResumoSemanal(automatico){
   const uid=usuarioAtual?.id;
   if(!uid)return;
@@ -2798,6 +2853,12 @@ async function renderAuditoria(){
     </div>
 
     <div class="card">
+      <div class="card-title">📱 Dispositivos &amp; navegadores</div>
+      <p style="font-size:.7rem;color:var(--muted);margin-bottom:.6rem">Apenas info pública do navegador — sem IP, sem localização.</p>
+      <div id="audit-dispositivos-lista"><div class="loading-spinner" style="padding:1rem"><div class="spinner" style="width:20px;height:20px"></div></div></div>
+    </div>
+
+    <div class="card">
       <div class="card-title">📋 Todos os palpites (todos os jogos)</div>
       <div class="filtro-bar" style="margin-bottom:.75rem">
         <button class="filtro-btn active" onclick="filtrarAuditJogos('todos',this)">Todos</button>
@@ -2811,6 +2872,45 @@ async function renderAuditoria(){
 
   renderAuditPalpites('todos');
   carregarLogAuditoria();
+  carregarDispositivosAuditoria();
+}
+
+async function carregarDispositivosAuditoria(){
+  const cont=document.getElementById('audit-dispositivos-lista');
+  if(!cont)return;
+  try{
+    const dispositivos=await sbGet('acessos_dispositivo','select=*&order=ultimo_acesso.desc');
+    if(!dispositivos.length){cont.innerHTML='<div class="empty-state" style="padding:1rem"><p>Nenhum dado registrado ainda.</p></div>';return}
+
+    const iconesNav={Chrome:'🟢',Safari:'🧭',Firefox:'🦊',Edge:'🔷',Opera:'🔴',Chromium:'⚪',Desconhecido:'❓'};
+    const iconesSO={Android:'🤖',iOS:'🍎',Windows:'🪟',macOS:'💻',Linux:'🐧',Desconhecido:'❓'};
+
+    cont.innerHTML=dispositivos.map(d=>{
+      const ultimoAcesso=d.ultimo_acesso?new Date(d.ultimo_acesso):null;
+      const agora=new Date();
+      const diffHoras=ultimoAcesso?(agora-ultimoAcesso)/3600000:null;
+      let statusOnline='', corStatus='var(--muted)';
+      if(diffHoras!==null){
+        if(diffHoras<1){statusOnline='🟢 Ativo agora';corStatus='var(--verde-light)'}
+        else if(diffHoras<24){statusOnline=`Há ${Math.round(diffHoras)}h`;corStatus='var(--muted)'}
+        else{statusOnline=`Há ${Math.round(diffHoras/24)}d`;corStatus='var(--muted)'}
+      }
+      return`<div style="padding:.65rem 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem">
+        <div style="font-size:1.3rem">${iconesSO[d.sistema]||'❓'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:.82rem">${escHtml(d.usuario_nome)}</div>
+          <div style="font-size:.68rem;color:var(--muted)">
+            ${iconesNav[d.navegador]||'❓'} ${d.navegador} · ${d.sistema} · ${d.tipo_dispositivo}
+            ${d.instalado_como_app?' · 📲 App instalado':''}
+          </div>
+          <div style="font-size:.65rem;color:var(--muted)">Tela: ${d.tela||'?'} · ${d.total_acessos||1} acesso${(d.total_acessos||1)>1?'s':''}</div>
+        </div>
+        <div style="text-align:right;font-size:.68rem;color:${corStatus};white-space:nowrap">${statusOnline}</div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    cont.innerHTML=`<div class="empty-state" style="padding:1rem"><p style="color:var(--muted);font-size:.78rem">Tabela ainda não criada no Supabase. Veja o SETUP correspondente.</p></div>`;
+  }
 }
 
 let filtroAuditAtivo='todos';
