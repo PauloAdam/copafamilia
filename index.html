@@ -600,7 +600,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '54';
+const APP_VERSION = '56';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -2200,15 +2200,6 @@ function abrirRankingAoVivo(jogoId){
   if(!j)return;
   const pals=todosPalpites[jogoId]||{};
   const temPlacar=j.gols1!==null&&j.gols2!==null;
-  const temPlacarHT=j.golsHT1!==null&&j.golsHT2!==null;
-
-  // Calcula quem está vencendo o 1º tempo agora (com base no placar do intervalo já fechado)
-  let resultadoHTAtual=null;
-  if(temPlacarHT){
-    if(j.golsHT1>j.golsHT2)resultadoHTAtual=j.time1;
-    else if(j.golsHT2>j.golsHT1)resultadoHTAtual=j.time2;
-    else resultadoHTAtual='empate';
-  }
 
   document.getElementById('modal-jogo-info').innerHTML=`
     <div class="modal-jogo-resumo">
@@ -2216,49 +2207,36 @@ function abrirRankingAoVivo(jogoId){
       <div class="modal-vs" style="color:#ff8888">${temPlacar?`${j.gols1} : ${j.gols2}`:'– : –'}</div>
       <div class="modal-time">${getFlag(j.time2)}<span>${nomePT(j.time2)}</span></div>
     </div>
-    <p style="font-size:.72rem;color:var(--verde-light);text-align:center;margin-bottom:.3rem">
+    <p style="font-size:.72rem;color:var(--verde-light);text-align:center;margin-bottom:.75rem">
       🔴 <strong>Pontuação simulada</strong> com o placar de agora — atualiza junto com o jogo!
     </p>
-    ${temPlacarHT?`<p style="font-size:.7rem;color:var(--muted);text-align:center;margin-bottom:.75rem">⏱️ 1º tempo fechou: ${resultadoHTAtual==='empate'?'Empate':nomePT(resultadoHTAtual)} ${j.golsHT1}×${j.golsHT2}</p>`
-      :`<p style="font-size:.7rem;color:var(--muted);text-align:center;margin-bottom:.75rem">⏱️ 1º tempo ainda não fechou — aposta extra entra assim que fechar</p>`}
   `;
 
-  // Simula a pontuação TOTAL de cada um: placar (+ bônus Brasil já incluso) + aposta extra do 1º tempo
+  // Simula a pontuação de cada um com base no placar atual (a aposta extra de
+  // "vence o 1º tempo" não entra aqui — ela só conta na pontuação final, depois
+  // que o jogo encerra, para evitar dados incorretos durante o jogo ao vivo)
   let entradas=Object.entries(pals).map(([uid,pal])=>{
     const u=todosUsuarios.find(x=>x.id===uid);
     const nome=u?.nome||'?';
-    let ptsPlacar=0,txtPlacar='',ptsExtra=0,acertouExtra=null;
+    let ptsTotal=0,txtPlacar='';
 
     if(temPlacar){
       const r=calcPts(j,pal);
-      ptsPlacar=r.pts;txtPlacar=r.txt;
+      ptsTotal=r.pts;txtPlacar=r.txt;
     }
 
-    const escolhaExtra=(apostasExtras[jogoId]||{})[uid];
-    if(escolhaExtra&&resultadoHTAtual){
-      acertouExtra=escolhaExtra===resultadoHTAtual;
-      if(acertouExtra)ptsExtra=5;
-    }
-
-    const ptsTotal=ptsPlacar+ptsExtra;
-
-    // Monta as etiquetas visuais
     let tagsHtml='';
     if(temPlacar){
-      if(txtPlacar.includes('Exato'))tagsHtml+=`<span class="pp-resultado-tag" style="background:rgba(255,223,0,.2);color:var(--amarelo)">🏆 Exato</span>`;
-      else if(txtPlacar.includes('Resultado'))tagsHtml+=`<span class="pp-resultado-tag" style="background:rgba(0,156,59,.2);color:var(--verde-light)">✅ Resultado</span>`;
-      else tagsHtml+=`<span class="pp-resultado-tag" style="background:rgba(200,50,50,.15);color:#ff8888">❌ placar</span>`;
+      if(txtPlacar.includes('Exato'))tagsHtml=`<span class="pp-resultado-tag" style="background:rgba(255,223,0,.2);color:var(--amarelo)">🏆 Exato</span>`;
+      else if(txtPlacar.includes('Resultado'))tagsHtml=`<span class="pp-resultado-tag" style="background:rgba(0,156,59,.2);color:var(--verde-light)">✅ Resultado</span>`;
+      else tagsHtml=`<span class="pp-resultado-tag" style="background:rgba(200,50,50,.15);color:#ff8888">❌ se acabasse agora</span>`;
+    }else{
+      tagsHtml=`<span class="pp-resultado-tag" style="background:rgba(255,255,255,.08);color:var(--muted)">⏳ aguardando</span>`;
     }
-    if(escolhaExtra){
-      if(acertouExtra===true)tagsHtml+=`<span class="pp-resultado-tag" style="background:rgba(0,156,59,.2);color:var(--verde-light)">⏱️ +5</span>`;
-      else if(acertouExtra===false)tagsHtml+=`<span class="pp-resultado-tag" style="background:rgba(200,50,50,.15);color:#ff8888">⏱️ ❌</span>`;
-      else tagsHtml+=`<span class="pp-resultado-tag" style="background:rgba(255,255,255,.08);color:var(--muted)">⏱️ ⏳</span>`;
-    }
-    if(!temPlacar&&!escolhaExtra)tagsHtml=`<span class="pp-resultado-tag" style="background:rgba(255,255,255,.08);color:var(--muted)">⏳ aguardando</span>`;
 
     const rowClass = ptsTotal>=40?'acertou-exato':(ptsTotal>0?'acertou-resultado':'');
 
-    return{uid,nome,pal,tagsHtml,rowClass,ptsTotal,temAlgumDado:temPlacar||!!escolhaExtra};
+    return{uid,nome,pal,tagsHtml,rowClass,ptsTotal,temAlgumDado:temPlacar};
   });
   entradas.sort((a,b)=>b.ptsTotal-a.ptsTotal||a.nome.localeCompare(b.nome));
 
