@@ -588,7 +588,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '42';
+const APP_VERSION = '43';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -1146,9 +1146,29 @@ function validarStatusFinal(){
   });
 }
 
+// Rastreamento de saúde das APIs externas (mantido em memória, últimas 50 tentativas)
+let saudeAPIs={espn:[],sportsdb:[],proxy:[],tempoResposta:[]};
+function registrarTentativaAPI(fonte,sucesso,ms){
+  if(!saudeAPIs[fonte])saudeAPIs[fonte]=[];
+  saudeAPIs[fonte].push({sucesso,ms,quando:Date.now()});
+  if(saudeAPIs[fonte].length>50)saudeAPIs[fonte].shift();
+}
+
 async function sobreporScoresAoVivo(){
-  const ok=await tentarESPN()||await tentarSportsDB()||await tentarWC26viaProxy();
-  if(!ok)console.info('Sem score ao vivo externo');
+  const t0=performance.now();
+  const okEspn=await tentarESPN();
+  registrarTentativaAPI('espn',okEspn,Math.round(performance.now()-t0));
+  if(okEspn)return;
+
+  const t1=performance.now();
+  const okSdb=await tentarSportsDB();
+  registrarTentativaAPI('sportsdb',okSdb,Math.round(performance.now()-t1));
+  if(okSdb)return;
+
+  const t2=performance.now();
+  const okProxy=await tentarWC26viaProxy();
+  registrarTentativaAPI('proxy',okProxy,Math.round(performance.now()-t2));
+  if(!okProxy)console.info('Sem score ao vivo externo');
 }
 
 async function tentarESPN(){
@@ -2804,9 +2824,35 @@ async function renderAuditoria(){
     c.innerHTML=`<div class="empty-state"><span class="ei">🔒</span><p>Acesso restrito ao administrador.</p></div>`;
     return;
   }
-  c.innerHTML=`<div class="loading-spinner"><div class="spinner"></div><span>Carregando auditoria…</span></div>`;
+  c.innerHTML=`
+    <div class="filtro-bar" id="audit-tabs" style="margin-bottom:1rem">
+      <button class="filtro-btn active" onclick="trocarAbaAuditoria('geral',this)">📊 Geral</button>
+      <button class="filtro-btn" onclick="trocarAbaAuditoria('engajamento',this)">📈 Engajamento</button>
+      <button class="filtro-btn" onclick="trocarAbaAuditoria('dispositivos',this)">📱 Dispositivos</button>
+      <button class="filtro-btn" onclick="trocarAbaAuditoria('saude',this)">🔧 Saúde Técnica</button>
+      <button class="filtro-btn" onclick="trocarAbaAuditoria('palpites',this)">📋 Palpites</button>
+    </div>
+    <div id="audit-conteudo"></div>
+  `;
+  trocarAbaAuditoria('geral');
+}
 
-  // ── 1. ESTATÍSTICAS GERAIS ──
+function trocarAbaAuditoria(aba,btn){
+  if(btn){
+    document.querySelectorAll('#audit-tabs .filtro-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  const cont=document.getElementById('audit-conteudo');
+  if(!cont)return;
+  if(aba==='geral')renderAuditGeral(cont);
+  else if(aba==='engajamento')renderAuditEngajamento(cont);
+  else if(aba==='dispositivos')renderAuditDispositivos(cont);
+  else if(aba==='saude')renderAuditSaude(cont);
+  else if(aba==='palpites')renderAuditPalpitesPagina(cont);
+}
+
+// ── ABA: GERAL ──
+function renderAuditGeral(cont){
   const totalUsuarios=todosUsuarios.length;
   const totalPalpitesDados=Object.values(todosPalpites).reduce((acc,porJogo)=>acc+Object.keys(porJogo).length,0);
   const totalJogosEncerrados=todosJogos.filter(j=>j.status==='encerrado').length;
@@ -2815,20 +2861,7 @@ async function renderAuditoria(){
   const totalBolao=Object.keys(bolaoAtual).length;
   const mediaPalpitesPorUsuario=totalUsuarios?Math.round(totalPalpitesDados/totalUsuarios*10)/10:0;
 
-  // Usuário mais ativo (mais palpites dados)
-  const contagemPorUsuario={};
-  Object.values(todosPalpites).forEach(porJogo=>{
-    Object.keys(porJogo).forEach(uid=>{contagemPorUsuario[uid]=(contagemPorUsuario[uid]||0)+1});
-  });
-  let maisAtivo=null,maisAtivoCount=0;
-  Object.entries(contagemPorUsuario).forEach(([uid,n])=>{
-    if(n>maisAtivoCount){maisAtivoCount=n;maisAtivo=todosUsuarios.find(u=>u.id===uid)}
-  });
-
-  // Usuários sem nenhum palpite ainda
-  const semPalpite=todosUsuarios.filter(u=>!contagemPorUsuario[u.id]);
-
-  let html=`
+  cont.innerHTML=`
     <div class="meu-resumo" style="grid-template-columns:repeat(3,1fr);margin-bottom:1rem">
       <div class="resumo-card"><div class="resumo-num">${totalUsuarios}</div><div class="resumo-label">Usuários</div></div>
       <div class="resumo-card"><div class="resumo-num">${totalPalpitesDados}</div><div class="resumo-label">Palpites dados</div></div>
@@ -2837,27 +2870,188 @@ async function renderAuditoria(){
       <div class="resumo-card"><div class="resumo-num">${totalJogosFuturos}</div><div class="resumo-label">Jogos futuros</div></div>
       <div class="resumo-card"><div class="resumo-num">${totalChatMsgs}</div><div class="resumo-label">Msgs no chat</div></div>
     </div>
-
     <div class="card">
-      <div class="card-title">📈 Engajamento</div>
-      <div style="font-size:.82rem;line-height:1.8">
-        ${maisAtivo?`<div>🏆 Mais ativo: <strong style="color:var(--amarelo)">${maisAtivo.nome}</strong> (${maisAtivoCount} palpites)</div>`:''}
-        <div>👑 Bolão do campeão preenchido: <strong style="color:var(--amarelo)">${totalBolao}/${totalUsuarios}</strong></div>
-        ${semPalpite.length?`<div style="color:#ff8888;margin-top:.4rem">⚠️ Sem nenhum palpite ainda: ${semPalpite.map(u=>u.nome).join(', ')}</div>`:'<div style="color:var(--verde-light);margin-top:.4rem">✅ Todos já deram pelo menos 1 palpite</div>'}
-      </div>
+      <div class="card-title">👑 Bolão do Campeão</div>
+      <div style="font-size:.82rem">Preenchido por <strong style="color:var(--amarelo)">${totalBolao}/${totalUsuarios}</strong> pessoas</div>
     </div>
-
     <div class="card">
       <div class="card-title">🕐 Log de ações recentes</div>
       <div id="audit-log-lista"><div class="loading-spinner" style="padding:1rem"><div class="spinner" style="width:20px;height:20px"></div></div></div>
     </div>
+  `;
+  carregarLogAuditoria();
+}
 
+// ── ABA: ENGAJAMENTO ──
+function renderAuditEngajamento(cont){
+  const contagemPorUsuario={};
+  Object.values(todosPalpites).forEach(porJogo=>{
+    Object.keys(porJogo).forEach(uid=>{contagemPorUsuario[uid]=(contagemPorUsuario[uid]||0)+1});
+  });
+  let maisAtivo=null,maisAtivoCount=0;
+  Object.entries(contagemPorUsuario).forEach(([uid,n])=>{
+    if(n>maisAtivoCount){maisAtivoCount=n;maisAtivo=todosUsuarios.find(u=>u.id===uid)}
+  });
+  const semPalpite=todosUsuarios.filter(u=>!contagemPorUsuario[u.id]);
+  const totalUsuarios=todosUsuarios.length;
+  const comPalpite=totalUsuarios-semPalpite.length;
+  const taxaConversao=totalUsuarios?Math.round((comPalpite/totalUsuarios)*100):0;
+
+  // Funil: jogos futuros vistos vs palpitados (aproximação: todos jogos futuros = "vistos")
+  const jogosFuturos=todosJogos.filter(j=>j.status==='futuro');
+  const totalPalpitesFuturos=jogosFuturos.reduce((acc,j)=>acc+Object.keys(todosPalpites[j.id]||{}).length,0);
+  const maxPossivel=jogosFuturos.length*totalUsuarios;
+  const taxaPreenchimento=maxPossivel?Math.round((totalPalpitesFuturos/maxPossivel)*100):0;
+
+  cont.innerHTML=`
+    <div class="card">
+      <div class="card-title">🏆 Quem mais participa</div>
+      <div style="font-size:.82rem;line-height:1.8">
+        ${maisAtivo?`<div>Mais ativo: <strong style="color:var(--amarelo)">${maisAtivo.nome}</strong> (${maisAtivoCount} palpites)</div>`:'<div style="color:var(--muted)">Sem dados ainda</div>'}
+        <div style="margin-top:.4rem">✅ Pessoas que já palpitaram: <strong style="color:var(--verde-light)">${comPalpite}/${totalUsuarios}</strong> (${taxaConversao}%)</div>
+        ${semPalpite.length?`<div style="color:#ff8888;margin-top:.4rem">⚠️ Ainda sem nenhum palpite: ${semPalpite.map(u=>u.nome).join(', ')}</div>`:'<div style="color:var(--verde-light);margin-top:.4rem">✅ Todos já deram pelo menos 1 palpite</div>'}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🎯 Taxa de preenchimento dos jogos futuros</div>
+      <div style="font-size:.78rem;color:var(--muted);margin-bottom:.5rem">De todos os palpites possíveis para jogos que ainda vão rolar, quantos já foram preenchidos:</div>
+      <div style="background:rgba(255,255,255,.06);border-radius:8px;height:24px;overflow:hidden;position:relative">
+        <div style="background:linear-gradient(90deg,var(--verde),var(--verde-light));height:100%;width:${taxaPreenchimento}%;transition:width .4s"></div>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff">${taxaPreenchimento}%</div>
+      </div>
+      <div style="font-size:.68rem;color:var(--muted);margin-top:.4rem">${totalPalpitesFuturos} de ${maxPossivel} palpites possíveis</div>
+    </div>
+    <div class="card">
+      <div class="card-title">📅 Retenção — quem voltou hoje</div>
+      <div id="audit-retencao"><div class="loading-spinner" style="padding:1rem"><div class="spinner" style="width:20px;height:20px"></div></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🕐 Horário de pico de uso</div>
+      <div id="audit-horario-pico"><div class="loading-spinner" style="padding:1rem"><div class="spinner" style="width:20px;height:20px"></div></div></div>
+    </div>
+  `;
+  carregarRetencao();
+  carregarHorarioPico();
+}
+
+async function carregarRetencao(){
+  const cont=document.getElementById('audit-retencao');
+  if(!cont)return;
+  try{
+    const dispositivos=await sbGet('acessos_dispositivo','select=usuario_nome,ultimo_acesso,total_acessos');
+    if(!dispositivos.length){cont.innerHTML='<div class="empty-state" style="padding:.5rem"><p>Sem dados ainda.</p></div>';return}
+    const hoje=new Date().toDateString();
+    const ontem=new Date(Date.now()-86400000).toDateString();
+    const ativosHoje=dispositivos.filter(d=>d.ultimo_acesso&&new Date(d.ultimo_acesso).toDateString()===hoje);
+    const recorrentes=dispositivos.filter(d=>(d.total_acessos||1)>1);
+    const taxaRetencao=dispositivos.length?Math.round((recorrentes.length/dispositivos.length)*100):0;
+    cont.innerHTML=`
+      <div style="font-size:.82rem;line-height:1.9">
+        <div>🟢 Ativos hoje: <strong style="color:var(--verde-light)">${ativosHoje.length}/${dispositivos.length}</strong></div>
+        <div>🔁 Já voltaram mais de uma vez: <strong style="color:var(--amarelo)">${recorrentes.length}/${dispositivos.length}</strong> (${taxaRetencao}%)</div>
+      </div>`;
+  }catch(e){
+    cont.innerHTML='<div class="empty-state" style="padding:.5rem"><p style="font-size:.75rem;color:var(--muted)">Tabela de dispositivos ainda não criada.</p></div>';
+  }
+}
+
+async function carregarHorarioPico(){
+  const cont=document.getElementById('audit-horario-pico');
+  if(!cont)return;
+  try{
+    const dispositivos=await sbGet('acessos_dispositivo','select=ultimo_acesso');
+    if(!dispositivos.length){cont.innerHTML='<div class="empty-state" style="padding:.5rem"><p>Sem dados ainda.</p></div>';return}
+    const porHora=new Array(24).fill(0);
+    dispositivos.forEach(d=>{
+      if(!d.ultimo_acesso)return;
+      const h=new Date(d.ultimo_acesso).getUTCHours();
+      const hBrasilia=(h-3+24)%24;
+      porHora[hBrasilia]++;
+    });
+    const max=Math.max(...porHora,1);
+    const horaPico=porHora.indexOf(max);
+    cont.innerHTML=`
+      <div style="font-size:.78rem;color:var(--muted);margin-bottom:.6rem">Pico às <strong style="color:var(--amarelo)">${String(horaPico).padStart(2,'0')}h</strong> (horário de Brasília)</div>
+      <div style="display:flex;align-items:flex-end;gap:2px;height:60px">
+        ${porHora.map((v,h)=>`<div style="flex:1;background:${h===horaPico?'var(--amarelo)':'var(--verde)'};opacity:${v===0?.15:1};height:${Math.max(4,(v/max)*60)}px;border-radius:2px 2px 0 0" title="${h}h: ${v}"></div>`).join('')}
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:.55rem;color:var(--muted);margin-top:.2rem"><span>0h</span><span>12h</span><span>23h</span></div>
+    `;
+  }catch(e){
+    cont.innerHTML='<div class="empty-state" style="padding:.5rem"><p style="font-size:.75rem;color:var(--muted)">Tabela de dispositivos ainda não criada.</p></div>';
+  }
+}
+
+// ── ABA: DISPOSITIVOS ──
+function renderAuditDispositivos(cont){
+  cont.innerHTML=`
     <div class="card">
       <div class="card-title">📱 Dispositivos &amp; navegadores</div>
       <p style="font-size:.7rem;color:var(--muted);margin-bottom:.6rem">Apenas info pública do navegador — sem IP, sem localização.</p>
       <div id="audit-dispositivos-lista"><div class="loading-spinner" style="padding:1rem"><div class="spinner" style="width:20px;height:20px"></div></div></div>
     </div>
+  `;
+  carregarDispositivosAuditoria();
+}
 
+// ── ABA: SAÚDE TÉCNICA ──
+function renderAuditSaude(cont){
+  const calcStats=(arr)=>{
+    if(!arr||!arr.length)return{tentativas:0,sucessos:0,taxa:0,tempoMedio:0};
+    const sucessos=arr.filter(a=>a.sucesso).length;
+    const tempoMedio=Math.round(arr.reduce((s,a)=>s+a.ms,0)/arr.length);
+    return{tentativas:arr.length,sucessos,taxa:Math.round((sucessos/arr.length)*100),tempoMedio};
+  };
+  const espn=calcStats(saudeAPIs.espn);
+  const sdb=calcStats(saudeAPIs.sportsdb);
+  const proxy=calcStats(saudeAPIs.proxy);
+
+  const linhaFonte=(nome,emoji,stats)=>`
+    <div style="padding:.6rem 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
+        <span style="font-weight:600;font-size:.82rem">${emoji} ${nome}</span>
+        <span style="font-size:.75rem;color:${stats.taxa>=70?'var(--verde-light)':stats.taxa>0?'var(--amarelo)':'var(--muted)'}">${stats.tentativas?stats.taxa+'% sucesso':'sem dados nesta sessão'}</span>
+      </div>
+      ${stats.tentativas?`<div style="font-size:.68rem;color:var(--muted)">${stats.sucessos}/${stats.tentativas} tentativas · resposta média ${stats.tempoMedio}ms</div>`:''}
+    </div>`;
+
+  cont.innerHTML=`
+    <div class="card">
+      <div class="card-title">🌐 Saúde das fontes de placar ao vivo</div>
+      <p style="font-size:.7rem;color:var(--muted);margin-bottom:.5rem">Baseado nas tentativas desta sessão (reinicia ao recarregar a página)</p>
+      ${linhaFonte('ESPN (fonte principal)','🟢',espn)}
+      ${linhaFonte('SportsDB (fallback 1)','🟡',sdb)}
+      ${linhaFonte('Proxy WC26 (fallback 2)','🟠',proxy)}
+    </div>
+    <div class="card">
+      <div class="card-title">⏱️ Última atualização de dados</div>
+      <div style="font-size:.82rem">${ultimaAtualizacao?ultimaAtualizacao.toLocaleString('pt-BR'):'Ainda não atualizou'}</div>
+      <div style="font-size:.7rem;color:var(--muted);margin-top:.3rem">Atualiza automaticamente a cada 15 segundos</div>
+    </div>
+    <div class="card">
+      <div class="card-title">💾 Conexão com Supabase</div>
+      <div id="audit-supabase-status" style="font-size:.82rem">Testando…</div>
+    </div>
+  `;
+  testarConexaoSupabase();
+}
+
+async function testarConexaoSupabase(){
+  const el=document.getElementById('audit-supabase-status');
+  if(!el)return;
+  const t0=performance.now();
+  try{
+    await sbGet('usuarios','select=id&limit=1');
+    const ms=Math.round(performance.now()-t0);
+    el.innerHTML=`<span style="color:var(--verde-light)">🟢 Conectado</span> · resposta em ${ms}ms`;
+  }catch(e){
+    el.innerHTML=`<span style="color:#ff8888">🔴 Erro de conexão</span>`;
+  }
+}
+
+// ── ABA: PALPITES ──
+function renderAuditPalpitesPagina(cont){
+  cont.innerHTML=`
     <div class="card">
       <div class="card-title">📋 Todos os palpites (todos os jogos)</div>
       <div class="filtro-bar" style="margin-bottom:.75rem">
@@ -2868,11 +3062,7 @@ async function renderAuditoria(){
       <div id="audit-palpites-lista"></div>
     </div>
   `;
-  c.innerHTML=html;
-
   renderAuditPalpites('todos');
-  carregarLogAuditoria();
-  carregarDispositivosAuditoria();
 }
 
 async function carregarDispositivosAuditoria(){
@@ -2916,7 +3106,7 @@ async function carregarDispositivosAuditoria(){
 let filtroAuditAtivo='todos';
 function filtrarAuditJogos(f,btn){
   filtroAuditAtivo=f;
-  document.querySelectorAll('#page-auditoria .filtro-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#audit-conteudo .filtro-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   renderAuditPalpites(f);
 }
