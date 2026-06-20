@@ -658,7 +658,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '62';
+const APP_VERSION = '63';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -2533,7 +2533,12 @@ function renderRanking(){
     posicoesAntes[el.dataset.uid]=el.getBoundingClientRect().top;
   });
 
-  lista.innerHTML=ranked.map((u,i)=>`<div class="rank-row" data-uid="${u.id}"><div class="rank-pos">${i+1}º</div>${renderAvatar(u,44,u.total)}<div class="rank-info"><div class="rank-nome-txt">${u.nome}</div><div class="rank-detalhe">🏆${u.exatos} · ✅${u.resultados}</div></div><div class="rank-pts-val">${u.total}<small>pts</small></div></div>`).join('');
+  lista.innerHTML=ranked.map((u,i)=>{
+    const detalhes=[`🏆${u.exatos}`,`✅${u.resultados}`];
+    if(u.acertosPrimeiroTempo>0)detalhes.push(`⏱️${u.acertosPrimeiroTempo}`);
+    if(u.acertosClassificacao>0)detalhes.push(`🎯${u.acertosClassificacao}`);
+    return`<div class="rank-row" data-uid="${u.id}"><div class="rank-pos">${i+1}º</div>${renderAvatar(u,44,u.total)}<div class="rank-info"><div class="rank-nome-txt">${u.nome}</div><div class="rank-detalhe">${detalhes.join(' · ')}</div></div><div class="rank-pts-val">${u.total}<small>pts</small></div></div>`;
+  }).join('');
 
   // ── FLIP: calcula diferença e anima (só se já tínhamos posições salvas) ──
   if(Object.keys(posicoesAntes).length>0){
