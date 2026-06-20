@@ -588,7 +588,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '40';
+const APP_VERSION = '41';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -1095,8 +1095,14 @@ async function iniciarApp(){
     const prevPlacares={...placaresPrev};
     await carregarTudo();
     verificarGols(prevPlacares);
-    const pag=document.querySelector('.page.active')?.id?.replace('page-','');
-    if(pag)renderPagina(pag);
+    // Se a pessoa estiver digitando um palpite agora, não re-renderiza a tela
+    // (evita apagar o que ela estava escrevendo no meio da atualização automática)
+    const elementoAtivo=document.activeElement;
+    const digitandoPalpite=elementoAtivo&&elementoAtivo.classList&&elementoAtivo.classList.contains('palpite-n');
+    if(!digitandoPalpite){
+      const pag=document.querySelector('.page.active')?.id?.replace('page-','');
+      if(pag)renderPagina(pag);
+    }
     carregarChat();
   },15000); // atualiza a cada 15s (mais rápido para placares ao vivo)
 }
@@ -2125,16 +2131,27 @@ async function salvarPalpite(jogoId){
   const g1=parseInt(v1),g2=parseInt(v2);
   if(isNaN(g1)||isNaN(g2)||g1<0||g2<0){showToast('⚠️ Placar inválido!');return}
   const btn=document.querySelector(`.btn-salvar-pal[data-jogo="${jogoId}"]`);
-  if(btn){btn.disabled=true;btn.textContent='…'}
+  if(btn){
+    if(btn.disabled)return; // já está salvando, evita clique duplo
+    btn.disabled=true;btn.textContent='…';
+  }
   try{
     await sbUpsert('palpites',{usuario_id:usuarioAtual.id,jogo_id:jogoId,gols1:g1,gols2:g2},'usuario_id,jogo_id');
     if(!todosPalpites[jogoId])todosPalpites[jogoId]={};
     todosPalpites[jogoId][usuarioAtual.id]={p1:g1,p2:g2};
     const j=todosJogos.find(x=>x.id===jogoId);
     showToast(`✅ Palpite ${g1}×${g2} salvo! ${j?`(${nomePT(j.time1)} vs ${nomePT(j.time2)})`:''}`)
-    const card=document.getElementById('card_'+jogoId);
-    if(card&&j){card.outerHTML=jogoCardHTML(j,true);const n=document.getElementById('card_'+jogoId);if(n)vincularPalpites(n)}
-  }catch(e){showToast('❌ Erro ao salvar. Verifique internet.');if(btn){btn.disabled=false;btn.textContent='💾 Salvar'}}
+    // IMPORTANTE: re-renderiza a página inteira em vez de só trocar outerHTML do card.
+    // outerHTML destrói o elemento DOM original — se a atualização automática (15s)
+    // tentasse usar uma referência antiga depois disso, o clique no botão parava de
+    // funcionar até a pessoa recarregar a página manualmente. Re-renderizar a página
+    // inteira sempre recria tudo do zero corretamente, sem esse problema.
+    const pag=document.querySelector('.page.active')?.id?.replace('page-','');
+    if(pag)renderPagina(pag);
+  }catch(e){
+    showToast('❌ Erro ao salvar. Verifique internet.');
+    if(btn){btn.disabled=false;btn.textContent='💾 Salvar'}
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -2639,8 +2656,25 @@ function renderAdmin(){
     c.innerHTML=`<div class="empty-state"><span class="ei">🔒</span><p>Acesso restrito ao administrador.</p></div>`;
     return;
   }
+
+  // ── Seção: Resetar senha de usuário ──
+  const opcoesUsuarios=todosUsuarios.map(u=>`<option value="${u.id}">${u.nome} (@${u.usuario})</option>`).join('');
+  let html=`
+    <div class="admin-card" style="border-color:rgba(0,156,59,.3);background:rgba(0,156,59,.06)">
+      <div style="font-weight:700;margin-bottom:.6rem;font-size:.85rem;color:var(--verde-light)">🔑 Resetar senha de alguém</div>
+      <div style="display:flex;flex-direction:column;gap:.5rem">
+        <select id="adm-user-select" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.5rem;font-size:.8rem">
+          <option value="">— escolha a pessoa —</option>
+          ${opcoesUsuarios}
+        </select>
+        <input type="text" id="adm-nova-senha" placeholder="Nova senha (mín. 4 caracteres)" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.5rem;font-size:.8rem">
+        <button class="btn-admin-save" style="padding:.5rem" onclick="adminResetarSenha()">Resetar senha</button>
+      </div>
+    </div>
+  `;
+
   const jogosEdit=todosJogos.filter(j=>j.status==='ao-vivo'||j.status==='encerrado').slice(-20);
-  c.innerHTML=jogosEdit.map(j=>`
+  html+=jogosEdit.map(j=>`
     <div class="admin-card">
       <div style="font-size:.8rem;font-weight:600;margin-bottom:.5rem">${nomePT(j.time1)} × ${nomePT(j.time2)} · ${fmtData(j.data)}</div>
       <div class="admin-jogo-row">
@@ -2656,6 +2690,28 @@ function renderAdmin(){
         <button class="btn-admin-save" onclick="adminSalvar('${j.id}')">Salvar</button>
       </div>
     </div>`).join('');
+
+  c.innerHTML=html;
+}
+
+async function adminResetarSenha(){
+  if(!isAdmin())return;
+  const userId=document.getElementById('adm-user-select')?.value;
+  const novaSenha=document.getElementById('adm-nova-senha')?.value;
+  if(!userId){showToast('⚠️ Escolha a pessoa primeiro');return}
+  if(!novaSenha||novaSenha.length<4){showToast('⚠️ Senha precisa ter pelo menos 4 caracteres');return}
+  try{
+    const hash=await hashSenha(novaSenha);
+    await sbPatch('usuarios',`id=eq.${userId}`,{senha_hash:hash});
+    const u=todosUsuarios.find(x=>x.id===userId);
+    showToast(`✅ Senha de ${u?.nome||'usuário'} resetada para: ${novaSenha}`);
+    registrarLogAuditoria('senha_resetada',`Senha de ${u?.nome||userId} foi resetada pelo admin`);
+    document.getElementById('adm-nova-senha').value='';
+    document.getElementById('adm-user-select').value='';
+  }catch(e){
+    showToast('❌ Erro ao resetar senha');
+    console.error(e);
+  }
 }
 function adminSalvar(id){
   if(!isAdmin())return; // proteção extra na própria ação
