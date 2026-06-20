@@ -658,7 +658,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '59';
+const APP_VERSION = '60';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -1548,11 +1548,32 @@ function verificarGols(prev){
 // Detecta jogos que ACABARAM DE terminar (transição futuro/ao-vivo → encerrado)
 // para disparar os Stories pós-jogo automaticamente
 let statusJogosAnteriores={};
+
+// Lê do localStorage quais jogos JÁ tiveram o Stories pós-jogo mostrado
+// (persiste entre sessões — evita repetir o mesmo story se a pessoa recarregar
+// a página ou abrir o app de novo depois de já ter visto)
+function getJogosComStoriesVistos(){
+  try{
+    return JSON.parse(localStorage.getItem('copa_stories_vistos')||'[]');
+  }catch(e){return[]}
+}
+function marcarStoryComoVisto(jogoId){
+  const vistos=getJogosComStoriesVistos();
+  if(!vistos.includes(jogoId)){
+    vistos.push(jogoId);
+    // Mantém só os últimos 200 IDs para não crescer infinitamente no localStorage
+    const limitados=vistos.slice(-200);
+    localStorage.setItem('copa_stories_vistos',JSON.stringify(limitados));
+  }
+}
+
 function verificarJogosRecemEncerrados(){
   const jogosNovosEncerrados=[];
+  const vistos=getJogosComStoriesVistos();
   todosJogos.forEach(j=>{
     const statusAnterior=statusJogosAnteriores[j.id];
-    if(statusAnterior&&statusAnterior!=='encerrado'&&j.status==='encerrado'){
+    const jaViu=vistos.includes(j.id);
+    if(statusAnterior&&statusAnterior!=='encerrado'&&j.status==='encerrado'&&!jaViu){
       jogosNovosEncerrados.push(j);
     }
     statusJogosAnteriores[j.id]=j.status;
@@ -2843,6 +2864,7 @@ function montarStoriesPosJogo(jogoId){
   const j=todosJogos.find(x=>x.id===jogoId);
   if(!j||j.gols1===null){processarFilaStoriesPosJogo();return}
   storiesPosJogoAtual=j;
+  marcarStoryComoVisto(jogoId); // marca já aqui — mesmo se a pessoa fechar o app no meio, não repete
 
   // Calcula os pontos de cada pessoa que palpitou esse jogo
   const pals=todosPalpites[jogoId]||{};
