@@ -600,7 +600,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '52';
+const APP_VERSION = '53';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -1244,14 +1244,7 @@ async function tentarESPN(){
     const clock=ev.status?.displayClock||'';
     const isLive=st==='STATUS_IN_PROGRESS'||st==='STATUS_FIRST_HALF'||st==='STATUS_SECOND_HALF'||st==='STATUS_HALFTIME'||st==='STATUS_END_PERIOD'||st==='STATUS_OVERTIME';
     const isDone=st==='STATUS_FULL_TIME'||st==='STATUS_FINAL'||st==='STATUS_FULL_PEN'||st.includes('FINAL');
-
-    // Placar do 1º tempo via ESPN linescores (primeiro elemento do array = 1º tempo)
-    // Isso é essencial para a aposta extra "quem vence o 1º tempo" funcionar em tempo
-    // real — o openfootball (fonte do calendário) só atualiza isso 1x por dia, então
-    // sem isso a aposta ficava travada em "aguardando" mesmo com o intervalo já fechado.
-    const lineHT1=comp.competitors?.[0]?.linescores?.[0]?.value;
-    const lineHT2=comp.competitors?.[1]?.linescores?.[0]?.value;
-    const temLinescoreHT=lineHT1!==undefined&&lineHT1!==null&&lineHT2!==undefined&&lineHT2!==null;
+    const ehHalftimeAgora=st==='STATUS_HALFTIME';
 
     if(!ev.date)return;
     const dtEspnUTC=new Date(ev.date);
@@ -1282,11 +1275,14 @@ async function tentarESPN(){
     jogo.hora=horaReal;
     jogo.horaTxt=`${horaReal} (Brasília)`;
     matched++;
-    // Aplica o placar do 1º tempo assim que estiver disponível pela ESPN,
-    // independente do jogo estar ao vivo (intervalo+) ou já encerrado
-    if(temLinescoreHT){
-      jogo.golsHT1=parseInt(lineHT1);
-      jogo.golsHT2=parseInt(lineHT2);
+    // Quando o status é EXATAMENTE "intervalo" (STATUS_HALFTIME), o placar atual
+    // É o placar do 1º tempo — não precisa de campo separado, já que o jogo ainda
+    // não fez nenhum gol no 2º tempo (ele nem começou). Essa abordagem é mais
+    // confiável que depender de "linescores", que nem sempre vem preenchido
+    // pela ESPN nesse endpoint específico de soccer.
+    if(ehHalftimeAgora&&s1>=0&&s2>=0){
+      jogo.golsHT1=s1;
+      jogo.golsHT2=s2;
     }
     if(isLive){
       jogo.status='ao-vivo';
