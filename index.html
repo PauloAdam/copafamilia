@@ -94,6 +94,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 [data-theme="light"] .topbar{background:rgba(240,247,242,.95)}
 .topbar-logo{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--amarelo);letter-spacing:1px;flex:1}
 .topbar-logo span{color:var(--verde-light);font-size:1rem}
+.logo-ball{display:inline-block;animation:logoSpin 6s linear infinite}
+@keyframes logoSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.trofeu-balanca{display:inline-block;animation:trofeuBalanca 2.2s ease-in-out infinite;transform-origin:50% 85%}
+@keyframes trofeuBalanca{0%,100%{transform:rotate(0deg)}25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+.avatar-sparkle{position:absolute;pointer-events:none;animation:sparkleTwinkle 1.8s ease-in-out infinite;filter:drop-shadow(0 0 3px currentColor)}
+.avatar-sparkle.s1{top:-6%;left:-8%;animation-delay:0s}
+.avatar-sparkle.s2{top:5%;right:-10%;animation-delay:.6s}
+.avatar-sparkle.s3{bottom:-4%;left:35%;animation-delay:1.2s}
+@keyframes sparkleTwinkle{0%,100%{opacity:0;transform:scale(.4) rotate(0deg)}50%{opacity:1;transform:scale(1) rotate(180deg)}}
 .topbar-actions{display:flex;align-items:center;gap:.5rem}
 .user-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;color:#fff;flex-shrink:0;cursor:pointer}
 .btn-icon{background:none;border:1px solid var(--border);color:var(--muted);width:30px;height:30px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.9rem;transition:all .2s;flex-shrink:0}
@@ -136,7 +145,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .jogo-grupo{background:var(--azul);color:#aabcff;font-weight:700;font-size:.62rem;padding:2px 8px;border-radius:20px;letter-spacing:.5px}
 .jogo-body{padding:.75rem .9rem;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:.5rem}
 .time-lado{display:flex;flex-direction:column;align-items:center;gap:.25rem}
-.time-flag{font-size:2rem;line-height:1;width:46px;margin:0 auto}
+.time-flag{font-size:2rem;line-height:1;width:46px;margin:0 auto;animation:flagWave 3s ease-in-out infinite;transform-origin:50% 0%}
+.time-flag:nth-child(odd){animation-delay:.4s}
+@keyframes flagWave{0%,100%{transform:rotate(0deg)}25%{transform:rotate(-3deg)}75%{transform:rotate(3deg)}}
 .time-flag img{display:block;width:46px;height:auto;border-radius:3px;box-shadow:0 1px 4px rgba(0,0,0,.4)}
 .time-nome{font-size:.75rem;font-weight:600;text-align:center;color:var(--text);max-width:80px;line-height:1.2}
 .centro{display:flex;flex-direction:column;align-items:center;min-width:90px;gap:.2rem}
@@ -407,7 +418,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <!-- APP -->
 <div id="app">
   <div class="topbar">
-    <div class="topbar-logo">⚽ COPA <span>2026</span></div>
+    <div class="topbar-logo"><span class="logo-ball">⚽</span> COPA <span>2026</span></div>
     <div class="topbar-actions">
       <button class="btn-icon" id="btn-musica-toggle" onclick="toggleMusicaAmbiente()" title="Música ambiente">🔇</button>
       <button class="btn-icon" onclick="toggleTheme()" title="Tema">🌙</button>
@@ -505,7 +516,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
     <!-- BOLÃO CAMPEÃO -->
     <div id="page-bolao" class="page">
-      <div class="section-title">👑 Bolão do Campeão</div>
+      <div class="section-title"><span class="trofeu-balanca">👑</span> Bolão do Campeão</div>
       <div class="card">
         <div class="card-title">Quem vai ser CAMPEÃO? (+50 pts)</div>
         <p style="font-size:.78rem;color:var(--muted);margin-bottom:.75rem">Você pode alterar seu palpite até o início das quartas de final.</p>
@@ -588,7 +599,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '44';
+const APP_VERSION = '45';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -947,6 +958,7 @@ function renderAvatar(usuario, tamanho, pontosParaMoldura){
   let borderStyle = `1.5px solid ${cor}40`;
   let glowStyle = '';
   let badgeHtml = '';
+  let sparklesHtml = '';
 
   if (pontosParaMoldura !== undefined) {
     const nivel = getNivelMoldura(pontosParaMoldura);
@@ -956,16 +968,25 @@ function renderAvatar(usuario, tamanho, pontosParaMoldura){
       glowStyle = `box-shadow:0 0 ${Math.round(tamanho*0.25)}px ${nivel.cor}80;`;
       const tamanhoBadge = Math.max(12, Math.round(tamanho*0.4));
       badgeHtml = `<span style="position:absolute;bottom:-2px;right:-2px;font-size:${tamanhoBadge}px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))">${nivel.emoji}</span>`;
+      // Estrelinhas só para Ouro, Platina e Diamante (200+ pts)
+      if (pontosParaMoldura >= 200) {
+        const tamanhoEstrela = Math.max(8, Math.round(tamanho * 0.22));
+        sparklesHtml = `
+          <span class="avatar-sparkle s1" style="font-size:${tamanhoEstrela}px;color:${nivel.cor}">✦</span>
+          <span class="avatar-sparkle s2" style="font-size:${tamanhoEstrela*0.7}px;color:${nivel.cor}">✦</span>
+          <span class="avatar-sparkle s3" style="font-size:${tamanhoEstrela*0.85}px;color:${nivel.cor}">✦</span>`;
+      }
     }
   }
 
-  const wrapStart = badgeHtml ? `<span style="position:relative;display:inline-flex;flex-shrink:0">` : '';
-  const wrapEnd = badgeHtml ? `</span>` : '';
+  const precisaWrap = badgeHtml || sparklesHtml;
+  const wrapStart = precisaWrap ? `<span style="position:relative;display:inline-flex;flex-shrink:0">` : '';
+  const wrapEnd = precisaWrap ? `</span>` : '';
 
   if (usuario?.foto_url) {
-    return `${wrapStart}<img src="${usuario.foto_url}" style="width:${tamanho}px;height:${tamanho}px;border-radius:50%;object-fit:cover;flex-shrink:0;border:${borderStyle};${glowStyle}" alt="${inicial}">${badgeHtml}${wrapEnd}`;
+    return `${wrapStart}<img src="${usuario.foto_url}" style="width:${tamanho}px;height:${tamanho}px;border-radius:50%;object-fit:cover;flex-shrink:0;border:${borderStyle};${glowStyle}" alt="${inicial}">${sparklesHtml}${badgeHtml}${wrapEnd}`;
   }
-  return `${wrapStart}<div style="width:${tamanho}px;height:${tamanho}px;border-radius:50%;background:${cor}22;color:${cor};border:${borderStyle};${glowStyle}display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${tamanho*0.4}px;flex-shrink:0">${inicial}</div>${badgeHtml}${wrapEnd}`;
+  return `${wrapStart}<div style="width:${tamanho}px;height:${tamanho}px;border-radius:50%;background:${cor}22;color:${cor};border:${borderStyle};${glowStyle}display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${tamanho*0.4}px;flex-shrink:0">${inicial}</div>${sparklesHtml}${badgeHtml}${wrapEnd}`;
 }
 const DIAS=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
@@ -2667,7 +2688,7 @@ function renderPerfil(){
         }).join('')}
       </div>
     </div>
-    ${camp?`<div class="card"><div class="card-title">👑 Bolão do Campeão</div><div style="display:flex;align-items:center;gap:.75rem">${getFlag(camp)}<div><div style="font-weight:700">${nomePT(camp)}</div><div style="font-size:.75rem;color:var(--muted)">+50 pts se acertar</div></div></div></div>`:''}
+    ${camp?`<div class="card"><div class="card-title"><span class="trofeu-balanca">👑</span> Bolão do Campeão</div><div style="display:flex;align-items:center;gap:.75rem">${getFlag(camp)}<div><div style="font-weight:700">${nomePT(camp)}</div><div style="font-size:.75rem;color:var(--muted)">+50 pts se acertar</div></div></div></div>`:''}
     <div class="card">
       <div class="card-title">📊 Resumo</div>
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem;font-size:.8rem">
