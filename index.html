@@ -692,7 +692,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '73';
+const APP_VERSION = '74';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -4343,6 +4343,23 @@ function renderAdmin(){
       </div>
       <div id="adm-fusao-historico" style="margin-top:.75rem"></div>
     </div>
+
+    <div class="admin-card" style="border-color:rgba(248,113,113,.3);background:rgba(248,113,113,.04)">
+      <div style="font-weight:700;margin-bottom:.15rem;font-size:.85rem;color:#f87171">🗑️ Deletar usuário</div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:.75rem">Remove a conta e todos os palpites. A pessoa não conseguirá mais logar com esse usuário.</div>
+      <div style="display:flex;flex-direction:column;gap:.5rem">
+        <select id="adm-del-user" onchange="adminDelPreview()" style="width:100%;background:var(--card2);border:1px solid rgba(248,113,113,.4);color:var(--text);border-radius:6px;padding:.5rem;font-size:.78rem">
+          <option value="">— escolha quem deletar —</option>
+          ${todosUsuarios.filter(u=>u.id!==usuarioAtual?.id).map(u=>{
+            const pts=calcPtsTotal(u.id).total;
+            const npals=Object.values(todosPalpites).filter(p=>p[u.id]).length;
+            return`<option value="${u.id}">${u.nome} (@${u.usuario}) · ${pts}pts · ${npals} palpites</option>`;
+          }).join('')}
+        </select>
+        <div id="adm-del-preview" style="font-size:.75rem;color:var(--muted);min-height:1rem"></div>
+        <button class="btn-admin-save" style="padding:.55rem;background:rgba(248,113,113,.2);border:1px solid rgba(248,113,113,.5);color:#f87171" onclick="adminDeletarUsuario()">🗑️ Deletar usuário</button>
+      </div>
+    </div>
   `;
 
   const jogosEdit=todosJogos.filter(j=>j.status==='ao-vivo'||j.status==='encerrado').slice(-20);
@@ -4539,6 +4556,53 @@ async function adminCarregarFusoes(){
 function adminMigrAtualizarPreviews(){}
 async function adminMigrarPalpite(){}
 async function adminCarregarMigracoes(){}
+
+function adminDelPreview(){
+  const uid=document.getElementById('adm-del-user')?.value;
+  const box=document.getElementById('adm-del-preview');
+  if(!box)return;
+  if(!uid){box.innerHTML='';return;}
+  const u=todosUsuarios.find(x=>x.id===uid);
+  const pts=calcPtsTotal(uid).total;
+  const npals=Object.values(todosPalpites).filter(p=>p[uid]).length;
+  const cor=pts>0?'#f87171':'var(--muted)';
+  box.innerHTML=`<div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:.5rem .7rem">
+    <div>👤 <strong>${u?.nome}</strong> · @${u?.usuario}</div>
+    <div style="color:${cor};margin-top:.2rem">⚠️ ${pts}pts e ${npals} palpite${npals!==1?'s':''} serão apagados permanentemente.</div>
+    ${pts>0?`<div style="color:#f87171;font-size:.68rem;margin-top:.2rem">⚠️ Esta conta tem pontos — tem certeza que não quer fundir antes de deletar?</div>`:''}
+  </div>`;
+}
+
+async function adminDeletarUsuario(){
+  if(!isAdmin())return;
+  const uid=document.getElementById('adm-del-user')?.value;
+  if(!uid){showToast('⚠️ Escolha um usuário');return;}
+  if(uid===usuarioAtual?.id){showToast('⚠️ Você não pode deletar a si mesmo');return;}
+  const u=todosUsuarios.find(x=>x.id===uid);
+  const pts=calcPtsTotal(uid).total;
+  const npals=Object.values(todosPalpites).filter(p=>p[uid]).length;
+  if(!confirm(`🗑️ Deletar permanentemente?\n\n${u?.nome} (@${u?.usuario})\n${pts}pts · ${npals} palpite${npals!==1?'s':''}\n\nEssa ação não pode ser desfeita.`))return;
+  try{
+    showToast('🗑️ Deletando…');
+    // Apaga todos os palpites do usuário
+    await sbDelete('palpites',`usuario_id=eq.${uid}`);
+    // Apaga bolão e apostas extras
+    try{await sbDelete('bolao',`usuario_id=eq.${uid}`);}catch(e){}
+    try{await sbDelete('apostas_extras',`usuario_id=eq.${uid}`);}catch(e){}
+    try{await sbDelete('classificacao_bolao',`usuario_id=eq.${uid}`);}catch(e){}
+    // Apaga o usuário
+    await sbDelete('usuarios',`id=eq.${uid}`);
+    // Atualiza cache local
+    todosUsuarios=todosUsuarios.filter(x=>x.id!==uid);
+    Object.keys(todosPalpites).forEach(jid=>{delete todosPalpites[jid][uid];});
+    registrarLogAuditoria('usuario_deletado',`${u?.nome} (@${u?.usuario}) deletado pelo admin. Tinha ${pts}pts e ${npals} palpites.`);
+    showToast(`✅ ${u?.nome} deletado!`);
+    document.getElementById('adm-del-user').value='';
+    document.getElementById('adm-del-preview').innerHTML='';
+    renderAdmin();
+    if(document.getElementById('page-ranking')?.classList.contains('active'))renderRanking();
+  }catch(e){console.error(e);showToast('❌ Erro ao deletar usuário');}
+}
 function adminSalvar(id){
   if(!isAdmin())return; // proteção extra na própria ação
   const j=todosJogos.find(x=>x.id===id);if(!j)return;
