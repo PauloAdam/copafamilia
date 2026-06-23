@@ -692,7 +692,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '66';
+const APP_VERSION = '67';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -2580,12 +2580,11 @@ function abrirPerfilUsuario(uid){
   const historico=jogosComPal.slice().reverse();
 
   // Gráfico de evolução — acumula pontos jogo a jogo em ordem cronológica
-  const evoJogos=jogosComPal.slice(); // já ordenado por ordem dos jogos
+  const evoJogos=jogosComPal.slice();
   let acc=0;
   const evoPts=evoJogos.map(j=>{
     const pal=(todosPalpites[j.id]||{})[uid];
     const{pts}=calcPts(j,pal);
-    // extras
     let extra=0;
     if(j.golsHT1!==null&&j.golsHT2!==null){
       const esc=(apostasExtras[j.id]||{})[uid];
@@ -2597,7 +2596,13 @@ function abrirPerfilUsuario(uid){
 
   const cor=corU(uid||'?');
 
+  // Guarda uid atual no modal para os botões de ação
+  document.getElementById('modal-perfil-usuario').dataset.uid=uid;
+
   document.getElementById('perfil-modal-titulo').textContent=`👤 ${u.nome}`;
+
+  // Outros usuários para o seletor de comparação
+  const outrosOpts=ranked.filter(x=>x.id!==uid).map(x=>`<option value="${x.id}">${x.nome} (${x.total}pts)</option>`).join('');
 
   const c=document.getElementById('perfil-modal-conteudo');
   c.innerHTML=`
@@ -2616,6 +2621,21 @@ function abrirPerfilUsuario(uid){
         <div class="pms"><div class="pms-num">${exatos}</div><div class="pms-lbl">Exatos</div></div>
         <div class="pms"><div class="pms-num">${resultados}</div><div class="pms-lbl">Resultados</div></div>
         <div class="pms"><div class="pms-num">${maxSeq}</div><div class="pms-lbl">Seq. máx.</div></div>
+      </div>
+
+      <!-- Botões de ação -->
+      <div style="display:flex;gap:.5rem;margin-top:.85rem">
+        <button onclick="compartilharPerfilUsuario('${uid}')" style="flex:1;padding:.55rem .4rem;background:rgba(0,156,59,.15);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--verde-light);font-size:.78rem;font-weight:600;cursor:pointer">📸 Compartilhar</button>
+        <button onclick="abrirComparacao('${uid}')" style="flex:1;padding:.55rem .4rem;background:rgba(255,223,0,.1);border:1px solid rgba(255,223,0,.3);border-radius:var(--radius-sm);color:var(--amarelo);font-size:.78rem;font-weight:600;cursor:pointer">⚔️ Comparar</button>
+      </div>
+
+      <!-- Seletor de comparação (oculto até clicar) -->
+      <div id="comparacao-seletor" style="display:none;margin-top:.6rem;width:100%">
+        <div style="font-size:.72rem;color:var(--muted);margin-bottom:.4rem;text-align:left">Comparar com:</div>
+        <div style="display:flex;gap:.4rem">
+          <select id="comparacao-select" style="flex:1;background:var(--card2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);padding:.45rem .5rem;font-size:.78rem;font-family:'Inter',sans-serif">${outrosOpts}</select>
+          <button onclick="executarComparacao('${uid}')" style="padding:.45rem .75rem;background:var(--verde);border:none;border-radius:var(--radius-sm);color:#fff;font-size:.78rem;font-weight:700;cursor:pointer">Gerar ⚔️</button>
+        </div>
       </div>
     </div>
 
@@ -2653,6 +2673,275 @@ function abrirPerfilUsuario(uid){
 
 function fecharPerfilUsuario(){
   document.getElementById('modal-perfil-usuario').classList.remove('show');
+}
+
+// ═══════════════════════════════════════════
+// COMPARTILHAR PERFIL (card estilo Stories)
+// ═══════════════════════════════════════════
+async function compartilharPerfilUsuario(uid){
+  const u=todosUsuarios.find(x=>x.id===uid);
+  if(!u)return;
+  showToast('🎨 Gerando card…');
+  try{
+    const{total,exatos,resultados,acertosPrimeiroTempo,acertosClassificacao}=calcPtsTotal(uid);
+    const nivel=getNivelMoldura(total);
+    const proximo=getProximoNivel(total);
+    const ranked=todosUsuarios.map(x=>({...x,...calcPtsTotal(x.id)})).sort((a,b)=>b.total-a.total);
+    const pos=ranked.findIndex(x=>x.id===uid)+1;
+    const total2=ranked.length;
+    const jogosEnc=todosJogos.filter(j=>j.status==='encerrado'&&j.gols1!==null);
+    const jogosComPal=jogosEnc.filter(j=>(todosPalpites[j.id]||{})[uid]);
+    const taxa=jogosComPal.length?Math.round((exatos+resultados)/jogosComPal.length*100):0;
+    const POS_EMOJI={1:'🥇',2:'🥈',3:'🥉'};
+    const bordaCor=nivel.cor||'#009c3b';
+    const corAv=corU(uid||'?');
+
+    const W=800,H=900;
+    const canvas=document.createElement('canvas');
+    canvas.width=W; canvas.height=H;
+    const ctx=canvas.getContext('2d');
+
+    // Fundo
+    const grad=ctx.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0,'#001a0d'); grad.addColorStop(.5,'#002310'); grad.addColorStop(1,'#001a0d');
+    ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle=bordaCor; ctx.lineWidth=5; ctx.strokeRect(14,14,W-28,H-28);
+
+    // Brilho topo
+    const gRad=ctx.createRadialGradient(W/2,0,0,W/2,0,320);
+    gRad.addColorStop(0,bordaCor+'22'); gRad.addColorStop(1,'transparent');
+    ctx.fillStyle=gRad; ctx.fillRect(0,0,W,H);
+
+    // Topo app
+    ctx.textAlign='center'; ctx.font='bold 24px Arial'; ctx.fillStyle='rgba(255,255,255,.45)';
+    ctx.fillText('⚽ COPA 2026 — Palpites da Família', W/2, 62);
+
+    // Avatar
+    const cx=W/2,cy=210,r=78;
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+    const gAv=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+    gAv.addColorStop(0,corAv+'55'); gAv.addColorStop(1,corAv+'11');
+    ctx.fillStyle=gAv; ctx.fill();
+    ctx.strokeStyle=bordaCor; ctx.lineWidth=5; ctx.stroke();
+    if(u.foto_url){
+      try{
+        const img=await new Promise((res,rej)=>{const i=new Image();i.crossOrigin='anonymous';i.onload=()=>res(i);i.onerror=rej;i.src=u.foto_url;});
+        ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,r-4,0,Math.PI*2); ctx.clip();
+        ctx.drawImage(img,cx-r+4,cy-r+4,(r-4)*2,(r-4)*2); ctx.restore();
+      }catch{
+        ctx.font=`bold ${r}px Arial`; ctx.fillStyle=corAv; ctx.textAlign='center';
+        ctx.fillText((u.nome||'?').charAt(0).toUpperCase(), cx, cy+r*.35);
+      }
+    }else{
+      ctx.font=`bold ${r}px Arial`; ctx.fillStyle=corAv; ctx.textAlign='center';
+      ctx.fillText((u.nome||'?').charAt(0).toUpperCase(), cx, cy+r*.35);
+    }
+    if(nivel.emoji){ctx.font='36px Arial'; ctx.fillText(nivel.emoji, cx+r*.72, cy+r*.72);}
+
+    // Nome + tier
+    ctx.font='bold 40px Arial'; ctx.fillStyle='#fff'; ctx.textAlign='center';
+    ctx.fillText(u.nome||'?', W/2, 340);
+    if(nivel.cor){ctx.font='bold 17px Arial'; ctx.fillStyle=nivel.cor; ctx.fillText(nivel.nome.toUpperCase(), W/2, 368);}
+
+    // Separador
+    ctx.strokeStyle='rgba(255,223,0,.25)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(120,395); ctx.lineTo(W-120,395); ctx.stroke();
+
+    // Posição
+    ctx.font='bold 100px Arial'; ctx.fillStyle=bordaCor; ctx.textAlign='center';
+    ctx.fillText(POS_EMOJI[pos]||(pos+'º'), W/2, 525);
+    ctx.font='600 20px Arial'; ctx.fillStyle='rgba(255,255,255,.55)';
+    ctx.fillText(`de ${total2} participantes`, W/2, 562);
+
+    // Pontos
+    ctx.font='bold 68px Arial'; ctx.fillStyle='#ffdf00';
+    ctx.fillText(total, W/2, 665);
+    ctx.font='bold 20px Arial'; ctx.fillStyle='rgba(255,223,0,.55)';
+    ctx.fillText('PONTOS', W/2, 695);
+
+    // Stats linha
+    ctx.font='15px Arial'; ctx.fillStyle='rgba(255,255,255,.45)';
+    const det=[`🏆 ${exatos} exatos`,`✅ ${resultados} resultados`,`🎯 ${taxa}% acertos`];
+    ctx.fillText(det.join('  ·  '), W/2, 740);
+
+    // Próximo nível
+    if(proximo){
+      ctx.font='13px Arial'; ctx.fillStyle=proximo.cor||'#7aab85';
+      ctx.fillText(`Faltam ${proximo.min-total} pts para ${proximo.nome} ${proximo.emoji}`, W/2, 778);
+    }
+
+    // Rodapé
+    ctx.strokeStyle='rgba(0,156,59,.2)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(120,820); ctx.lineTo(W-120,820); ctx.stroke();
+    const dt=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
+    ctx.font='12px Arial'; ctx.fillStyle='rgba(0,156,59,.45)';
+    ctx.fillText(`copafamilia • ${dt}`, W/2, 860);
+
+    const msg=pos===1
+      ?`🥇 ${u.nome} tá na liderança da Copa 2026 com ${total} pontos! ⚽`
+      :`${u.nome} tá em ${pos}º na Copa 2026 com ${total} pontos! ⚽`;
+    _dispararCompartilha(canvas,'copa2026-perfil.png', msg);
+  }catch(e){console.error(e); showToast('❌ Erro ao gerar card');}
+}
+
+// ═══════════════════════════════════════════
+// COMPARAÇÃO ENTRE DOIS JOGADORES
+// ═══════════════════════════════════════════
+function abrirComparacao(uid){
+  const sel=document.getElementById('comparacao-seletor');
+  if(!sel)return;
+  sel.style.display=sel.style.display==='none'?'block':'none';
+}
+
+async function executarComparacao(uid1){
+  const sel=document.getElementById('comparacao-select');
+  if(!sel)return;
+  const uid2=sel.value;
+  if(!uid2||uid2===uid1){showToast('⚠️ Selecione uma pessoa diferente');return;}
+  const u1=todosUsuarios.find(x=>x.id===uid1);
+  const u2=todosUsuarios.find(x=>x.id===uid2);
+  if(!u1||!u2)return;
+  showToast('⚔️ Gerando comparação…');
+  try{
+    const s1=calcPtsTotal(uid1), s2=calcPtsTotal(uid2);
+    const ranked=todosUsuarios.map(x=>({...x,...calcPtsTotal(x.id)})).sort((a,b)=>b.total-a.total);
+    const pos1=ranked.findIndex(x=>x.id===uid1)+1;
+    const pos2=ranked.findIndex(x=>x.id===uid2)+1;
+    const jogosEnc=todosJogos.filter(j=>j.status==='encerrado'&&j.gols1!==null);
+    const jc1=jogosEnc.filter(j=>(todosPalpites[j.id]||{})[uid1]).length;
+    const jc2=jogosEnc.filter(j=>(todosPalpites[j.id]||{})[uid2]).length;
+    const taxa1=jc1?Math.round((s1.exatos+s1.resultados)/jc1*100):0;
+    const taxa2=jc2?Math.round((s2.exatos+s2.resultados)/jc2*100):0;
+    const niv1=getNivelMoldura(s1.total), niv2=getNivelMoldura(s2.total);
+    const cor1=corU(uid1||'?'), cor2=corU(uid2||'?');
+    const POS_EMOJI={1:'🥇',2:'🥈',3:'🥉'};
+
+    const W=800,H=1000;
+    const canvas=document.createElement('canvas');
+    canvas.width=W; canvas.height=H;
+    const ctx=canvas.getContext('2d');
+
+    // Fundo
+    const grad=ctx.createLinearGradient(0,0,W,H);
+    grad.addColorStop(0,'#001a0d'); grad.addColorStop(1,'#000d1a');
+    ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
+
+    // Borda
+    ctx.strokeStyle='#ffdf00'; ctx.lineWidth=4; ctx.strokeRect(12,12,W-24,H-24);
+
+    // Título
+    ctx.textAlign='center'; ctx.font='bold 32px Arial'; ctx.fillStyle='#ffdf00';
+    ctx.fillText('⚔️ DUELO — COPA 2026', W/2, 65);
+    ctx.font='600 16px Arial'; ctx.fillStyle='rgba(255,255,255,.45)';
+    ctx.fillText('Palpites da Família', W/2, 92);
+
+    // Linha divisória central vertical
+    ctx.strokeStyle='rgba(255,223,0,.2)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(W/2,120); ctx.lineTo(W/2,H-80); ctx.stroke();
+
+    // VS no centro
+    ctx.font='bold 28px Arial'; ctx.fillStyle='rgba(255,223,0,.7)'; ctx.textAlign='center';
+    ctx.fillText('VS', W/2, 245);
+
+    // Avatares
+    const drawAvatar=async(u,uid,x,y,r,cor,nivel)=>{
+      ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+      const gAv=ctx.createRadialGradient(x,y,0,x,y,r);
+      gAv.addColorStop(0,cor+'55'); gAv.addColorStop(1,cor+'11');
+      ctx.fillStyle=gAv; ctx.fill();
+      ctx.strokeStyle=nivel.cor||cor; ctx.lineWidth=4; ctx.stroke();
+      if(u.foto_url){
+        try{
+          const img=await new Promise((res,rej)=>{const i=new Image();i.crossOrigin='anonymous';i.onload=()=>res(i);i.onerror=rej;i.src=u.foto_url;});
+          ctx.save(); ctx.beginPath(); ctx.arc(x,y,r-3,0,Math.PI*2); ctx.clip();
+          ctx.drawImage(img,x-r+3,y-r+3,(r-3)*2,(r-3)*2); ctx.restore();
+        }catch{ _drawLetra(ctx,u,x,y,r,cor); }
+      }else{ _drawLetra(ctx,u,x,y,r,cor); }
+      if(nivel.emoji){ctx.font='28px Arial'; ctx.textAlign='center'; ctx.fillText(nivel.emoji, x+r*.7, y+r*.7);}
+    };
+    const _drawLetra=(ctx,u,x,y,r,cor)=>{
+      ctx.font=`bold ${r}px Arial`; ctx.fillStyle=cor; ctx.textAlign='center';
+      ctx.fillText((u.nome||'?').charAt(0).toUpperCase(), x, y+r*.35);
+    };
+
+    await drawAvatar(u1,uid1, W/4, 200, 60, cor1, niv1);
+    await drawAvatar(u2,uid2, 3*W/4, 200, 60, cor2, niv2);
+
+    // Nomes
+    const drawNome=(u,x,nivel)=>{
+      ctx.font='bold 22px Arial'; ctx.fillStyle='#fff'; ctx.textAlign='center';
+      ctx.fillText(u.nome||'?', x, 290);
+      if(nivel.cor){ctx.font='13px Arial'; ctx.fillStyle=nivel.cor; ctx.fillText(nivel.nome, x, 310);}
+    };
+    drawNome(u1, W/4, niv1); drawNome(u2, 3*W/4, niv2);
+
+    // Linhas de comparação
+    const linhas=[
+      {label:'Pontos', v1:s1.total, v2:s2.total, fmt:v=>v+'pts', maior:'max'},
+      {label:'Posição', v1:pos1, v2:pos2, fmt:v=>POS_EMOJI[v]||v+'º', maior:'min'},
+      {label:'Exatos 🏆', v1:s1.exatos, v2:s2.exatos, fmt:v=>v, maior:'max'},
+      {label:'Resultados ✅', v1:s1.resultados, v2:s2.resultados, fmt:v=>v, maior:'max'},
+      {label:'% Acertos', v1:taxa1, v2:taxa2, fmt:v=>v+'%', maior:'max'},
+    ];
+
+    const LY0=355, LH=68;
+    linhas.forEach((l,i)=>{
+      const y=LY0+i*LH;
+      // Fundo alternado
+      if(i%2===0){ctx.fillStyle='rgba(255,255,255,.03)'; ctx.fillRect(24,y-2,W-48,LH-4);}
+
+      // Label central
+      ctx.font='bold 13px Arial'; ctx.fillStyle='rgba(255,255,255,.55)'; ctx.textAlign='center';
+      ctx.fillText(l.label, W/2, y+22);
+
+      // Barra comparativa
+      const ganha1=l.maior==='max'?(l.v1>l.v2):(l.v1<l.v2);
+      const ganha2=l.maior==='max'?(l.v2>l.v1):(l.v2<l.v1);
+      const mx=Math.max(l.v1,l.v2,1);
+      const bW=130, bH=10, bY=y+32;
+      // Barra esquerda (direita pra esquerda)
+      const bLen1=Math.round((l.v1/mx)*bW);
+      ctx.fillStyle=ganha1?(niv1.cor||cor1):cor1+'44';
+      ctx.beginPath(); ctx.roundRect(W/2-20-bLen1, bY, bLen1, bH, 4); ctx.fill();
+      // Barra direita
+      const bLen2=Math.round((l.v2/mx)*bW);
+      ctx.fillStyle=ganha2?(niv2.cor||cor2):cor2+'44';
+      ctx.beginPath(); ctx.roundRect(W/2+20, bY, bLen2, bH, 4); ctx.fill();
+
+      // Valores
+      ctx.font=`bold ${ganha1?18:15}px Arial`; ctx.fillStyle=ganha1?'#fff':'rgba(255,255,255,.5)'; ctx.textAlign='right';
+      ctx.fillText(l.fmt(l.v1), W/2-24, y+22);
+      ctx.font=`bold ${ganha2?18:15}px Arial`; ctx.fillStyle=ganha2?'#fff':'rgba(255,255,255,.5)'; ctx.textAlign='left';
+      ctx.fillText(l.fmt(l.v2), W/2+24, y+22);
+    });
+
+    // Separador
+    const sepY=LY0+linhas.length*LH+10;
+    ctx.strokeStyle='rgba(255,223,0,.2)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(60,sepY); ctx.lineTo(W-60,sepY); ctx.stroke();
+
+    // Veredito
+    const pts1Wins=s1.total>s2.total, empate=s1.total===s2.total;
+    ctx.textAlign='center'; ctx.font='bold 26px Arial';
+    if(empate){
+      ctx.fillStyle='rgba(255,223,0,.8)'; ctx.fillText('🤝 Empate! Porrada boa essa!', W/2, sepY+45);
+    }else{
+      const venc=pts1Wins?u1:u2; const vcor=pts1Wins?(niv1.cor||cor1):(niv2.cor||cor2);
+      ctx.fillStyle=vcor; ctx.fillText(`🏆 ${venc.nome} tá na frente!`, W/2, sepY+45);
+    }
+
+    // Rodapé
+    ctx.strokeStyle='rgba(0,156,59,.2)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(60,H-60); ctx.lineTo(W-60,H-60); ctx.stroke();
+    const dt=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
+    ctx.font='12px Arial'; ctx.fillStyle='rgba(0,156,59,.4)'; ctx.textAlign='center';
+    ctx.fillText(`copafamilia • ${dt}`, W/2, H-32);
+
+    const msg=empate
+      ?`⚔️ Duelo na Copa 2026: ${u1.nome} vs ${u2.nome} — tudo igual! 🤝`
+      :`⚔️ Duelo Copa 2026: ${pts1Wins?u1.nome:u2.nome} vencendo com ${Math.max(s1.total,s2.total)}pts! ⚽`;
+    _dispararCompartilha(canvas,'copa2026-duelo.png', msg);
+  }catch(e){console.error(e); showToast('❌ Erro ao gerar duelo');}
 }
 
 function _renderGraficoEvolucao(canvasId, pts, cor, corTier){
