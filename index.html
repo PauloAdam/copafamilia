@@ -692,7 +692,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '70';
+const APP_VERSION = '72';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -3449,7 +3449,6 @@ function calcPtsTotal(uid){
     if(!todosEncerrados)return;
     const escolha=(classificacaoBolao[g]||{})[uid];
     if(!escolha||!escolha.length)return;
-    // Recalcula a tabela final do grupo para saber quem realmente se classificou
     const tabela={};
     jogosGrupo.forEach(j=>{
       [j.time1,j.time2].forEach(t=>{if(!tabela[t])tabela[t]={Pts:0,GP:0,GC:0}});
@@ -4296,13 +4295,11 @@ function isAdmin(){
 }
 function renderAdmin(){
   const c=document.getElementById('admin-jogos-container');
-  // Proteção: mesmo se alguém forçar a navegação até aqui, bloqueia o conteúdo
   if(!isAdmin()){
     c.innerHTML=`<div class="empty-state"><span class="ei">🔒</span><p>Acesso restrito ao administrador.</p></div>`;
     return;
   }
 
-  // ── Seção: Resetar senha de usuário ──
   const opcoesUsuarios=todosUsuarios.map(u=>`<option value="${u.id}">${u.nome} (@${u.usuario})</option>`).join('');
   let html=`
     <div class="admin-card" style="border-color:rgba(0,156,59,.3);background:rgba(0,156,59,.06)">
@@ -4315,6 +4312,44 @@ function renderAdmin(){
         <input type="text" id="adm-nova-senha" placeholder="Nova senha (mín. 4 caracteres)" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.5rem;font-size:.8rem">
         <button class="btn-admin-save" style="padding:.5rem" onclick="adminResetarSenha()">Resetar senha</button>
       </div>
+    </div>
+
+    <div class="admin-card" style="border-color:rgba(255,223,0,.3);background:rgba(255,223,0,.04)">
+      <div style="font-weight:700;margin-bottom:.15rem;font-size:.85rem;color:var(--amarelo)">🔄 Migrar palpite entre participantes</div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:.75rem">O palpite sai do usuário A e vai para B — como se B tivesse apostado naquele jogo. A fica sem palpite no jogo.</div>
+      <div style="display:flex;flex-direction:column;gap:.5rem">
+        <div>
+          <div style="font-size:.68rem;color:var(--muted);margin-bottom:.25rem">Jogo</div>
+          <select id="adm-migr-jogo" onchange="adminMigrAtualizarPreviews()" style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.5rem;font-size:.78rem">
+            <option value="">— escolha o jogo encerrado —</option>
+            ${todosJogos.filter(j=>j.status==='encerrado'&&j.gols1!==null).slice().reverse().map(j=>`<option value="${j.id}">${nomePT(j.time1)} ${j.gols1}×${j.gols2} ${nomePT(j.time2)} · ${fmtData(j.data)}</option>`).join('')}
+          </select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+          <div>
+            <div style="font-size:.68rem;color:var(--muted);margin-bottom:.25rem">DE (perde o palpite)</div>
+            <select id="adm-migr-de" onchange="adminMigrAtualizarPreviews()" style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.5rem;font-size:.78rem">
+              <option value="">— origem —</option>
+              ${todosUsuarios.map(u=>`<option value="${u.id}">${u.nome}</option>`).join('')}
+            </select>
+            <div id="adm-migr-preview-de" style="margin-top:.3rem;font-size:.7rem;color:var(--muted);min-height:1rem"></div>
+          </div>
+          <div>
+            <div style="font-size:.68rem;color:var(--muted);margin-bottom:.25rem">PARA (recebe o palpite)</div>
+            <select id="adm-migr-para" onchange="adminMigrAtualizarPreviews()" style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.5rem;font-size:.78rem">
+              <option value="">— destino —</option>
+              ${todosUsuarios.map(u=>`<option value="${u.id}">${u.nome}</option>`).join('')}
+            </select>
+            <div id="adm-migr-preview-para" style="margin-top:.3rem;font-size:.7rem;color:var(--muted);min-height:1rem"></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:.68rem;color:var(--muted);margin-bottom:.25rem">Motivo <span style="color:#f87171">*obrigatório</span></div>
+          <input type="text" id="adm-migr-motivo" maxlength="120" placeholder="Ex: perdeu a senha e não conseguiu palpar" style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.5rem;font-size:.78rem">
+        </div>
+        <button class="btn-admin-save" style="padding:.55rem;background:rgba(255,223,0,.15);border-color:rgba(255,223,0,.4);color:var(--amarelo)" onclick="adminMigrarPalpite()">🔄 Migrar palpite</button>
+      </div>
+      <div id="adm-migr-historico" style="margin-top:.75rem"></div>
     </div>
   `;
 
@@ -4337,6 +4372,9 @@ function renderAdmin(){
     </div>`).join('');
 
   c.innerHTML=html;
+
+  // Carrega histórico de migrações
+  adminCarregarMigracoes();
 }
 
 async function adminResetarSenha(){
@@ -4356,6 +4394,103 @@ async function adminResetarSenha(){
   }catch(e){
     showToast('❌ Erro ao resetar senha');
     console.error(e);
+  }
+}
+
+// ── Transferência de pontos ──
+let _transferencias=[]; // mantido vazio (migração agora é via palpites reais)
+
+function adminMigrAtualizarPreviews(){
+  const jogoId=document.getElementById('adm-migr-jogo')?.value;
+  const deId=document.getElementById('adm-migr-de')?.value;
+  const paraId=document.getElementById('adm-migr-para')?.value;
+  const j=jogoId?todosJogos.find(x=>x.id===jogoId):null;
+  const boxDe=document.getElementById('adm-migr-preview-de');
+  const boxPara=document.getElementById('adm-migr-preview-para');
+  if(!boxDe||!boxPara)return;
+  const renderPreview=(uid,box)=>{
+    if(!j||!uid){box.innerHTML='';return;}
+    const pal=(todosPalpites[j.id]||{})[uid];
+    if(!pal){box.innerHTML=`<span style="color:#f87171">❌ Sem palpite nesse jogo</span>`;return;}
+    const{pts,txt}=calcPts(j,pal);
+    const cor=pts>=40?'var(--amarelo)':pts>0?'var(--verde-light)':'#f87171';
+    box.innerHTML=`<span style="color:${cor}">Palpite: <strong>${pal.p1}×${pal.p2}</strong> · ${txt} · <strong>${pts>0?'+'+pts:0}pts</strong></span>`;
+  };
+  renderPreview(deId,boxDe);
+  renderPreview(paraId,boxPara);
+}
+
+async function adminMigrarPalpite(){
+  if(!isAdmin())return;
+  const jogoId=document.getElementById('adm-migr-jogo')?.value;
+  const deId=document.getElementById('adm-migr-de')?.value;
+  const paraId=document.getElementById('adm-migr-para')?.value;
+  const motivo=document.getElementById('adm-migr-motivo')?.value?.trim();
+  if(!jogoId){showToast('⚠️ Escolha o jogo');return;}
+  if(!deId){showToast('⚠️ Escolha a origem (DE)');return;}
+  if(!paraId){showToast('⚠️ Escolha o destino (PARA)');return;}
+  if(deId===paraId){showToast('⚠️ Origem e destino são a mesma pessoa');return;}
+  if(!motivo){showToast('⚠️ Motivo é obrigatório');return;}
+  const j=todosJogos.find(x=>x.id===jogoId);
+  const uDe=todosUsuarios.find(x=>x.id===deId);
+  const uPara=todosUsuarios.find(x=>x.id===paraId);
+  const palDe=(todosPalpites[jogoId]||{})[deId];
+  if(!palDe){showToast(`⚠️ ${uDe?.nome} não tem palpite nesse jogo`);return;}
+  const{pts,txt}=calcPts(j,palDe);
+  const palParaExiste=!!(todosPalpites[jogoId]||{})[paraId];
+  const confirmMsg=`🔄 Confirmar migração?\n\nJogo: ${nomePT(j.time1)} ${j.gols1}×${j.gols2} ${nomePT(j.time2)}\nPalpite: ${palDe.p1}×${palDe.p2} (${txt}, ${pts>0?'+'+pts:0}pts)\n\nDE: ${uDe?.nome} → PARA: ${uPara?.nome}${palParaExiste?'\n\n⚠️ '+uPara?.nome+' já tem palpite e será substituído!':''}\n\nMotivo: "${motivo}"`;
+  if(!confirm(confirmMsg))return;
+  try{
+    showToast('💾 Migrando palpite…');
+    await sbDelete('palpites',`usuario_id=eq.${deId}&jogo_id=eq.${jogoId}`);
+    await sbUpsert('palpites',{usuario_id:paraId,jogo_id:jogoId,gols1:palDe.p1,gols2:palDe.p2},'usuario_id,jogo_id');
+    if(!todosPalpites[jogoId])todosPalpites[jogoId]={};
+    todosPalpites[jogoId][paraId]={p1:palDe.p1,p2:palDe.p2};
+    delete todosPalpites[jogoId][deId];
+    registrarLogAuditoria('migracao_palpite',
+      `Palpite ${palDe.p1}×${palDe.p2} (${txt},${pts}pts) em ${nomePT(j.time1)}×${nomePT(j.time2)} migrado de ${uDe?.nome}→${uPara?.nome}. Motivo: ${motivo}`);
+    try{
+      await sbPost('migracoes_palpite',{
+        jogo_id:jogoId,
+        jogo_nome:`${nomePT(j.time1)} ${j.gols1}×${j.gols2} ${nomePT(j.time2)}`,
+        palpite:`${palDe.p1}×${palDe.p2}`,
+        pts_calculados:pts,
+        resultado_txt:txt,
+        de_usuario_id:deId, de_usuario_nome:uDe?.nome||deId,
+        para_usuario_id:paraId, para_usuario_nome:uPara?.nome||paraId,
+        motivo, admin_id:usuarioAtual.id, admin_nome:usuarioAtual.nome,
+      });
+    }catch(e){/* tabela opcional */}
+    showToast(`✅ Palpite de ${uDe?.nome} migrado para ${uPara?.nome}!`);
+    ['adm-migr-jogo','adm-migr-de','adm-migr-para','adm-migr-motivo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    ['adm-migr-preview-de','adm-migr-preview-para'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='';});
+    adminCarregarMigracoes();
+    if(document.getElementById('page-ranking')?.classList.contains('active'))renderRanking();
+  }catch(e){console.error(e);showToast('❌ Erro ao migrar palpite');}
+}
+
+async function adminCarregarMigracoes(){
+  const box=document.getElementById('adm-migr-historico');
+  if(!box)return;
+  try{
+    const lista=await sbGet('migracoes_palpite','select=*&order=criado_em.desc&limit=15');
+    if(!lista.length){box.innerHTML='<div style="font-size:.72rem;color:var(--muted);text-align:center;padding:.5rem">Nenhuma migração ainda.</div>';return;}
+    box.innerHTML=`
+      <div style="font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.4rem">Histórico de migrações</div>
+      ${lista.map(t=>{
+        const dt=t.criado_em?new Date(t.criado_em).toLocaleDateString('pt-BR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'';
+        const cor=t.pts_calculados>=40?'var(--amarelo)':t.pts_calculados>0?'var(--verde-light)':'#f87171';
+        return`<div style="padding:.5rem .6rem;background:var(--card2);border:1px solid var(--border);border-radius:8px;margin-bottom:.3rem;font-size:.75rem">
+          <div style="display:flex;justify-content:space-between;margin-bottom:.15rem">
+            <span><strong>${t.de_usuario_nome}</strong> → <strong>${t.para_usuario_nome}</strong></span>
+            <span style="color:var(--muted);font-size:.65rem">${dt}</span>
+          </div>
+          <div style="color:var(--muted)">${t.jogo_nome} · palpite <strong style="color:${cor}">${t.palpite}</strong> · <span style="color:${cor}">${t.resultado_txt} ${t.pts_calculados>0?'+'+t.pts_calculados:0}pts</span></div>
+          <div style="color:var(--muted);font-size:.68rem;margin-top:.1rem">📝 ${t.motivo}</div>
+        </div>`;
+      }).join('')}`;
+  }catch(e){
+    box.innerHTML='<div style="font-size:.72rem;color:var(--muted);padding:.4rem">Crie a tabela no Supabase para guardar histórico (opcional).</div>';
   }
 }
 function adminSalvar(id){
