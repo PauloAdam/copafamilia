@@ -526,6 +526,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <!-- RANKING -->
     <div id="page-ranking" class="page">
       <div class="section-title">🏅 Ranking</div>
+      <div style="display:flex;gap:.5rem;margin-bottom:.75rem">
+        <button onclick="compartilharRanking()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.6rem .5rem;background:rgba(0,156,59,.15);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--verde-light);font-size:.8rem;font-weight:600;cursor:pointer">📸 Ranking Completo</button>
+        <button onclick="compartilharMinhaPos()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.6rem .5rem;background:rgba(255,223,0,.1);border:1px solid rgba(255,223,0,.35);border-radius:var(--radius-sm);color:var(--amarelo);font-size:.8rem;font-weight:600;cursor:pointer">⭐ Minha Posição</button>
+      </div>
       <div id="podio-container" class="rank-podio"></div>
       <div class="rank-lista" id="ranking-lista"></div>
       <div class="card" style="margin-top:.75rem">
@@ -658,7 +662,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '64';
+const APP_VERSION = '65';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -2230,6 +2234,292 @@ async function compartilharResultado(jogoId){
     console.error(e);
     showToast('❌ Erro ao gerar imagem');
   }
+}
+
+// ═══════════════════════════════════════════
+// COMPARTILHAR RANKING
+// ═══════════════════════════════════════════
+async function compartilharRanking(){
+  if(!todosUsuarios.length){showToast('⏳ Carregando dados…');return;}
+  showToast('🎨 Gerando imagem do ranking…');
+  try{
+    const ranked=todosUsuarios.map(u=>({...u,...calcPtsTotal(u.id)})).sort((a,b)=>b.total-a.total);
+    const LINHA=54, PAD=28, TOPO=160, W=800;
+    const H=Math.max(600, TOPO + ranked.length*LINHA + 80);
+    const canvas=document.createElement('canvas');
+    canvas.width=W; canvas.height=H;
+    const ctx=canvas.getContext('2d');
+
+    // Fundo
+    const grad=ctx.createLinearGradient(0,0,W,H);
+    grad.addColorStop(0,'#001a0d'); grad.addColorStop(1,'#00100a');
+    ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
+
+    // Borda verde
+    ctx.strokeStyle='#009c3b'; ctx.lineWidth=4;
+    ctx.strokeRect(12,12,W-24,H-24);
+
+    // Barra de título
+    const gradTopo=ctx.createLinearGradient(0,0,W,0);
+    gradTopo.addColorStop(0,'#009c3b'); gradTopo.addColorStop(1,'#007a2e');
+    ctx.fillStyle=gradTopo; ctx.fillRect(12,12,W-24,100);
+
+    // Título
+    ctx.textAlign='center';
+    ctx.font='bold 44px Arial'; ctx.fillStyle='#ffdf00';
+    ctx.fillText('⚽ COPA 2026', W/2, 68);
+    ctx.font='600 18px Arial'; ctx.fillStyle='rgba(255,255,255,.85)';
+    ctx.fillText('🏅 Ranking — Palpites da Família', W/2, 100);
+
+    // Data
+    const agora=new Date();
+    const dataStr=agora.toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
+    ctx.font='13px Arial'; ctx.fillStyle='rgba(255,255,255,.5)';
+    ctx.fillText(dataStr, W/2, 130);
+
+    // Cabeçalho da tabela
+    ctx.fillStyle='rgba(0,156,59,.25)';
+    ctx.fillRect(PAD, TOPO-30, W-PAD*2, 30);
+    ctx.font='bold 13px Arial'; ctx.fillStyle='#7aab85'; ctx.textAlign='left';
+    ctx.fillText('#', PAD+8, TOPO-10);
+    ctx.fillText('Nome', PAD+60, TOPO-10);
+    ctx.textAlign='right';
+    ctx.fillText('Pts', W-PAD-8, TOPO-10);
+    ctx.fillText('Tier', W-PAD-70, TOPO-10);
+
+    // Separador
+    ctx.strokeStyle='rgba(0,156,59,.35)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(PAD,TOPO); ctx.lineTo(W-PAD,TOPO); ctx.stroke();
+
+    // Linhas do ranking
+    const TIER_COR={
+      'Bronze':'#cd7f32','Prata':'#c0c0c0','Ouro':'#ffd700',
+      'Platina':'#00e5ff','Diamante':'#b388ff','Sem moldura':'#7aab85'
+    };
+    const TIER_EMOJI={'Bronze':'🥉','Prata':'🥈','Ouro':'🥇','Platina':'💎','Diamante':'👑','Sem moldura':''};
+    const POS_EMOJI={1:'🥇',2:'🥈',3:'🥉'};
+
+    ranked.forEach((u,i)=>{
+      const y=TOPO + i*LINHA + LINHA/2;
+      const nivel=getNivelMoldura(u.total);
+
+      // Linha alternada
+      if(i%2===0){
+        ctx.fillStyle='rgba(255,255,255,.03)';
+        ctx.fillRect(PAD, TOPO+i*LINHA, W-PAD*2, LINHA);
+      }
+
+      // Destaque top 3
+      if(i<3){
+        ctx.fillStyle=i===0?'rgba(255,215,0,.06)':i===1?'rgba(192,192,192,.05)':'rgba(205,127,50,.05)';
+        ctx.fillRect(PAD, TOPO+i*LINHA, W-PAD*2, LINHA);
+      }
+
+      // Posição
+      const posStr=POS_EMOJI[i+1]||(i+1)+'º';
+      ctx.textAlign='left'; ctx.font=i<3?'bold 20px Arial':'bold 16px Arial';
+      ctx.fillStyle=i===0?'#ffd700':i===1?'#c0c0c0':i===2?'#cd7f32':'#7aab85';
+      ctx.fillText(posStr, PAD+8, y+6);
+
+      // Círculo avatar (letra inicial)
+      const cor=corU(u.id||u.usuario||'?');
+      const inicial=(u.nome||'?').charAt(0).toUpperCase();
+      ctx.beginPath();
+      ctx.arc(PAD+48, y, 16, 0, Math.PI*2);
+      ctx.fillStyle=cor+'33'; ctx.fill();
+      if(nivel.cor){ctx.strokeStyle=nivel.cor; ctx.lineWidth=2;}
+      else{ctx.strokeStyle=cor+'66'; ctx.lineWidth=1;}
+      ctx.stroke();
+      ctx.font='bold 14px Arial'; ctx.fillStyle=cor;
+      ctx.textAlign='center'; ctx.fillText(inicial, PAD+48, y+5);
+
+      // Nome
+      ctx.textAlign='left'; ctx.font=i<3?'bold 18px Arial':'500 16px Arial';
+      ctx.fillStyle=i<3?'#ffffff':'#e8f5eb';
+      ctx.fillText(u.nome||'?', PAD+72, y+6);
+
+      // Tier emoji
+      if(TIER_EMOJI[nivel.nome]){
+        ctx.textAlign='right'; ctx.font='16px Arial';
+        ctx.fillText(TIER_EMOJI[nivel.nome], W-PAD-60, y+6);
+      }
+
+      // Pontos
+      ctx.textAlign='right';
+      ctx.font=i<3?'bold 20px Arial':'bold 16px Arial';
+      ctx.fillStyle=nivel.cor||'#e8f5eb';
+      ctx.fillText(u.total, W-PAD-8, y+6);
+
+      // Separador fino
+      ctx.strokeStyle='rgba(0,156,59,.15)'; ctx.lineWidth=1;
+      ctx.beginPath();
+      ctx.moveTo(PAD, TOPO+(i+1)*LINHA);
+      ctx.lineTo(W-PAD, TOPO+(i+1)*LINHA);
+      ctx.stroke();
+    });
+
+    // Rodapé
+    ctx.textAlign='center'; ctx.font='13px Arial'; ctx.fillStyle='rgba(0,156,59,.6)';
+    ctx.fillText('copafamilia • pauloadam.github.io', W/2, H-20);
+
+    _dispararCompartilha(canvas,'copa2026-ranking.png',
+      `🏅 Ranking Copa 2026 da família — atualizado! Quem tá na frente? ⚽`);
+  }catch(e){console.error(e);showToast('❌ Erro ao gerar imagem');}
+}
+
+// ═══════════════════════════════════════════
+// COMPARTILHAR MINHA POSIÇÃO (Stories)
+// ═══════════════════════════════════════════
+async function compartilharMinhaPos(){
+  if(!usuarioAtual){showToast('⚠️ Faça login primeiro');return;}
+  showToast('🎨 Gerando seu card…');
+  try{
+    const ranked=todosUsuarios.map(u=>({...u,...calcPtsTotal(u.id)})).sort((a,b)=>b.total-a.total);
+    const meuIdx=ranked.findIndex(u=>u.id===usuarioAtual.id);
+    if(meuIdx<0){showToast('❌ Usuário não encontrado no ranking');return;}
+    const eu=ranked[meuIdx];
+    const nivel=getNivelMoldura(eu.total);
+    const proximo=getProximoNivel(eu.total);
+    const pos=meuIdx+1;
+    const total=ranked.length;
+    const POS_EMOJI={1:'🥇',2:'🥈',3:'🥉'};
+
+    const W=800, H=900;
+    const canvas=document.createElement('canvas');
+    canvas.width=W; canvas.height=H;
+    const ctx=canvas.getContext('2d');
+
+    // Fundo gradiente vertical
+    const grad=ctx.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0,'#001a0d');
+    grad.addColorStop(0.5,'#002310');
+    grad.addColorStop(1,'#001a0d');
+    ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
+
+    // Borda animada (cor do tier ou verde)
+    const bordaCor=nivel.cor||'#009c3b';
+    ctx.strokeStyle=bordaCor; ctx.lineWidth=5;
+    ctx.strokeRect(14,14,W-28,H-28);
+
+    // Brilho de canto
+    const gRadial=ctx.createRadialGradient(W/2,0,0,W/2,0,350);
+    gRadial.addColorStop(0,bordaCor+'22');
+    gRadial.addColorStop(1,'transparent');
+    ctx.fillStyle=gRadial; ctx.fillRect(0,0,W,H);
+
+    // Título do app
+    ctx.textAlign='center';
+    ctx.font='bold 26px Arial'; ctx.fillStyle='rgba(255,255,255,.5)';
+    ctx.fillText('⚽ COPA 2026 — Palpites da Família', W/2, 65);
+
+    // Círculo avatar grande
+    const cx=W/2, cy=230, r=80;
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+    const corAv=corU(eu.id||eu.usuario||'?');
+    const gradAv=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+    gradAv.addColorStop(0,corAv+'55'); gradAv.addColorStop(1,corAv+'11');
+    ctx.fillStyle=gradAv; ctx.fill();
+    if(nivel.cor){
+      ctx.strokeStyle=nivel.cor; ctx.lineWidth=5;
+    }else{
+      ctx.strokeStyle=corAv; ctx.lineWidth=3;
+    }
+    ctx.stroke();
+
+    // Foto ou letra no avatar
+    if(eu.foto_url){
+      try{
+        const img=await new Promise((res,rej)=>{const i=new Image();i.crossOrigin='anonymous';i.onload=()=>res(i);i.onerror=rej;i.src=eu.foto_url;});
+        ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,r-4,0,Math.PI*2); ctx.clip();
+        ctx.drawImage(img,cx-r+4,cy-r+4,(r-4)*2,(r-4)*2); ctx.restore();
+      }catch{
+        ctx.font=`bold ${r}px Arial`; ctx.fillStyle=corAv;
+        ctx.textAlign='center'; ctx.fillText((eu.nome||'?').charAt(0).toUpperCase(), cx, cy+r*0.35);
+      }
+    }else{
+      ctx.font=`bold ${r}px Arial`; ctx.fillStyle=corAv;
+      ctx.textAlign='center'; ctx.fillText((eu.nome||'?').charAt(0).toUpperCase(), cx, cy+r*0.35);
+    }
+
+    // Badge tier sobre avatar
+    if(nivel.emoji){
+      ctx.font='38px Arial'; ctx.textAlign='center';
+      ctx.fillText(nivel.emoji, cx+r*0.7, cy+r*0.7);
+    }
+
+    // Nome
+    ctx.font='bold 38px Arial'; ctx.fillStyle='#ffffff'; ctx.textAlign='center';
+    ctx.fillText(eu.nome||'?', W/2, 360);
+
+    // Tier
+    if(nivel.nome!=='Sem moldura'){
+      ctx.font='bold 18px Arial'; ctx.fillStyle=nivel.cor;
+      ctx.fillText(nivel.nome.toUpperCase(), W/2, 392);
+    }
+
+    // Separador dourado
+    ctx.strokeStyle='rgba(255,223,0,.3)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(100,415); ctx.lineTo(W-100,415); ctx.stroke();
+
+    // Posição — destaque enorme
+    const posEmoji=POS_EMOJI[pos]||'';
+    ctx.font='bold 110px Arial'; ctx.fillStyle=bordaCor; ctx.textAlign='center';
+    ctx.fillText(posEmoji||(pos+'º'), W/2, 550);
+    if(!posEmoji){
+      ctx.font='bold 110px Arial'; ctx.fillStyle=bordaCor;
+      ctx.fillText(pos+'º', W/2, 550);
+    }
+    ctx.font='600 22px Arial'; ctx.fillStyle='rgba(255,255,255,.6)';
+    ctx.fillText(`de ${total} participantes`, W/2, 592);
+
+    // Pontos
+    ctx.font='bold 70px Arial'; ctx.fillStyle='#ffdf00';
+    ctx.fillText(eu.total, W/2, 700);
+    ctx.font='bold 22px Arial'; ctx.fillStyle='rgba(255,223,0,.6)';
+    ctx.fillText('PONTOS', W/2, 732);
+
+    // Detalhes (exatos, resultados)
+    ctx.font='16px Arial'; ctx.fillStyle='rgba(255,255,255,.5)';
+    const det=[`🏆 ${eu.exatos} exatos`,`✅ ${eu.resultados} resultados`];
+    if(eu.acertosClassificacao>0) det.push(`🎯 ${eu.acertosClassificacao} classificações`);
+    ctx.fillText(det.join('  ·  '), W/2, 770);
+
+    // Próximo nível
+    if(proximo){
+      const faltam=proximo.min-eu.total;
+      ctx.font='14px Arial'; ctx.fillStyle=proximo.cor||'#7aab85';
+      ctx.fillText(`Faltam ${faltam} pts para ${proximo.nome} ${proximo.emoji}`, W/2, 810);
+    }
+
+    // Separador e rodapé
+    ctx.strokeStyle='rgba(0,156,59,.2)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(100,840); ctx.lineTo(W-100,840); ctx.stroke();
+    ctx.font='13px Arial'; ctx.fillStyle='rgba(0,156,59,.5)';
+    const dataStr=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
+    ctx.fillText(`copafamilia • ${dataStr}`, W/2, 875);
+
+    const msg=pos===1
+      ?`🥇 Tô na liderança da Copa 2026 com ${eu.total} pontos! Chega de sonhar, família! 😤⚽`
+      :`Tô em ${pos}º na Copa 2026 com ${eu.total} pontos! Ainda dá tempo! ⚽🔥`;
+    _dispararCompartilha(canvas,'copa2026-minhapos.png', msg);
+  }catch(e){console.error(e);showToast('❌ Erro ao gerar card');}
+}
+
+// Helper compartilhamento
+function _dispararCompartilha(canvas, filename, texto){
+  canvas.toBlob(async(blob)=>{
+    const file=new File([blob],filename,{type:'image/png'});
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+      try{await navigator.share({files:[file],title:'Copa 2026',text:texto});}
+      catch(e){/* cancelado pelo usuário */}
+    }else{
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url; a.download=filename; a.click();
+      URL.revokeObjectURL(url);
+      showToast('📥 Imagem baixada! Compartilhe no WhatsApp 🟢');
+    }
+  },'image/png');
 }
 
 function vincularPalpites(c){
