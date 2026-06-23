@@ -245,6 +245,24 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .stories-nav-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:.78rem;font-weight:600;padding:.55rem 1rem;border-radius:20px;cursor:pointer;font-family:'Inter',sans-serif}
 .stories-nav-btn.principal{background:var(--verde);border-color:var(--verde);flex:1}
 
+/* MODAL PERFIL USUÁRIO */
+.perfil-modal-hero{text-align:center;padding:1.25rem 0 .75rem;border-bottom:1px solid var(--border);margin-bottom:1rem}
+.perfil-modal-nome{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:1px;margin:.5rem 0 .1rem}
+.perfil-modal-usuario{font-size:.75rem;color:var(--muted);margin-bottom:.3rem}
+.perfil-modal-tier{font-size:.78rem;font-weight:700;margin-bottom:.75rem}
+.perfil-modal-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;margin:.75rem 0}
+.pms{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:.6rem .3rem;text-align:center}
+.pms-num{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--amarelo);line-height:1}
+.pms-lbl{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:.15rem}
+.perfil-modal-secao{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:.9rem 0 .45rem;padding-top:.75rem;border-top:1px solid var(--border)}
+.perfil-modal-hist-item{display:flex;align-items:center;gap:.5rem;padding:.45rem .6rem;border-radius:8px;background:var(--card2);margin-bottom:.35rem;font-size:.78rem}
+.pmhi-times{flex:1;color:var(--text)}
+.pmhi-pal{color:var(--muted);font-size:.72rem}
+.pmhi-pts{font-weight:700;font-size:.82rem;min-width:36px;text-align:right}
+.perfil-modal-grafico{width:100%;border-radius:10px;margin:.5rem 0;display:block}
+.rank-row-clicavel{cursor:pointer;transition:background .15s}
+.rank-row-clicavel:active{background:rgba(0,156,59,.08)}
+
 .modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--amarelo);letter-spacing:1px}
 .modal-close{background:var(--card2);border:none;color:var(--muted);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:1rem}
 .modal-jogo-resumo{display:flex;align-items:center;justify-content:center;gap:1rem;background:var(--card2);border-radius:var(--radius-sm);padding:.9rem;margin-bottom:1rem}
@@ -654,6 +672,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   </div>
 </div>
 
+<!-- MODAL PERFIL USUÁRIO -->
+<div class="modal-overlay" id="modal-perfil-usuario" onclick="if(event.target===this)fecharPerfilUsuario()">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="perfil-modal-titulo">👤 Perfil</div>
+      <button class="modal-close" onclick="fecharPerfilUsuario()">✕</button>
+    </div>
+    <div id="perfil-modal-conteudo"></div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -662,7 +692,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '65';
+const APP_VERSION = '66';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -2522,6 +2552,172 @@ function _dispararCompartilha(canvas, filename, texto){
   },'image/png');
 }
 
+// ═══════════════════════════════════════════
+// MODAL PERFIL DE USUÁRIO (clique no avatar do ranking)
+// ═══════════════════════════════════════════
+function abrirPerfilUsuario(uid){
+  const u=todosUsuarios.find(x=>x.id===uid);
+  if(!u)return;
+  const{total,exatos,resultados,erros,acertosPrimeiroTempo,acertosClassificacao}=calcPtsTotal(uid);
+  const nivel=getNivelMoldura(total);
+  const proximo=getProximoNivel(total);
+  const jogosEnc=todosJogos.filter(j=>j.status==='encerrado'&&j.gols1!==null);
+  const jogosComPal=jogosEnc.filter(j=>(todosPalpites[j.id]||{})[uid]);
+  const taxa=jogosComPal.length?Math.round((exatos+resultados)/jogosComPal.length*100):0;
+  // Sequência máxima
+  let maxSeq=0,cur=0;
+  jogosEnc.forEach(j=>{
+    const pal=(todosPalpites[j.id]||{})[uid];if(!pal)return;
+    const{txt}=calcPts(j,pal);
+    if(txt.includes('Exato')||txt.includes('Resultado')){cur++;maxSeq=Math.max(maxSeq,cur);}else cur=0;
+  });
+  // Posição no ranking
+  const ranked=todosUsuarios.map(x=>({...x,...calcPtsTotal(x.id)})).sort((a,b)=>b.total-a.total);
+  const pos=ranked.findIndex(x=>x.id===uid)+1;
+  const POS_EMOJI={1:'🥇',2:'🥈',3:'🥉'};
+
+  // Histórico de palpites (mais recentes primeiro)
+  const historico=jogosComPal.slice().reverse();
+
+  // Gráfico de evolução — acumula pontos jogo a jogo em ordem cronológica
+  const evoJogos=jogosComPal.slice(); // já ordenado por ordem dos jogos
+  let acc=0;
+  const evoPts=evoJogos.map(j=>{
+    const pal=(todosPalpites[j.id]||{})[uid];
+    const{pts}=calcPts(j,pal);
+    // extras
+    let extra=0;
+    if(j.golsHT1!==null&&j.golsHT2!==null){
+      const esc=(apostasExtras[j.id]||{})[uid];
+      if(esc){let r;if(j.golsHT1>j.golsHT2)r=j.time1;else if(j.golsHT2>j.golsHT1)r=j.time2;else r='empate';if(esc===r)extra=5;}
+    }
+    acc+=pts+extra;
+    return acc;
+  });
+
+  const cor=corU(uid||'?');
+
+  document.getElementById('perfil-modal-titulo').textContent=`👤 ${u.nome}`;
+
+  const c=document.getElementById('perfil-modal-conteudo');
+  c.innerHTML=`
+    <div class="perfil-modal-hero">
+      <div style="display:inline-block;position:relative">
+        ${renderAvatar(u,72,total)}
+      </div>
+      <div class="perfil-modal-nome">${u.nome}</div>
+      <div class="perfil-modal-usuario">@${u.usuario||u.nome.toLowerCase()}</div>
+      ${nivel.cor?`<div class="perfil-modal-tier" style="color:${nivel.cor}">${nivel.emoji} ${nivel.nome}</div>`:''}
+      ${proximo?`<div style="font-size:.7rem;color:var(--muted)">Faltam <strong style="color:${proximo.cor}">${proximo.min-total} pts</strong> para ${proximo.emoji} ${proximo.nome}</div>`:'<div style="font-size:.72rem;color:var(--amarelo)">🎉 Nível máximo desbloqueado!</div>'}
+      <div class="perfil-modal-stats">
+        <div class="pms"><div class="pms-num">${total}</div><div class="pms-lbl">Pontos</div></div>
+        <div class="pms"><div class="pms-num">${POS_EMOJI[pos]||pos+'º'}</div><div class="pms-lbl">Posição</div></div>
+        <div class="pms"><div class="pms-num">${taxa}%</div><div class="pms-lbl">Acertos</div></div>
+        <div class="pms"><div class="pms-num">${exatos}</div><div class="pms-lbl">Exatos</div></div>
+        <div class="pms"><div class="pms-num">${resultados}</div><div class="pms-lbl">Resultados</div></div>
+        <div class="pms"><div class="pms-num">${maxSeq}</div><div class="pms-lbl">Seq. máx.</div></div>
+      </div>
+    </div>
+
+    ${evoJogos.length>=2?`
+    <div class="perfil-modal-secao">📈 Evolução de pontos</div>
+    <canvas id="grafico-perfil" class="perfil-modal-grafico" height="130"></canvas>
+    `:''}
+
+    <div class="perfil-modal-secao">📋 Histórico de palpites (${historico.length})</div>
+    ${historico.length?historico.map(j=>{
+      const pal=(todosPalpites[j.id]||{})[uid];
+      const{pts,txt}=calcPts(j,pal);
+      let extra=0;
+      if(j.golsHT1!==null&&j.golsHT2!==null){
+        const esc=(apostasExtras[j.id]||{})[uid];
+        if(esc){let r;if(j.golsHT1>j.golsHT2)r=j.time1;else if(j.golsHT2>j.golsHT1)r=j.time2;else r='empate';if(esc===r)extra=5;}
+      }
+      const ptsFinal=pts+extra;
+      const corPts=ptsFinal>=40?'var(--amarelo)':ptsFinal>0?'var(--verde-light)':'#f88';
+      return`<div class="perfil-modal-hist-item">
+        <div class="pmhi-times">${getFlagSmall(j.time1)} ${nomePT(j.time1)} <strong>${j.gols1}×${j.gols2}</strong> ${nomePT(j.time2)} ${getFlagSmall(j.time2)}</div>
+        <div class="pmhi-pal">${pal.p1}×${pal.p2}</div>
+        <div class="pmhi-pts" style="color:${corPts}">${ptsFinal>0?'+'+ptsFinal:'0'}</div>
+      </div>`;
+    }).join(''):`<div style="padding:.75rem;color:var(--muted);font-size:.82rem;text-align:center">Nenhum palpite ainda.</div>`}
+  `;
+
+  // Renderizar gráfico após DOM ser inserido
+  if(evoJogos.length>=2){
+    requestAnimationFrame(()=>_renderGraficoEvolucao('grafico-perfil', evoPts, cor, nivel.cor||cor));
+  }
+
+  document.getElementById('modal-perfil-usuario').classList.add('show');
+}
+
+function fecharPerfilUsuario(){
+  document.getElementById('modal-perfil-usuario').classList.remove('show');
+}
+
+function _renderGraficoEvolucao(canvasId, pts, cor, corTier){
+  const canvas=document.getElementById(canvasId);
+  if(!canvas)return;
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.offsetWidth||300;
+  const H=130;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+
+  const PAD_L=36,PAD_R=12,PAD_T=16,PAD_B=28;
+  const w=W-PAD_L-PAD_R, h=H-PAD_T-PAD_B;
+  const n=pts.length;
+  const maxPt=Math.max(...pts,1);
+  const toX=i=>PAD_L+i/(n-1)*w;
+  const toY=v=>PAD_T+h-(v/maxPt)*h;
+
+  // Fundo transparente (herda do sheet)
+  // Grade horizontal
+  ctx.strokeStyle='rgba(255,255,255,.06)'; ctx.lineWidth=1;
+  [0,.25,.5,.75,1].forEach(f=>{
+    const y=PAD_T+h*(1-f);
+    ctx.beginPath(); ctx.moveTo(PAD_L,y); ctx.lineTo(PAD_L+w,y); ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,.3)'; ctx.font=`${9*dpr/dpr}px Arial`; ctx.textAlign='right';
+    ctx.fillText(Math.round(maxPt*f), PAD_L-4, y+3);
+  });
+
+  // Área preenchida (gradiente)
+  const gradArea=ctx.createLinearGradient(0,PAD_T,0,PAD_T+h);
+  gradArea.addColorStop(0,(corTier||cor)+'55');
+  gradArea.addColorStop(1,(corTier||cor)+'05');
+  ctx.beginPath();
+  ctx.moveTo(toX(0),PAD_T+h);
+  pts.forEach((v,i)=>ctx.lineTo(toX(i),toY(v)));
+  ctx.lineTo(toX(n-1),PAD_T+h);
+  ctx.closePath();
+  ctx.fillStyle=gradArea; ctx.fill();
+
+  // Linha principal
+  ctx.beginPath();
+  pts.forEach((v,i)=>{if(i===0)ctx.moveTo(toX(i),toY(v));else ctx.lineTo(toX(i),toY(v));});
+  ctx.strokeStyle=corTier||cor; ctx.lineWidth=2.5; ctx.lineJoin='round'; ctx.stroke();
+
+  // Pontos nos vértices
+  pts.forEach((v,i)=>{
+    ctx.beginPath(); ctx.arc(toX(i),toY(v),3.5,0,Math.PI*2);
+    ctx.fillStyle=corTier||cor; ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,.5)'; ctx.lineWidth=1; ctx.stroke();
+  });
+
+  // Ponto final com valor
+  const lastX=toX(n-1), lastY=toY(pts[n-1]);
+  ctx.beginPath(); ctx.arc(lastX,lastY,5,0,Math.PI*2);
+  ctx.fillStyle=corTier||cor; ctx.fill();
+  ctx.font='bold 10px Arial'; ctx.fillStyle='#fff'; ctx.textAlign='center';
+  ctx.fillText(pts[n-1], lastX, lastY-9);
+
+  // Eixo X — número do jogo
+  ctx.fillStyle='rgba(255,255,255,.3)'; ctx.font='9px Arial'; ctx.textAlign='center';
+  pts.forEach((_,i)=>{if(i===0||i===n-1||i===Math.floor(n/2))ctx.fillText('J'+(i+1),toX(i),PAD_T+h+14);});
+}
+
 function vincularPalpites(c){
   c.querySelectorAll('.btn-salvar-pal').forEach(btn=>btn.addEventListener('click',()=>salvarPalpite(btn.dataset.jogo)));
   c.querySelectorAll('.palpite-n').forEach(inp=>inp.addEventListener('keydown',e=>{if(e.key==='Enter'){const id=inp.id.replace(/^pn[12]_/,'');salvarPalpite(id)}}));
@@ -2827,7 +3023,7 @@ function renderRanking(){
     const detalhes=[`🏆${u.exatos}`,`✅${u.resultados}`];
     if(u.acertosPrimeiroTempo>0)detalhes.push(`⏱️${u.acertosPrimeiroTempo}`);
     if(u.acertosClassificacao>0)detalhes.push(`🎯${u.acertosClassificacao}`);
-    return`<div class="rank-row" data-uid="${u.id}"><div class="rank-pos">${i+1}º</div>${renderAvatar(u,44,u.total)}<div class="rank-info"><div class="rank-nome-txt">${u.nome}</div><div class="rank-detalhe">${detalhes.join(' · ')}</div></div><div class="rank-pts-val">${u.total}<small>pts</small></div></div>`;
+    return`<div class="rank-row" data-uid="${u.id}"><div class="rank-pos">${i+1}º</div><span onclick="abrirPerfilUsuario('${u.id}')" class="rank-row-clicavel" style="display:inline-flex;align-items:center;border-radius:50%;flex-shrink:0" title="Ver perfil de ${u.nome}">${renderAvatar(u,44,u.total)}</span><div class="rank-info"><div class="rank-nome-txt">${u.nome}</div><div class="rank-detalhe">${detalhes.join(' · ')}</div></div><div class="rank-pts-val">${u.total}<small>pts</small></div></div>`;
   }).join('');
 
   // ── FLIP: calcula diferença e anima (só se já tínhamos posições salvas) ──
