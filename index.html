@@ -692,7 +692,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '68';
+const APP_VERSION = '70';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -1014,6 +1014,28 @@ function getFlagSmall(nome) {
       return `<img src="https://flagcdn.com/h20/${code}.png" style="width:20px;height:auto;border-radius:2px" alt="">`;
   }
   return '';
+}
+// Retorna só o código ISO (para uso no canvas)
+function getFlagCode(nome) {
+  if (!nome) return null;
+  const nomeNorm = normalizarNomeTime(nome);
+  for (const [k,code] of Object.entries(FLAG_CODES)) {
+    if (nomeNorm.includes(normalizarNomeTime(k))) return code;
+  }
+  return null;
+}
+// Carrega uma bandeira como HTMLImageElement (promise), com cache
+const _flagCache={};
+function loadFlagImg(code){
+  if(!code) return Promise.resolve(null);
+  if(_flagCache[code]) return Promise.resolve(_flagCache[code]);
+  return new Promise(res=>{
+    const img=new Image();
+    img.crossOrigin='anonymous';
+    img.onload=()=>{_flagCache[code]=img; res(img);};
+    img.onerror=()=>res(null);
+    img.src=`https://flagcdn.com/h20/${code}.png`;
+  });
 }
 function nomePT(n) {
   if (!n) return '?';
@@ -2696,27 +2718,39 @@ async function compartilharPerfilUsuario(uid){
     const bordaCor=nivel.cor||'#009c3b';
     const corAv=corU(uid||'?');
 
-    const W=800,H=900;
+    // Evolução de pontos jogo a jogo
+    let acc=0;
+    const evoPts=jogosComPal.map(j=>{
+      const pal=(todosPalpites[j.id]||{})[uid];
+      const{pts}=calcPts(j,pal);
+      let extra=0;
+      if(j.golsHT1!==null&&j.golsHT2!==null){
+        const esc=(apostasExtras[j.id]||{})[uid];
+        if(esc){let r;if(j.golsHT1>j.golsHT2)r=j.time1;else if(j.golsHT2>j.golsHT1)r=j.time2;else r='empate';if(esc===r)extra=5;}
+      }
+      acc+=pts+extra; return acc;
+    });
+    const temGrafico=evoPts.length>=2;
+
+    const W=800, H=temGrafico?1060:900;
     const canvas=document.createElement('canvas');
     canvas.width=W; canvas.height=H;
     const ctx=canvas.getContext('2d');
 
-    // Fundo
+    // ── FUNDO ──
     const grad=ctx.createLinearGradient(0,0,0,H);
     grad.addColorStop(0,'#001a0d'); grad.addColorStop(.5,'#002310'); grad.addColorStop(1,'#001a0d');
     ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
     ctx.strokeStyle=bordaCor; ctx.lineWidth=5; ctx.strokeRect(14,14,W-28,H-28);
-
-    // Brilho topo
     const gRad=ctx.createRadialGradient(W/2,0,0,W/2,0,320);
     gRad.addColorStop(0,bordaCor+'22'); gRad.addColorStop(1,'transparent');
     ctx.fillStyle=gRad; ctx.fillRect(0,0,W,H);
 
-    // Topo app
+    // ── TOPO ──
     ctx.textAlign='center'; ctx.font='bold 24px Arial'; ctx.fillStyle='rgba(255,255,255,.45)';
     ctx.fillText('⚽ COPA 2026 — Palpites da Família', W/2, 62);
 
-    // Avatar
+    // ── AVATAR ──
     const cx=W/2,cy=210,r=78;
     ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
     const gAv=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
@@ -2730,57 +2764,122 @@ async function compartilharPerfilUsuario(uid){
         ctx.drawImage(img,cx-r+4,cy-r+4,(r-4)*2,(r-4)*2); ctx.restore();
       }catch{
         ctx.font=`bold ${r}px Arial`; ctx.fillStyle=corAv; ctx.textAlign='center';
-        ctx.fillText((u.nome||'?').charAt(0).toUpperCase(), cx, cy+r*.35);
+        ctx.fillText((u.nome||'?').charAt(0).toUpperCase(),cx,cy+r*.35);
       }
     }else{
       ctx.font=`bold ${r}px Arial`; ctx.fillStyle=corAv; ctx.textAlign='center';
-      ctx.fillText((u.nome||'?').charAt(0).toUpperCase(), cx, cy+r*.35);
+      ctx.fillText((u.nome||'?').charAt(0).toUpperCase(),cx,cy+r*.35);
     }
-    if(nivel.emoji){ctx.font='36px Arial'; ctx.fillText(nivel.emoji, cx+r*.72, cy+r*.72);}
+    if(nivel.emoji){ctx.font='36px Arial'; ctx.fillText(nivel.emoji,cx+r*.72,cy+r*.72);}
 
-    // Nome + tier
+    // ── NOME + TIER ──
     ctx.font='bold 40px Arial'; ctx.fillStyle='#fff'; ctx.textAlign='center';
-    ctx.fillText(u.nome||'?', W/2, 340);
-    if(nivel.cor){ctx.font='bold 17px Arial'; ctx.fillStyle=nivel.cor; ctx.fillText(nivel.nome.toUpperCase(), W/2, 368);}
+    ctx.fillText(u.nome||'?',W/2,340);
+    if(nivel.cor){ctx.font='bold 17px Arial'; ctx.fillStyle=nivel.cor; ctx.fillText(nivel.nome.toUpperCase(),W/2,368);}
 
-    // Separador
     ctx.strokeStyle='rgba(255,223,0,.25)'; ctx.lineWidth=1;
     ctx.beginPath(); ctx.moveTo(120,395); ctx.lineTo(W-120,395); ctx.stroke();
 
-    // Posição
+    // ── POSIÇÃO ──
     ctx.font='bold 100px Arial'; ctx.fillStyle=bordaCor; ctx.textAlign='center';
-    ctx.fillText(POS_EMOJI[pos]||(pos+'º'), W/2, 525);
+    ctx.fillText(POS_EMOJI[pos]||(pos+'º'),W/2,520);
     ctx.font='600 20px Arial'; ctx.fillStyle='rgba(255,255,255,.55)';
-    ctx.fillText(`de ${total2} participantes`, W/2, 562);
+    ctx.fillText(`de ${total2} participantes`,W/2,555);
 
-    // Pontos
+    // ── PONTOS ──
     ctx.font='bold 68px Arial'; ctx.fillStyle='#ffdf00';
-    ctx.fillText(total, W/2, 665);
+    ctx.fillText(total,W/2,648);
     ctx.font='bold 20px Arial'; ctx.fillStyle='rgba(255,223,0,.55)';
-    ctx.fillText('PONTOS', W/2, 695);
+    ctx.fillText('PONTOS',W/2,678);
 
-    // Stats linha
+    // ── STATS ──
     ctx.font='15px Arial'; ctx.fillStyle='rgba(255,255,255,.45)';
-    const det=[`🏆 ${exatos} exatos`,`✅ ${resultados} resultados`,`🎯 ${taxa}% acertos`];
-    ctx.fillText(det.join('  ·  '), W/2, 740);
-
-    // Próximo nível
+    ctx.fillText([`🏆 ${exatos} exatos`,`✅ ${resultados} resultados`,`🎯 ${taxa}% acertos`].join('  ·  '),W/2,718);
     if(proximo){
       ctx.font='13px Arial'; ctx.fillStyle=proximo.cor||'#7aab85';
-      ctx.fillText(`Faltam ${proximo.min-total} pts para ${proximo.nome} ${proximo.emoji}`, W/2, 778);
+      ctx.fillText(`Faltam ${proximo.min-total} pts para ${proximo.nome} ${proximo.emoji}`,W/2,748);
     }
 
-    // Rodapé
+    // ── GRÁFICO DE EVOLUÇÃO ──
+    if(temGrafico){
+      // Área do gráfico
+      const GX=60, GY=780, GW=W-120, GH=190;
+      const PAD_T=18, PAD_B=24, PAD_L=38, PAD_R=10;
+      const gw=GW-PAD_L-PAD_R, gh=GH-PAD_T-PAD_B;
+      const n=evoPts.length;
+      const maxPt=Math.max(...evoPts,1);
+      const toX=i=>GX+PAD_L+i/(n-1)*gw;
+      const toY=v=>GY+PAD_T+gh-(v/maxPt)*gh;
+
+      // Fundo do gráfico
+      ctx.fillStyle='rgba(0,0,0,.25)';
+      ctx.beginPath(); ctx.roundRect(GX,GY,GW,GH,10); ctx.fill();
+      ctx.strokeStyle=bordaCor+'40'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.roundRect(GX,GY,GW,GH,10); ctx.stroke();
+
+      // Label
+      ctx.font='bold 12px Arial'; ctx.fillStyle='rgba(255,255,255,.35)'; ctx.textAlign='left';
+      ctx.fillText('📈 Evolução de pontos', GX+PAD_L, GY+13);
+
+      // Grade horizontal
+      ctx.strokeStyle='rgba(255,255,255,.06)'; ctx.lineWidth=1;
+      [0,.25,.5,.75,1].forEach(f=>{
+        const y=GY+PAD_T+gh*(1-f);
+        ctx.beginPath(); ctx.moveTo(GX+PAD_L,y); ctx.lineTo(GX+PAD_L+gw,y); ctx.stroke();
+        ctx.fillStyle='rgba(255,255,255,.28)'; ctx.font='10px Arial'; ctx.textAlign='right';
+        ctx.fillText(Math.round(maxPt*f), GX+PAD_L-4, y+4);
+      });
+
+      // Área preenchida
+      const gradArea=ctx.createLinearGradient(0,GY+PAD_T,0,GY+PAD_T+gh);
+      gradArea.addColorStop(0,bordaCor+'55'); gradArea.addColorStop(1,bordaCor+'05');
+      ctx.beginPath();
+      ctx.moveTo(toX(0),GY+PAD_T+gh);
+      evoPts.forEach((v,i)=>ctx.lineTo(toX(i),toY(v)));
+      ctx.lineTo(toX(n-1),GY+PAD_T+gh);
+      ctx.closePath();
+      ctx.fillStyle=gradArea; ctx.fill();
+
+      // Linha
+      ctx.beginPath();
+      evoPts.forEach((v,i)=>{i===0?ctx.moveTo(toX(i),toY(v)):ctx.lineTo(toX(i),toY(v));});
+      ctx.strokeStyle=bordaCor; ctx.lineWidth=2.5; ctx.lineJoin='round'; ctx.stroke();
+
+      // Pontos
+      evoPts.forEach((v,i)=>{
+        ctx.beginPath(); ctx.arc(toX(i),toY(v),3.5,0,Math.PI*2);
+        ctx.fillStyle=bordaCor; ctx.fill();
+        ctx.strokeStyle='rgba(0,0,0,.5)'; ctx.lineWidth=1; ctx.stroke();
+      });
+
+      // Ponto final com valor
+      const lx=toX(n-1), ly=toY(evoPts[n-1]);
+      ctx.beginPath(); ctx.arc(lx,ly,6,0,Math.PI*2);
+      ctx.fillStyle=bordaCor; ctx.fill();
+      ctx.font='bold 11px Arial'; ctx.fillStyle='#fff'; ctx.textAlign='center';
+      ctx.fillText(evoPts[n-1],lx,ly-10);
+
+      // Eixo X
+      ctx.fillStyle='rgba(255,255,255,.28)'; ctx.font='10px Arial'; ctx.textAlign='center';
+      const step=Math.max(1,Math.floor(n/6));
+      evoPts.forEach((_,i)=>{
+        if(i===0||i===n-1||i%step===0)
+          ctx.fillText('J'+(i+1),toX(i),GY+PAD_T+gh+PAD_B-4);
+      });
+    }
+
+    // ── RODAPÉ ──
+    const rodapeY=H-60;
     ctx.strokeStyle='rgba(0,156,59,.2)'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(120,820); ctx.lineTo(W-120,820); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(120,rodapeY); ctx.lineTo(W-120,rodapeY); ctx.stroke();
     const dt=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
-    ctx.font='12px Arial'; ctx.fillStyle='rgba(0,156,59,.45)';
-    ctx.fillText(`copafamilia • ${dt}`, W/2, 860);
+    ctx.font='12px Arial'; ctx.fillStyle='rgba(0,156,59,.45)'; ctx.textAlign='center';
+    ctx.fillText(`copafamilia • ${dt}`,W/2,rodapeY+28);
 
     const msg=pos===1
       ?`🥇 ${u.nome} tá na liderança da Copa 2026 com ${total} pontos! ⚽`
       :`${u.nome} tá em ${pos}º na Copa 2026 com ${total} pontos! ⚽`;
-    _dispararCompartilha(canvas,'copa2026-perfil.png', msg);
+    _dispararCompartilha(canvas,'copa2026-perfil.png',msg);
   }catch(e){console.error(e); showToast('❌ Erro ao gerar card');}
 }
 
@@ -2911,6 +3010,10 @@ async function executarComparacao(uid1){
     ctx.beginPath(); ctx.moveTo(COL_PAL,TY); ctx.lineTo(COL_PAL,TY+TABLE_HEAD); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(X_PAL2_START,TY); ctx.lineTo(X_PAL2_START,TY+TABLE_HEAD); ctx.stroke();
 
+    // Pré-carrega todas as bandeiras necessárias
+    const codesNeeded=[...new Set(jogos10.flatMap(j=>[getFlagCode(j.time1),getFlagCode(j.time2)]).filter(Boolean))];
+    await Promise.all(codesNeeded.map(c=>loadFlagImg(c)));
+
     // Linhas de jogo
     linhasJogos.forEach(({j,p1,p2,r1,r2},i)=>{
       const ry=TY+TABLE_HEAD+i*ROW_H;
@@ -2933,17 +3036,34 @@ async function executarComparacao(uid1){
       ctx.font='11px Arial'; ctx.fillStyle=r1.pts>0?ptsCor1:'rgba(255,255,255,.3)';
       ctx.fillText(`${icone1} ${r1.pts>0?'+'+r1.pts:'0'}pts`, COL_PAL*0.42, cy+13);
 
-      // — COLUNA CENTRAL: nome do jogo e placar real —
-      const nomeJogo=`${nomePT(j.time1)} × ${nomePT(j.time2)}`;
-      ctx.font='12px Arial'; ctx.fillStyle='rgba(255,255,255,.55)'; ctx.textAlign='center';
-      // Trunca nome se muito longo
-      const maxW=COL_MEIO-20;
-      let nomeDisplay=nomeJogo;
-      ctx.font='12px Arial';
-      while(ctx.measureText(nomeDisplay).width>maxW&&nomeDisplay.length>8)nomeDisplay=nomeDisplay.slice(0,-2)+'…';
-      ctx.fillText(nomeDisplay, W/2, cy-6);
+      // — COLUNA CENTRAL: bandeiras + nome truncado + placar real —
+      const flag1=_flagCache[getFlagCode(j.time1)||'']||null;
+      const flag2=_flagCache[getFlagCode(j.time2)||'']||null;
+      const FW=18, FH=13, FY_FLAG=cy-19; // tamanho e Y das bandeirinhas
+
+      // Mede nome para centralizar com bandeiras
+      ctx.font='11px Arial';
+      const nomeT1=nomePT(j.time1), nomeT2=nomePT(j.time2);
+      const SEP=' × ';
+      const totalW=(flag1?FW+3:0)+ctx.measureText(nomeT1).width+ctx.measureText(SEP).width+(flag2?FW+3:0)+ctx.measureText(nomeT2).width;
+      let cx_cur=W/2-totalW/2;
+
+      // Bandeira t1
+      if(flag1){ctx.drawImage(flag1,cx_cur,FY_FLAG,FW,FH);cx_cur+=FW+3;}
+      // Nome t1
+      ctx.fillStyle='rgba(255,255,255,.5)'; ctx.textAlign='left'; ctx.font='11px Arial';
+      ctx.fillText(nomeT1,cx_cur,cy-8); cx_cur+=ctx.measureText(nomeT1).width;
+      // Separador
+      ctx.fillStyle='rgba(255,255,255,.3)';
+      ctx.fillText(SEP,cx_cur,cy-8); cx_cur+=ctx.measureText(SEP).width;
+      // Bandeira t2
+      if(flag2){ctx.drawImage(flag2,cx_cur,FY_FLAG,FW,FH);cx_cur+=FW+3;}
+      // Nome t2
+      ctx.fillStyle='rgba(255,255,255,.5)';
+      ctx.fillText(nomeT2,cx_cur,cy-8);
+
       // Placar real — destaque
-      ctx.font='bold 16px Arial'; ctx.fillStyle='rgba(255,255,255,.9)';
+      ctx.font='bold 16px Arial'; ctx.fillStyle='rgba(255,255,255,.9)'; ctx.textAlign='center';
       ctx.fillText(`${j.gols1} – ${j.gols2}`, W/2, cy+13);
 
       // — COLUNA DIREITA: palpite de u2 —
