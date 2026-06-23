@@ -692,7 +692,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '72';
+const APP_VERSION = '73';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -4315,41 +4315,33 @@ function renderAdmin(){
     </div>
 
     <div class="admin-card" style="border-color:rgba(255,223,0,.3);background:rgba(255,223,0,.04)">
-      <div style="font-weight:700;margin-bottom:.15rem;font-size:.85rem;color:var(--amarelo)">🔄 Migrar palpite entre participantes</div>
-      <div style="font-size:.72rem;color:var(--muted);margin-bottom:.75rem">O palpite sai do usuário A e vai para B — como se B tivesse apostado naquele jogo. A fica sem palpite no jogo.</div>
+      <div style="font-weight:700;margin-bottom:.15rem;font-size:.85rem;color:var(--amarelo)">🔀 Fundir contas</div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:.75rem">Todos os palpites da conta origem vão para a conta destino. A origem fica zerada. Palpites que destino já tem são mantidos (origem não sobrescreve).</div>
       <div style="display:flex;flex-direction:column;gap:.5rem">
-        <div>
-          <div style="font-size:.68rem;color:var(--muted);margin-bottom:.25rem">Jogo</div>
-          <select id="adm-migr-jogo" onchange="adminMigrAtualizarPreviews()" style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.5rem;font-size:.78rem">
-            <option value="">— escolha o jogo encerrado —</option>
-            ${todosJogos.filter(j=>j.status==='encerrado'&&j.gols1!==null).slice().reverse().map(j=>`<option value="${j.id}">${nomePT(j.time1)} ${j.gols1}×${j.gols2} ${nomePT(j.time2)} · ${fmtData(j.data)}</option>`).join('')}
-          </select>
-        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
           <div>
-            <div style="font-size:.68rem;color:var(--muted);margin-bottom:.25rem">DE (perde o palpite)</div>
-            <select id="adm-migr-de" onchange="adminMigrAtualizarPreviews()" style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.5rem;font-size:.78rem">
-              <option value="">— origem —</option>
-              ${todosUsuarios.map(u=>`<option value="${u.id}">${u.nome}</option>`).join('')}
+            <div style="font-size:.68rem;color:var(--muted);margin-bottom:.25rem">ORIGEM (vai zerar)</div>
+            <select id="adm-fusao-de" onchange="adminFusaoPreview()" style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.5rem;font-size:.78rem">
+              <option value="">— conta que some —</option>
+              ${todosUsuarios.map(u=>{const pts=calcPtsTotal(u.id).total;return`<option value="${u.id}">${u.nome} · ${pts}pts</option>`}).join('')}
             </select>
-            <div id="adm-migr-preview-de" style="margin-top:.3rem;font-size:.7rem;color:var(--muted);min-height:1rem"></div>
           </div>
           <div>
-            <div style="font-size:.68rem;color:var(--muted);margin-bottom:.25rem">PARA (recebe o palpite)</div>
-            <select id="adm-migr-para" onchange="adminMigrAtualizarPreviews()" style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.5rem;font-size:.78rem">
-              <option value="">— destino —</option>
-              ${todosUsuarios.map(u=>`<option value="${u.id}">${u.nome}</option>`).join('')}
+            <div style="font-size:.68rem;color:var(--muted);margin-bottom:.25rem">DESTINO (fica com tudo)</div>
+            <select id="adm-fusao-para" onchange="adminFusaoPreview()" style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.5rem;font-size:.78rem">
+              <option value="">— conta que fica —</option>
+              ${todosUsuarios.map(u=>{const pts=calcPtsTotal(u.id).total;return`<option value="${u.id}">${u.nome} · ${pts}pts</option>`}).join('')}
             </select>
-            <div id="adm-migr-preview-para" style="margin-top:.3rem;font-size:.7rem;color:var(--muted);min-height:1rem"></div>
           </div>
         </div>
+        <div id="adm-fusao-preview" style="font-size:.75rem;color:var(--muted);min-height:1rem;padding:.3rem 0"></div>
         <div>
           <div style="font-size:.68rem;color:var(--muted);margin-bottom:.25rem">Motivo <span style="color:#f87171">*obrigatório</span></div>
-          <input type="text" id="adm-migr-motivo" maxlength="120" placeholder="Ex: perdeu a senha e não conseguiu palpar" style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.5rem;font-size:.78rem">
+          <input type="text" id="adm-fusao-motivo" maxlength="120" placeholder="Ex: mesma pessoa, perdeu acesso à conta antiga" style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.5rem;font-size:.78rem">
         </div>
-        <button class="btn-admin-save" style="padding:.55rem;background:rgba(255,223,0,.15);border-color:rgba(255,223,0,.4);color:var(--amarelo)" onclick="adminMigrarPalpite()">🔄 Migrar palpite</button>
+        <button class="btn-admin-save" style="padding:.55rem;background:rgba(255,223,0,.15);border-color:rgba(255,223,0,.4);color:var(--amarelo)" onclick="adminFundirContas()">🔀 Fundir contas</button>
       </div>
-      <div id="adm-migr-historico" style="margin-top:.75rem"></div>
+      <div id="adm-fusao-historico" style="margin-top:.75rem"></div>
     </div>
   `;
 
@@ -4373,8 +4365,8 @@ function renderAdmin(){
 
   c.innerHTML=html;
 
-  // Carrega histórico de migrações
-  adminCarregarMigracoes();
+  // Carrega histórico de fusões
+  adminCarregarFusoes();
 }
 
 async function adminResetarSenha(){
@@ -4398,101 +4390,155 @@ async function adminResetarSenha(){
 }
 
 // ── Transferência de pontos ──
-let _transferencias=[]; // mantido vazio (migração agora é via palpites reais)
+let _transferencias=[]; // mantido vazio
 
-function adminMigrAtualizarPreviews(){
-  const jogoId=document.getElementById('adm-migr-jogo')?.value;
-  const deId=document.getElementById('adm-migr-de')?.value;
-  const paraId=document.getElementById('adm-migr-para')?.value;
-  const j=jogoId?todosJogos.find(x=>x.id===jogoId):null;
-  const boxDe=document.getElementById('adm-migr-preview-de');
-  const boxPara=document.getElementById('adm-migr-preview-para');
-  if(!boxDe||!boxPara)return;
-  const renderPreview=(uid,box)=>{
-    if(!j||!uid){box.innerHTML='';return;}
-    const pal=(todosPalpites[j.id]||{})[uid];
-    if(!pal){box.innerHTML=`<span style="color:#f87171">❌ Sem palpite nesse jogo</span>`;return;}
-    const{pts,txt}=calcPts(j,pal);
-    const cor=pts>=40?'var(--amarelo)':pts>0?'var(--verde-light)':'#f87171';
-    box.innerHTML=`<span style="color:${cor}">Palpite: <strong>${pal.p1}×${pal.p2}</strong> · ${txt} · <strong>${pts>0?'+'+pts:0}pts</strong></span>`;
-  };
-  renderPreview(deId,boxDe);
-  renderPreview(paraId,boxPara);
-}
-
-async function adminMigrarPalpite(){
-  if(!isAdmin())return;
-  const jogoId=document.getElementById('adm-migr-jogo')?.value;
-  const deId=document.getElementById('adm-migr-de')?.value;
-  const paraId=document.getElementById('adm-migr-para')?.value;
-  const motivo=document.getElementById('adm-migr-motivo')?.value?.trim();
-  if(!jogoId){showToast('⚠️ Escolha o jogo');return;}
-  if(!deId){showToast('⚠️ Escolha a origem (DE)');return;}
-  if(!paraId){showToast('⚠️ Escolha o destino (PARA)');return;}
-  if(deId===paraId){showToast('⚠️ Origem e destino são a mesma pessoa');return;}
-  if(!motivo){showToast('⚠️ Motivo é obrigatório');return;}
-  const j=todosJogos.find(x=>x.id===jogoId);
+function adminFusaoPreview(){
+  const deId=document.getElementById('adm-fusao-de')?.value;
+  const paraId=document.getElementById('adm-fusao-para')?.value;
+  const box=document.getElementById('adm-fusao-preview');
+  if(!box)return;
+  if(!deId||!paraId||deId===paraId){box.innerHTML='';return;}
   const uDe=todosUsuarios.find(x=>x.id===deId);
   const uPara=todosUsuarios.find(x=>x.id===paraId);
-  const palDe=(todosPalpites[jogoId]||{})[deId];
-  if(!palDe){showToast(`⚠️ ${uDe?.nome} não tem palpite nesse jogo`);return;}
-  const{pts,txt}=calcPts(j,palDe);
-  const palParaExiste=!!(todosPalpites[jogoId]||{})[paraId];
-  const confirmMsg=`🔄 Confirmar migração?\n\nJogo: ${nomePT(j.time1)} ${j.gols1}×${j.gols2} ${nomePT(j.time2)}\nPalpite: ${palDe.p1}×${palDe.p2} (${txt}, ${pts>0?'+'+pts:0}pts)\n\nDE: ${uDe?.nome} → PARA: ${uPara?.nome}${palParaExiste?'\n\n⚠️ '+uPara?.nome+' já tem palpite e será substituído!':''}\n\nMotivo: "${motivo}"`;
+  const sOrig=calcPtsTotal(deId);
+  const sDest=calcPtsTotal(paraId);
+
+  // Calcula palpites da origem que o destino NÃO tem (vão ser migrados)
+  const jogosOrig=Object.keys(todosPalpites).filter(jid=>(todosPalpites[jid]||{})[deId]);
+  const migrar=jogosOrig.filter(jid=>!(todosPalpites[jid]||{})[paraId]);
+  const ignorar=jogosOrig.filter(jid=>(todosPalpites[jid]||{})[paraId]);
+
+  // Pontos extras que o destino vai ganhar
+  let ptsExtras=0;
+  migrar.forEach(jid=>{
+    const j=todosJogos.find(x=>x.id===jid);
+    if(!j||j.gols1===null)return;
+    const pal=(todosPalpites[jid]||{})[deId];
+    ptsExtras+=calcPts(j,pal).pts;
+  });
+
+  box.innerHTML=`
+    <div style="background:rgba(255,223,0,.08);border:1px solid rgba(255,223,0,.2);border-radius:8px;padding:.6rem .75rem;display:flex;flex-direction:column;gap:.3rem">
+      <div>📦 <strong>${migrar.length}</strong> palpites serão migrados de <strong>${uDe?.nome}</strong> → <strong>${uPara?.nome}</strong>${ignorar.length?` · <span style="color:var(--muted)">${ignorar.length} já existem no destino e serão ignorados</span>`:''}</div>
+      <div>📊 <strong>${uPara?.nome}</strong> vai de <strong style="color:var(--amarelo)">${sDest.total}pts</strong> para <strong style="color:var(--verde-light)">~${sDest.total+ptsExtras}pts</strong></div>
+      <div style="color:var(--muted);font-size:.7rem">⚠️ <strong>${uDe?.nome}</strong> ficará com ${sOrig.total-ptsExtras}pts (palpites que o destino já tinha ficam em ambos)</div>
+    </div>`;
+}
+
+async function adminFundirContas(){
+  if(!isAdmin())return;
+  const deId=document.getElementById('adm-fusao-de')?.value;
+  const paraId=document.getElementById('adm-fusao-para')?.value;
+  const motivo=document.getElementById('adm-fusao-motivo')?.value?.trim();
+  if(!deId){showToast('⚠️ Escolha a conta origem');return;}
+  if(!paraId){showToast('⚠️ Escolha a conta destino');return;}
+  if(deId===paraId){showToast('⚠️ Origem e destino são a mesma conta');return;}
+  if(!motivo){showToast('⚠️ Motivo é obrigatório');return;}
+
+  const uDe=todosUsuarios.find(x=>x.id===deId);
+  const uPara=todosUsuarios.find(x=>x.id===paraId);
+
+  // Palpites da origem que o destino NÃO tem
+  const jogosOrig=Object.keys(todosPalpites).filter(jid=>(todosPalpites[jid]||{})[deId]);
+  const paraFundir=jogosOrig.filter(jid=>!(todosPalpites[jid]||{})[paraId]);
+  const ignorados=jogosOrig.filter(jid=>(todosPalpites[jid]||{})[paraId]);
+
+  if(!paraFundir.length){
+    showToast(`⚠️ Nenhum palpite novo para migrar — ${uPara?.nome} já tem todos os jogos de ${uDe?.nome}`);
+    return;
+  }
+
+  // Preview dos palpites que vão mover
+  let ptsExtras=0;
+  const resumoJogos=paraFundir.map(jid=>{
+    const j=todosJogos.find(x=>x.id===jid);
+    if(!j)return null;
+    const pal=(todosPalpites[jid]||{})[deId];
+    const{pts,txt}=j.gols1!==null?calcPts(j,pal):{pts:0,txt:'Futuro'};
+    ptsExtras+=pts;
+    return`  • ${nomePT(j.time1)}×${nomePT(j.time2)}: ${pal.p1}×${pal.p2} (${txt}${pts>0?', +'+pts+'pts':''})`;
+  }).filter(Boolean).join('\n');
+
+  const confirmMsg=`🔀 Confirmar fusão?\n\nOrigem: ${uDe?.nome}\nDestino: ${uPara?.nome}\n\n${paraFundir.length} palpites serão migrados:\n${resumoJogos}${ignorados.length?`\n\n${ignorados.length} palpite(s) ignorados (destino já tem).`:''}\n\n+${ptsExtras}pts para ${uPara?.nome}\n\nMotivo: "${motivo}"`;
   if(!confirm(confirmMsg))return;
+
   try{
-    showToast('💾 Migrando palpite…');
-    await sbDelete('palpites',`usuario_id=eq.${deId}&jogo_id=eq.${jogoId}`);
-    await sbUpsert('palpites',{usuario_id:paraId,jogo_id:jogoId,gols1:palDe.p1,gols2:palDe.p2},'usuario_id,jogo_id');
-    if(!todosPalpites[jogoId])todosPalpites[jogoId]={};
-    todosPalpites[jogoId][paraId]={p1:palDe.p1,p2:palDe.p2};
-    delete todosPalpites[jogoId][deId];
-    registrarLogAuditoria('migracao_palpite',
-      `Palpite ${palDe.p1}×${palDe.p2} (${txt},${pts}pts) em ${nomePT(j.time1)}×${nomePT(j.time2)} migrado de ${uDe?.nome}→${uPara?.nome}. Motivo: ${motivo}`);
+    showToast(`🔀 Fundindo ${paraFundir.length} palpites…`);
+    let ok=0,erro=0;
+    for(const jid of paraFundir){
+      const pal=(todosPalpites[jid]||{})[deId];
+      if(!pal)continue;
+      try{
+        // Insere no destino
+        await sbUpsert('palpites',{usuario_id:paraId,jogo_id:jid,gols1:pal.p1,gols2:pal.p2},'usuario_id,jogo_id');
+        // Remove da origem
+        await sbDelete('palpites',`usuario_id=eq.${deId}&jogo_id=eq.${jid}`);
+        // Atualiza cache
+        if(!todosPalpites[jid])todosPalpites[jid]={};
+        todosPalpites[jid][paraId]={p1:pal.p1,p2:pal.p2};
+        delete todosPalpites[jid][deId];
+        ok++;
+      }catch(e){erro++;}
+    }
+
+    // Log auditoria
+    registrarLogAuditoria('fusao_contas',
+      `${ok} palpites de ${uDe?.nome} → ${uPara?.nome} (+${ptsExtras}pts). ${ignorados.length} ignorados. Motivo: ${motivo}`);
+
+    // Salva no histórico
     try{
       await sbPost('migracoes_palpite',{
-        jogo_id:jogoId,
-        jogo_nome:`${nomePT(j.time1)} ${j.gols1}×${j.gols2} ${nomePT(j.time2)}`,
-        palpite:`${palDe.p1}×${palDe.p2}`,
-        pts_calculados:pts,
-        resultado_txt:txt,
+        jogo_id:'fusao',
+        jogo_nome:`Fusão de contas: ${paraFundir.length} palpites`,
+        palpite:`${ok} migrados`,
+        pts_calculados:ptsExtras,
+        resultado_txt:`${ignorados.length} ignorados`,
         de_usuario_id:deId, de_usuario_nome:uDe?.nome||deId,
         para_usuario_id:paraId, para_usuario_nome:uPara?.nome||paraId,
         motivo, admin_id:usuarioAtual.id, admin_nome:usuarioAtual.nome,
       });
     }catch(e){/* tabela opcional */}
-    showToast(`✅ Palpite de ${uDe?.nome} migrado para ${uPara?.nome}!`);
-    ['adm-migr-jogo','adm-migr-de','adm-migr-para','adm-migr-motivo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-    ['adm-migr-preview-de','adm-migr-preview-para'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='';});
-    adminCarregarMigracoes();
+
+    showToast(`✅ ${ok} palpite${ok!==1?'s':''} migrado${ok!==1?'s':''}! ${erro?'⚠️ '+erro+' erro(s).':''}`);
+    document.getElementById('adm-fusao-de').value='';
+    document.getElementById('adm-fusao-para').value='';
+    document.getElementById('adm-fusao-motivo').value='';
+    document.getElementById('adm-fusao-preview').innerHTML='';
+    adminCarregarFusoes();
+    renderAdmin();
     if(document.getElementById('page-ranking')?.classList.contains('active'))renderRanking();
-  }catch(e){console.error(e);showToast('❌ Erro ao migrar palpite');}
+  }catch(e){console.error(e);showToast('❌ Erro ao fundir contas');}
 }
 
-async function adminCarregarMigracoes(){
-  const box=document.getElementById('adm-migr-historico');
+async function adminCarregarFusoes(){
+  const box=document.getElementById('adm-fusao-historico');
   if(!box)return;
   try{
-    const lista=await sbGet('migracoes_palpite','select=*&order=criado_em.desc&limit=15');
-    if(!lista.length){box.innerHTML='<div style="font-size:.72rem;color:var(--muted);text-align:center;padding:.5rem">Nenhuma migração ainda.</div>';return;}
+    const lista=await sbGet('migracoes_palpite','select=*&order=criado_em.desc&limit=10');
+    if(!lista.length){box.innerHTML='<div style="font-size:.72rem;color:var(--muted);text-align:center;padding:.5rem">Nenhuma fusão ainda.</div>';return;}
     box.innerHTML=`
-      <div style="font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.4rem">Histórico de migrações</div>
+      <div style="font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.4rem">Histórico</div>
       ${lista.map(t=>{
         const dt=t.criado_em?new Date(t.criado_em).toLocaleDateString('pt-BR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'';
-        const cor=t.pts_calculados>=40?'var(--amarelo)':t.pts_calculados>0?'var(--verde-light)':'#f87171';
-        return`<div style="padding:.5rem .6rem;background:var(--card2);border:1px solid var(--border);border-radius:8px;margin-bottom:.3rem;font-size:.75rem">
-          <div style="display:flex;justify-content:space-between;margin-bottom:.15rem">
-            <span><strong>${t.de_usuario_nome}</strong> → <strong>${t.para_usuario_nome}</strong></span>
+        const cor=t.pts_calculados>0?'var(--verde-light)':'var(--muted)';
+        return`<div style="padding:.45rem .6rem;background:var(--card2);border:1px solid var(--border);border-radius:8px;margin-bottom:.3rem;font-size:.74rem">
+          <div style="display:flex;justify-content:space-between;margin-bottom:.1rem">
+            <span><strong>${t.de_usuario_nome}</strong> → <strong>${t.para_usuario_nome}</strong> · <span style="color:${cor}">+${t.pts_calculados}pts</span></span>
             <span style="color:var(--muted);font-size:.65rem">${dt}</span>
           </div>
-          <div style="color:var(--muted)">${t.jogo_nome} · palpite <strong style="color:${cor}">${t.palpite}</strong> · <span style="color:${cor}">${t.resultado_txt} ${t.pts_calculados>0?'+'+t.pts_calculados:0}pts</span></div>
-          <div style="color:var(--muted);font-size:.68rem;margin-top:.1rem">📝 ${t.motivo}</div>
+          <div style="color:var(--muted)">${t.jogo_nome} · ${t.palpite}</div>
+          <div style="color:var(--muted);font-size:.68rem">📝 ${t.motivo}</div>
         </div>`;
       }).join('')}`;
   }catch(e){
-    box.innerHTML='<div style="font-size:.72rem;color:var(--muted);padding:.4rem">Crie a tabela no Supabase para guardar histórico (opcional).</div>';
+    box.innerHTML='<div style="font-size:.72rem;color:var(--muted);padding:.4rem">Histórico indisponível.</div>';
   }
 }
+
+// Funções de migração individual (mantidas para compatibilidade)
+function adminMigrAtualizarPreviews(){}
+async function adminMigrarPalpite(){}
+async function adminCarregarMigracoes(){}
 function adminSalvar(id){
   if(!isAdmin())return; // proteção extra na própria ação
   const j=todosJogos.find(x=>x.id===id);if(!j)return;
