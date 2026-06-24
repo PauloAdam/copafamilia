@@ -1230,9 +1230,8 @@ async function iniciarApp(){
     atualizarBotaoMusica();
   }
 
-  // Modo Torcida — sempre ativo, salvo no localStorage
-  const torcidaPref = localStorage.getItem('copa_torcida');
-  modoTorcidaAtivo = torcidaPref !== '0'; // padrão: ativo
+  // Modo Torcida — sempre ativo, não respeita localStorage
+  modoTorcidaAtivo = true;
   atualizarBotaoTorcida();
 
   await carregarTudo();
@@ -1764,7 +1763,7 @@ function atualizarBotaoMusica() {
 // ═══════════════════════════════════════════
 function toggleModoTorcida(){
   modoTorcidaAtivo=!modoTorcidaAtivo;
-  localStorage.setItem('copa_torcida',modoTorcidaAtivo?'1':'0');
+
   const btn=document.getElementById('btn-torcida');
   if(modoTorcidaAtivo){
     try{getAudioGol().load();}catch(e){}
