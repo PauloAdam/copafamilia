@@ -1243,6 +1243,7 @@ async function iniciarApp(){
   checarStoriesDoDia();
   checarMudancaRanking();
   registrarAcessoDispositivo();
+  setTimeout(checarBolaoArtilheiro, 2000);
   setInterval(async()=>{
     if(bloqueandoAutoRefresh)return; // alguma ação está em andamento (salvando palpite, etc) — espera a próxima rodada
     const prevPlacares={...placaresPrev};
@@ -1535,6 +1536,11 @@ async function carregarDadosSupabase(){
         classificacaoBolao[r.grupo][r.usuario_id]=r.times||[];
       });
     }catch(e){/* tabela pode não existir ainda */}
+    // Bolão artilheiro
+    try{
+      const arts=await sbGet('bolao_artilheiro',`data_jogo=eq.${BOLAO_ARTILHEIRO_CONFIG.dataJogo}&select=*`);
+      window._artilheiroApostas=arts||[];
+    }catch(e){window._artilheiroApostas=[];}
   }catch(e){console.warn('Supabase:',e)}
 }
 
@@ -2758,6 +2764,13 @@ function calcPtsTotal(uid){
     const classificados=Object.entries(tabela).map(([n,s])=>({n,...s,SG:s.GP-s.GC})).sort((a,b)=>b.Pts-a.Pts||b.SG-a.SG||b.GP-a.GP).slice(0,2).map(t=>t.n);
     escolha.forEach(t=>{if(classificados.includes(t)){total+=10;acertosClassificacao++}});
   });
+  // Bolão artilheiro — pontos já calculados pelo admin e salvos no banco
+  // Lemos do cache local (carregado em carregarDadosSupabase)
+  if(window._artilheiroApostas){
+    const aposta=window._artilheiroApostas.find(a=>a.usuario_id===uid);
+    if(aposta&&aposta.acertou)total+=aposta.pontos_ganhos||0;
+  }
+
   return{total,exatos,resultados,erros,acertosPrimeiroTempo,acertosClassificacao};
 }
 
@@ -3278,6 +3291,222 @@ function fecharStoriesPosJogo(){
 // ═══════════════════════════════════════════
 // NOTIFICAÇÃO DE MUDANÇA DE POSIÇÃO 🎉 — ao abrir o app
 // ═══════════════════════════════════════════
+// ═══════════════════════════════════════════
+// BOLÃO ARTILHEIRO 🇧🇷 — Brasil x Escócia 24/06/2026
+// ═══════════════════════════════════════════
+const BOLAO_ARTILHEIRO_CONFIG = {
+  jogoId: 'jogo_2026-06-24_Scotland_Brazil', // ID gerado pelo processarJogos
+  dataJogo: '2026-06-24',
+  time1: 'Scotland',
+  time2: 'Brazil',
+  pontos: 20,
+  jogadores: [
+    { id: 'paqueta',    nome: 'Lucas Paquetá',    emoji: '🎩', num: 10 },
+    { id: 'rayan',      nome: 'Rayan',             emoji: '⚡', num: 11 },
+    { id: 'cunha',      nome: 'Matheus Cunha',     emoji: '🎯', num: 9  },
+    { id: 'vini',       nome: 'Vini Jr.',           emoji: '🌟', num: 7  },
+    { id: 'neymar',     nome: 'Neymar',            emoji: '👑', num: 10 },
+    { id: 'endrick',    nome: 'Endrick',           emoji: '🔥', num: 9  },
+    { id: 'martinelli', nome: 'Gabriel Martinelli', emoji: '💨', num: 11 },
+    { id: 'luizh',      nome: 'Luiz Henrique',     emoji: '🦅', num: 8  },
+  ],
+};
+
+async function checarBolaoArtilheiro(){
+  if(!usuarioAtual)return;
+  const hoje=new Date().toISOString().split('T')[0];
+  if(hoje!==BOLAO_ARTILHEIRO_CONFIG.dataJogo)return; // só aparece hoje
+  const chave=`copa_artilheiro_visto_${usuarioAtual.id}_${hoje}`;
+  if(localStorage.getItem(chave))return; // já viu hoje
+  // Busca se já apostou
+  try{
+    const res=await sbGet('bolao_artilheiro',`usuario_id=eq.${usuarioAtual.id}&data_jogo=eq.${hoje}&select=jogador_id`);
+    mostrarPopupArtilheiro(res?.[0]?.jogador_id||null);
+  }catch(e){
+    // Tabela não existe ainda — mostra o popup mesmo assim
+    mostrarPopupArtilheiro(null);
+  }
+}
+
+function mostrarPopupArtilheiro(escolhaAtual){
+  const hoje=new Date().toISOString().split('T')[0];
+  const chave=`copa_artilheiro_visto_${usuarioAtual.id}_${hoje}`;
+  const cfg=BOLAO_ARTILHEIRO_CONFIG;
+  const jaApostou=!!escolhaAtual;
+
+  const overlay=document.createElement('div');
+  overlay.id='modal-artilheiro';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9000;display:flex;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(6px)';
+
+  const jogadoresHtml=cfg.jogadores.map(j=>`
+    <button onclick="selecionarArtilheiro('${j.id}','${j.nome}')"
+      id="art-btn-${j.id}"
+      style="background:${escolhaAtual===j.id?'rgba(0,156,59,.3)':'rgba(255,255,255,.06)'};
+             border:${escolhaAtual===j.id?'2px solid #00d44f':'1px solid rgba(255,255,255,.15)'};
+             border-radius:12px;padding:.7rem .5rem;cursor:${jaApostou?'default':'pointer'};
+             display:flex;flex-direction:column;align-items:center;gap:.3rem;
+             transition:all .2s;font-family:'Inter',sans-serif;
+             ${jaApostou&&escolhaAtual!==j.id?'opacity:.45;':''}"
+      ${jaApostou?'disabled':''}>
+      <span style="font-size:1.6rem">${j.emoji}</span>
+      <span style="font-size:.72rem;font-weight:700;color:#fff;text-align:center;line-height:1.2">${j.nome}</span>
+    </button>`).join('');
+
+  overlay.innerHTML=`
+    <div style="background:linear-gradient(165deg,#001a0d 0%,#002310 50%,#001508 100%);
+                border:2px solid rgba(255,223,0,.4);border-radius:20px;
+                width:100%;max-width:440px;max-height:90vh;overflow-y:auto;
+                padding:1.5rem 1.25rem;position:relative;
+                box-shadow:0 0 60px rgba(0,156,59,.3),0 0 120px rgba(255,223,0,.1)">
+
+      <!-- Brilho de canto -->
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;
+                  background:linear-gradient(90deg,transparent,#ffdf00,#009c3b,#ffdf00,transparent);
+                  border-radius:20px 20px 0 0"></div>
+
+      <!-- Header -->
+      <div style="text-align:center;margin-bottom:1.25rem">
+        <div style="font-size:2.5rem;margin-bottom:.3rem">🇧🇷⚽🏴󠁧󠁢󠁳󠁣󠁴󠁿</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;
+                    color:#ffdf00;letter-spacing:2px;line-height:1">BRASIL × ESCÓCIA</div>
+        <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:.2rem;letter-spacing:1px">
+          COPA DO MUNDO 2026 • HOJE 19H • GRUPO C
+        </div>
+      </div>
+
+      <!-- Card destaque -->
+      <div style="background:rgba(255,223,0,.08);border:1px solid rgba(255,223,0,.3);
+                  border-radius:14px;padding:.9rem 1rem;margin-bottom:1.1rem;text-align:center">
+        <div style="font-size:.7rem;font-weight:700;color:#ffdf00;
+                    text-transform:uppercase;letter-spacing:1px;margin-bottom:.3rem">
+          🏆 Bolão especial do jogo
+        </div>
+        <div style="font-size:1rem;font-weight:700;color:#fff;margin-bottom:.2rem">
+          Quem vai marcar pelo Brasil?
+        </div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.6)">
+          Acerte qualquer jogador que fizer ao menos 1 gol
+          e ganhe <strong style="color:#ffdf00">+${cfg.pontos} pontos</strong> no ranking!
+        </div>
+      </div>
+
+      <!-- Regras rápidas -->
+      <div style="display:flex;gap:.5rem;margin-bottom:1rem;font-size:.68rem;color:rgba(255,255,255,.45)">
+        <div style="flex:1;text-align:center">✅ 1 escolha só</div>
+        <div style="flex:1;text-align:center">⚡ Só antes do jogo</div>
+        <div style="flex:1;text-align:center">🎯 +${cfg.pontos} pts se acertar</div>
+      </div>
+
+      <!-- Grid de jogadores -->
+      ${jaApostou?`<div style="font-size:.72rem;color:rgba(0,212,79,.8);text-align:center;margin-bottom:.75rem;font-weight:600">
+        ✅ Você apostou em: <strong style="color:#00d44f">${cfg.jogadores.find(j=>j.id===escolhaAtual)?.nome||escolhaAtual}</strong>
+      </div>`:''}
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:1rem">
+        ${jogadoresHtml}
+      </div>
+
+      ${!jaApostou?`<div style="font-size:.68rem;color:rgba(255,255,255,.3);text-align:center;margin-bottom:.75rem">
+        Escolha 1 jogador — não pode mudar depois!
+      </div>`:''}
+
+      <button onclick="fecharPopupArtilheiro()" style="width:100%;padding:.7rem;
+              background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+              border-radius:10px;color:rgba(255,255,255,.6);font-size:.82rem;
+              font-family:'Inter',sans-serif;cursor:pointer">
+        ${jaApostou?'✅ Fechado! Boa sorte 🇧🇷':'⏭️ Pular por agora'}
+      </button>
+
+      <div id="artilheiro-status" style="text-align:center;margin-top:.6rem;font-size:.75rem;min-height:1rem"></div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  localStorage.setItem(chave,'1');
+}
+
+async function selecionarArtilheiro(jogadorId, jogadorNome){
+  if(!usuarioAtual)return;
+  const hoje=new Date().toISOString().split('T')[0];
+  const status=document.getElementById('artilheiro-status');
+
+  // Verifica se jogo já começou
+  const jogo=todosJogos.find(j=>
+    j.data===BOLAO_ARTILHEIRO_CONFIG.dataJogo&&
+    (normalizarNomeTime(j.time2).includes('brazil')||normalizarNomeTime(j.time1).includes('brazil'))
+  );
+  if(jogo&&jogo.status!=='futuro'){
+    if(status)status.innerHTML='<span style="color:#f87171">⏰ Jogo já começou — apostas encerradas!</span>';
+    return;
+  }
+
+  // Desabilita todos os botões
+  document.querySelectorAll('[id^="art-btn-"]').forEach(b=>{
+    b.disabled=true;b.style.opacity='.45';b.style.cursor='default';
+  });
+  const btnEscolhido=document.getElementById('art-btn-'+jogadorId);
+  if(btnEscolhido){
+    btnEscolhido.style.opacity='1';
+    btnEscolhido.style.background='rgba(0,156,59,.3)';
+    btnEscolhido.style.border='2px solid #00d44f';
+  }
+  if(status)status.innerHTML='<span style="color:rgba(255,255,255,.5)">💾 Salvando…</span>';
+
+  try{
+    await sbUpsert('bolao_artilheiro',{
+      usuario_id:usuarioAtual.id,
+      usuario_nome:usuarioAtual.nome,
+      data_jogo:hoje,
+      jogo_id:BOLAO_ARTILHEIRO_CONFIG.jogoId,
+      jogador_id:jogadorId,
+      jogador_nome:jogadorNome,
+      pontos_ganhos:0,
+      acertou:false,
+    },'usuario_id,data_jogo');
+
+    if(status)status.innerHTML=`<span style="color:#00d44f">✅ Apostou em <strong>${jogadorNome}</strong>! Boa sorte! 🇧🇷</span>`;
+    try{if(navigator.vibrate)navigator.vibrate([40,30,80]);}catch(e){}
+    showToast(`🎯 Aposta feita: ${jogadorNome}! +${BOLAO_ARTILHEIRO_CONFIG.pontos}pts se acertar!`);
+
+    // Atualiza botão de fechar
+    const btnFechar=document.querySelector('#modal-artilheiro button[onclick="fecharPopupArtilheiro()"]');
+    if(btnFechar)btnFechar.textContent='✅ Fechado! Boa sorte 🇧🇷';
+  }catch(e){
+    if(status)status.innerHTML='<span style="color:#f87171">❌ Erro ao salvar. Tente novamente.</span>';
+    document.querySelectorAll('[id^="art-btn-"]').forEach(b=>{b.disabled=false;b.style.opacity='1';b.style.cursor='pointer';});
+    console.error(e);
+  }
+}
+
+function fecharPopupArtilheiro(){
+  document.getElementById('modal-artilheiro')?.remove();
+}
+
+// Calcula pontos do bolão artilheiro após o jogo
+async function calcularPontosArtilheiro(){
+  if(!isAdmin())return;
+  // Admin informa quem marcou
+  const marcaram=prompt('Quais jogador_ids marcaram gol? (separados por vírgula)\nEx: vini,endrick,paqueta');
+  if(!marcaram)return;
+  const ids=marcaram.split(',').map(s=>s.trim());
+  try{
+    const apostas=await sbGet('bolao_artilheiro',`data_jogo=eq.${BOLAO_ARTILHEIRO_CONFIG.dataJogo}&select=*`);
+    let acertos=0;
+    for(const aposta of apostas){
+      const acertou=ids.includes(aposta.jogador_id);
+      if(acertou){
+        await sbPatch('bolao_artilheiro',`id=eq.${aposta.id}`,{
+          acertou:true,
+          pontos_ganhos:BOLAO_ARTILHEIRO_CONFIG.pontos
+        });
+        acertos++;
+      }
+    }
+    showToast(`✅ ${acertos} pessoa(s) ganharam +${BOLAO_ARTILHEIRO_CONFIG.pontos}pts!`);
+    await carregarDadosSupabase();
+    renderRanking();
+  }catch(e){showToast('❌ Erro: '+e.message);}
+}
+
 function checarMudancaRanking(){
   const uid=usuarioAtual?.id;
   if(!uid||!todosUsuarios.length)return;
@@ -3713,9 +3942,28 @@ function renderAdmin(){
 
   c.innerHTML=html;
   adminCarregarFusoes();
-}
 
-async function adminResetarSenha(){
+  // Bolão artilheiro — botão só aparece no dia do jogo
+  const hojeAdmin=new Date().toISOString().split('T')[0];
+  if(hojeAdmin===BOLAO_ARTILHEIRO_CONFIG.dataJogo){
+    const artBox=document.createElement('div');
+    artBox.className='admin-card';
+    artBox.style.cssText='border-color:rgba(255,223,0,.4);background:rgba(255,223,0,.05);margin-bottom:.75rem';
+    artBox.innerHTML=`
+      <div style="font-weight:700;font-size:.85rem;color:var(--amarelo);margin-bottom:.5rem">🇧🇷 Bolão Artilheiro — Brasil × Escócia</div>
+      <div id="artilheiro-admin-lista" style="font-size:.75rem;color:var(--muted);margin-bottom:.75rem">Carregando apostas…</div>
+      <button class="btn-admin-save" style="background:rgba(255,223,0,.2);border-color:rgba(255,223,0,.4);color:var(--amarelo)" onclick="calcularPontosArtilheiro()">🏆 Calcular pontos (após o jogo)</button>`;
+    c.insertBefore(artBox, c.firstChild);
+    sbGet('bolao_artilheiro',`data_jogo=eq.${BOLAO_ARTILHEIRO_CONFIG.dataJogo}&select=usuario_nome,jogador_nome,acertou,pontos_ganhos&order=criado_em.asc`)
+      .then(lista=>{
+        const el=document.getElementById('artilheiro-admin-lista');
+        if(!el)return;
+        if(!lista.length){el.textContent='Nenhuma aposta ainda.';return;}
+        el.innerHTML=lista.map(a=>`<div style="display:flex;justify-content:space-between;padding:.25rem 0;border-bottom:1px solid var(--border)"><span>${a.usuario_nome}</span><span style="color:${a.acertou?'var(--verde-light)':'var(--muted)'}">${a.jogador_nome}${a.acertou?' ✅ +'+a.pontos_ganhos+'pts':''}</span></div>`).join('')
+          +`<div style="margin-top:.4rem;font-size:.7rem">${lista.length} aposta(s) no total</div>`;
+      }).catch(()=>{});
+  }
+}
   if(!isAdmin())return;
   const userId=document.getElementById('adm-user-select')?.value;
   const novaSenha=document.getElementById('adm-nova-senha')?.value;
