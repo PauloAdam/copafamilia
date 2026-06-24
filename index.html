@@ -1230,14 +1230,15 @@ async function iniciarApp(){
     atualizarBotaoMusica();
   }
 
+  // Modo Torcida — sempre ativo, salvo no localStorage
+  const torcidaPref = localStorage.getItem('copa_torcida');
+  modoTorcidaAtivo = torcidaPref !== '0'; // padrão: ativo
+  atualizarBotaoTorcida();
+
   await carregarTudo();
-  // Inicializa o "status anterior" de cada jogo com o estado atual, para que
-  // jogos que JÁ estavam encerrados antes de abrir o app não disparem os
-  // Stories pós-jogo incorretamente (só dispara para jogos que terminam
-  // DEPOIS que a pessoa já está usando o app)
   todosJogos.forEach(j=>{statusJogosAnteriores[j.id]=j.status});
   renderHoje();
-  registrarSW();
+  registrarSW(); // registra SW + inscreve push se torcida ativa
   pedirNotificacao();
   checarResumoSemanal();
   checarStoriesDoDia();
@@ -1691,7 +1692,7 @@ function tocarSomGol(brasil){
 // ═══════════════════════════════════════════
 let elementoAudio = null;
 let audioGol = null;
-let modoTorcidaAtivo = false;
+let modoTorcidaAtivo = true; // sempre ativo por padrão
 
 function getAudioGol(){
   if(!audioGol){
@@ -1763,22 +1764,33 @@ function atualizarBotaoMusica() {
 // ═══════════════════════════════════════════
 function toggleModoTorcida(){
   modoTorcidaAtivo=!modoTorcidaAtivo;
+  localStorage.setItem('copa_torcida',modoTorcidaAtivo?'1':'0');
   const btn=document.getElementById('btn-torcida');
   if(modoTorcidaAtivo){
-    // Pré-carrega o áudio com interação do usuário (necessário para mobile)
     try{getAudioGol().load();}catch(e){}
     if(btn){btn.textContent='🔴';btn.style.borderColor='rgba(255,80,80,.6)';btn.style.color='#ff4444';}
-    showToast('📣 Modo Torcida ativado! Vai narrar cada gol!');
-    // Mantém tela acesa se possível
+    showToast('📣 Modo Torcida ativado! Notifica gols mesmo com app fechado!');
     if(navigator.wakeLock){
-      navigator.wakeLock.request('screen').then(lock=>{
-        window._wakeLock=lock;
-      }).catch(()=>{});
+      navigator.wakeLock.request('screen').then(lock=>{window._wakeLock=lock;}).catch(()=>{});
     }
+    // Inscreve no push
+    if(window._swReg) inscreverPush(window._swReg);
+    else registrarSW();
   }else{
     if(btn){btn.textContent='📣';btn.style.borderColor='';btn.style.color='';}
     showToast('📣 Modo Torcida desativado');
     if(window._wakeLock){try{window._wakeLock.release();}catch(e){}window._wakeLock=null;}
+    desinscreverPush();
+  }
+}
+
+function atualizarBotaoTorcida(){
+  const btn=document.getElementById('btn-torcida');
+  if(!btn)return;
+  if(modoTorcidaAtivo){
+    btn.textContent='🔴';btn.style.borderColor='rgba(255,80,80,.6)';btn.style.color='#ff4444';
+  }else{
+    btn.textContent='📣';btn.style.borderColor='';btn.style.color='';
   }
 }
 
@@ -1861,7 +1873,70 @@ async function limparSWAntigos() {
 limparSWAntigos();
 
 // Mantemos a função para compatibilidade com chamadas existentes — agora não faz nada
-async function registrarSW() { /* Service Worker removido — não é mais necessário */ }
+async function registrarSW() {
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    const reg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
+    console.info('SW registrado:', reg.scope);
+    window._swReg = reg;
+    // Inscreve no push se modo torcida ativo
+    if (modoTorcidaAtivo) await inscreverPush(reg);
+  } catch(e) {
+    console.warn('SW falhou:', e.message);
+  }
+}
+
+const VAPID_PUBLIC_KEY = 'BAuo0ieo2lNuM-QTsCwGPUkveq5NrAZ8_O9yiJMzyCgIHWsKGgwMTMLFDGOnQdZsVarO1EcPcxxx-qK7eiNPHCw';
+
+async function inscreverPush(reg) {
+  try {
+    if (!('PushManager' in window)) return;
+    if (Notification.permission === 'denied') return;
+    if (Notification.permission === 'default') {
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') return;
+    }
+    // Verifica se já tem inscrição ativa
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      });
+    }
+    // Salva no Supabase
+    await sbUpsert('push_subscriptions', {
+      usuario_id: usuarioAtual?.id,
+      usuario_nome: usuarioAtual?.nome,
+      subscription: sub.toJSON(),
+      ativo: true,
+      atualizado_em: new Date().toISOString(),
+    }, 'usuario_id');
+    console.info('Push inscrito com sucesso');
+  } catch(e) {
+    console.warn('Push inscrição falhou:', e.message);
+  }
+}
+
+async function desinscreverPush() {
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (sub) await sub.unsubscribe();
+    if (usuarioAtual) {
+      await sbPatch('push_subscriptions', `usuario_id=eq.${usuarioAtual.id}`, { ativo: false });
+    }
+  } catch(e) {}
+}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
 
 // Envia notificação direto pela API do navegador (sem depender de SW)
 async function enviarNotif(titulo, corpo, tag, requireInteraction) {
