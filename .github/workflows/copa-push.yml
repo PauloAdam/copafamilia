@@ -1,0 +1,17 @@
+name: Copa 2026 - Detector de Gols
+
+on:
+  schedule:
+    - cron: '* * * * *'  # a cada 1 minuto
+  workflow_dispatch:      # permite rodar manualmente
+
+jobs:
+  checar-gols:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chamar Edge Function
+        run: |
+          curl -X POST \
+            'https://kiyalggxnniotznjvdnn.supabase.co/functions/v1/copa-gol-push' \
+            -H 'Authorization: Bearer sb_publishable_p5ZeJJA-pyT5kjKF-lm9MA_wYX7qIZD' \
+            -H 'Content-Type: application/json'
