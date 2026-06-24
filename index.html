@@ -245,6 +245,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .stories-nav-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:.78rem;font-weight:600;padding:.55rem 1rem;border-radius:20px;cursor:pointer;font-family:'Inter',sans-serif}
 .stories-nav-btn.principal{background:var(--verde);border-color:var(--verde);flex:1}
 
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--amarelo);letter-spacing:1px}
 /* MODAL PERFIL USUÁRIO */
 .perfil-modal-hero{text-align:center;padding:1.25rem 0 .75rem;border-bottom:1px solid var(--border);margin-bottom:1rem}
 .perfil-modal-nome{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:1px;margin:.5rem 0 .1rem}
@@ -262,8 +263,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .perfil-modal-grafico{width:100%;border-radius:10px;margin:.5rem 0;display:block}
 .rank-row-clicavel{cursor:pointer;transition:background .15s}
 .rank-row-clicavel:active{background:rgba(0,156,59,.08)}
-
-.modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--amarelo);letter-spacing:1px}
+/* SETINHAS RANKING v75 */
+.rank-arrow{font-size:.65rem;font-weight:700;padding:1px 5px;border-radius:8px;margin-left:.3rem;white-space:nowrap}
+.rank-arrow.up{color:#00d44f;background:rgba(0,212,79,.12)}
+.rank-arrow.down{color:#f87171;background:rgba(248,113,113,.12)}
+/* RIVAL v75 */
+.rival-highlight{box-shadow:0 0 0 1px rgba(255,223,0,.35)!important;background:rgba(255,223,0,.04)!important}
+.rival-badge{font-size:.58rem;font-weight:700;color:var(--amarelo);background:rgba(255,223,0,.15);border:1px solid rgba(255,223,0,.3);padding:1px 6px;border-radius:8px;margin-left:.3rem;white-space:nowrap}
 .modal-close{background:var(--card2);border:none;color:var(--muted);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:1rem}
 .modal-jogo-resumo{display:flex;align-items:center;justify-content:center;gap:1rem;background:var(--card2);border-radius:var(--radius-sm);padding:.9rem;margin-bottom:1rem}
 .modal-time{display:flex;flex-direction:column;align-items:center;gap:.3rem;flex:1}
@@ -692,7 +698,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '74';
+const APP_VERSION = '75';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -1015,24 +1021,22 @@ function getFlagSmall(nome) {
   }
   return '';
 }
-// Retorna só o código ISO (para uso no canvas)
-function getFlagCode(nome) {
-  if (!nome) return null;
-  const nomeNorm = normalizarNomeTime(nome);
-  for (const [k,code] of Object.entries(FLAG_CODES)) {
-    if (nomeNorm.includes(normalizarNomeTime(k))) return code;
+function getFlagCode(nome){
+  if(!nome)return null;
+  const nomeNorm=normalizarNomeTime(nome);
+  for(const[k,code]of Object.entries(FLAG_CODES)){
+    if(nomeNorm.includes(normalizarNomeTime(k)))return code;
   }
   return null;
 }
-// Carrega uma bandeira como HTMLImageElement (promise), com cache
 const _flagCache={};
 function loadFlagImg(code){
-  if(!code) return Promise.resolve(null);
-  if(_flagCache[code]) return Promise.resolve(_flagCache[code]);
+  if(!code)return Promise.resolve(null);
+  if(_flagCache[code])return Promise.resolve(_flagCache[code]);
   return new Promise(res=>{
     const img=new Image();
     img.crossOrigin='anonymous';
-    img.onload=()=>{_flagCache[code]=img; res(img);};
+    img.onload=()=>{_flagCache[code]=img;res(img);};
     img.onerror=()=>res(null);
     img.src=`https://flagcdn.com/h20/${code}.png`;
   });
@@ -2288,923 +2292,6 @@ async function compartilharResultado(jogoId){
   }
 }
 
-// ═══════════════════════════════════════════
-// COMPARTILHAR RANKING
-// ═══════════════════════════════════════════
-async function compartilharRanking(){
-  if(!todosUsuarios.length){showToast('⏳ Carregando dados…');return;}
-  showToast('🎨 Gerando imagem do ranking…');
-  try{
-    const ranked=todosUsuarios.map(u=>({...u,...calcPtsTotal(u.id)})).sort((a,b)=>b.total-a.total);
-    const LINHA=54, PAD=28, TOPO=160, W=800;
-    const H=Math.max(600, TOPO + ranked.length*LINHA + 80);
-    const canvas=document.createElement('canvas');
-    canvas.width=W; canvas.height=H;
-    const ctx=canvas.getContext('2d');
-
-    // Fundo
-    const grad=ctx.createLinearGradient(0,0,W,H);
-    grad.addColorStop(0,'#001a0d'); grad.addColorStop(1,'#00100a');
-    ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
-
-    // Borda verde
-    ctx.strokeStyle='#009c3b'; ctx.lineWidth=4;
-    ctx.strokeRect(12,12,W-24,H-24);
-
-    // Barra de título
-    const gradTopo=ctx.createLinearGradient(0,0,W,0);
-    gradTopo.addColorStop(0,'#009c3b'); gradTopo.addColorStop(1,'#007a2e');
-    ctx.fillStyle=gradTopo; ctx.fillRect(12,12,W-24,100);
-
-    // Título
-    ctx.textAlign='center';
-    ctx.font='bold 44px Arial'; ctx.fillStyle='#ffdf00';
-    ctx.fillText('⚽ COPA 2026', W/2, 68);
-    ctx.font='600 18px Arial'; ctx.fillStyle='rgba(255,255,255,.85)';
-    ctx.fillText('🏅 Ranking — Palpites da Família', W/2, 100);
-
-    // Data
-    const agora=new Date();
-    const dataStr=agora.toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
-    ctx.font='13px Arial'; ctx.fillStyle='rgba(255,255,255,.5)';
-    ctx.fillText(dataStr, W/2, 130);
-
-    // Cabeçalho da tabela
-    ctx.fillStyle='rgba(0,156,59,.25)';
-    ctx.fillRect(PAD, TOPO-30, W-PAD*2, 30);
-    ctx.font='bold 13px Arial'; ctx.fillStyle='#7aab85'; ctx.textAlign='left';
-    ctx.fillText('#', PAD+8, TOPO-10);
-    ctx.fillText('Nome', PAD+60, TOPO-10);
-    ctx.textAlign='right';
-    ctx.fillText('Pts', W-PAD-8, TOPO-10);
-    ctx.fillText('Tier', W-PAD-70, TOPO-10);
-
-    // Separador
-    ctx.strokeStyle='rgba(0,156,59,.35)'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(PAD,TOPO); ctx.lineTo(W-PAD,TOPO); ctx.stroke();
-
-    // Linhas do ranking
-    const TIER_COR={
-      'Bronze':'#cd7f32','Prata':'#c0c0c0','Ouro':'#ffd700',
-      'Platina':'#00e5ff','Diamante':'#b388ff','Sem moldura':'#7aab85'
-    };
-    const TIER_EMOJI={'Bronze':'🥉','Prata':'🥈','Ouro':'🥇','Platina':'💎','Diamante':'👑','Sem moldura':''};
-    const POS_EMOJI={1:'🥇',2:'🥈',3:'🥉'};
-
-    ranked.forEach((u,i)=>{
-      const y=TOPO + i*LINHA + LINHA/2;
-      const nivel=getNivelMoldura(u.total);
-
-      // Linha alternada
-      if(i%2===0){
-        ctx.fillStyle='rgba(255,255,255,.03)';
-        ctx.fillRect(PAD, TOPO+i*LINHA, W-PAD*2, LINHA);
-      }
-
-      // Destaque top 3
-      if(i<3){
-        ctx.fillStyle=i===0?'rgba(255,215,0,.06)':i===1?'rgba(192,192,192,.05)':'rgba(205,127,50,.05)';
-        ctx.fillRect(PAD, TOPO+i*LINHA, W-PAD*2, LINHA);
-      }
-
-      // Posição
-      const posStr=POS_EMOJI[i+1]||(i+1)+'º';
-      ctx.textAlign='left'; ctx.font=i<3?'bold 20px Arial':'bold 16px Arial';
-      ctx.fillStyle=i===0?'#ffd700':i===1?'#c0c0c0':i===2?'#cd7f32':'#7aab85';
-      ctx.fillText(posStr, PAD+8, y+6);
-
-      // Círculo avatar (letra inicial)
-      const cor=corU(u.id||u.usuario||'?');
-      const inicial=(u.nome||'?').charAt(0).toUpperCase();
-      ctx.beginPath();
-      ctx.arc(PAD+48, y, 16, 0, Math.PI*2);
-      ctx.fillStyle=cor+'33'; ctx.fill();
-      if(nivel.cor){ctx.strokeStyle=nivel.cor; ctx.lineWidth=2;}
-      else{ctx.strokeStyle=cor+'66'; ctx.lineWidth=1;}
-      ctx.stroke();
-      ctx.font='bold 14px Arial'; ctx.fillStyle=cor;
-      ctx.textAlign='center'; ctx.fillText(inicial, PAD+48, y+5);
-
-      // Nome
-      ctx.textAlign='left'; ctx.font=i<3?'bold 18px Arial':'500 16px Arial';
-      ctx.fillStyle=i<3?'#ffffff':'#e8f5eb';
-      ctx.fillText(u.nome||'?', PAD+72, y+6);
-
-      // Tier emoji
-      if(TIER_EMOJI[nivel.nome]){
-        ctx.textAlign='right'; ctx.font='16px Arial';
-        ctx.fillText(TIER_EMOJI[nivel.nome], W-PAD-60, y+6);
-      }
-
-      // Pontos
-      ctx.textAlign='right';
-      ctx.font=i<3?'bold 20px Arial':'bold 16px Arial';
-      ctx.fillStyle=nivel.cor||'#e8f5eb';
-      ctx.fillText(u.total, W-PAD-8, y+6);
-
-      // Separador fino
-      ctx.strokeStyle='rgba(0,156,59,.15)'; ctx.lineWidth=1;
-      ctx.beginPath();
-      ctx.moveTo(PAD, TOPO+(i+1)*LINHA);
-      ctx.lineTo(W-PAD, TOPO+(i+1)*LINHA);
-      ctx.stroke();
-    });
-
-    // Rodapé
-    ctx.textAlign='center'; ctx.font='13px Arial'; ctx.fillStyle='rgba(0,156,59,.6)';
-    ctx.fillText('copafamilia • pauloadam.github.io', W/2, H-20);
-
-    _dispararCompartilha(canvas,'copa2026-ranking.png',
-      `🏅 Ranking Copa 2026 da família — atualizado! Quem tá na frente? ⚽`);
-  }catch(e){console.error(e);showToast('❌ Erro ao gerar imagem');}
-}
-
-// ═══════════════════════════════════════════
-// COMPARTILHAR MINHA POSIÇÃO (Stories)
-// ═══════════════════════════════════════════
-async function compartilharMinhaPos(){
-  if(!usuarioAtual){showToast('⚠️ Faça login primeiro');return;}
-  showToast('🎨 Gerando seu card…');
-  try{
-    const ranked=todosUsuarios.map(u=>({...u,...calcPtsTotal(u.id)})).sort((a,b)=>b.total-a.total);
-    const meuIdx=ranked.findIndex(u=>u.id===usuarioAtual.id);
-    if(meuIdx<0){showToast('❌ Usuário não encontrado no ranking');return;}
-    const eu=ranked[meuIdx];
-    const nivel=getNivelMoldura(eu.total);
-    const proximo=getProximoNivel(eu.total);
-    const pos=meuIdx+1;
-    const total=ranked.length;
-    const POS_EMOJI={1:'🥇',2:'🥈',3:'🥉'};
-
-    const W=800, H=900;
-    const canvas=document.createElement('canvas');
-    canvas.width=W; canvas.height=H;
-    const ctx=canvas.getContext('2d');
-
-    // Fundo gradiente vertical
-    const grad=ctx.createLinearGradient(0,0,0,H);
-    grad.addColorStop(0,'#001a0d');
-    grad.addColorStop(0.5,'#002310');
-    grad.addColorStop(1,'#001a0d');
-    ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
-
-    // Borda animada (cor do tier ou verde)
-    const bordaCor=nivel.cor||'#009c3b';
-    ctx.strokeStyle=bordaCor; ctx.lineWidth=5;
-    ctx.strokeRect(14,14,W-28,H-28);
-
-    // Brilho de canto
-    const gRadial=ctx.createRadialGradient(W/2,0,0,W/2,0,350);
-    gRadial.addColorStop(0,bordaCor+'22');
-    gRadial.addColorStop(1,'transparent');
-    ctx.fillStyle=gRadial; ctx.fillRect(0,0,W,H);
-
-    // Título do app
-    ctx.textAlign='center';
-    ctx.font='bold 26px Arial'; ctx.fillStyle='rgba(255,255,255,.5)';
-    ctx.fillText('⚽ COPA 2026 — Palpites da Família', W/2, 65);
-
-    // Círculo avatar grande
-    const cx=W/2, cy=230, r=80;
-    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
-    const corAv=corU(eu.id||eu.usuario||'?');
-    const gradAv=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
-    gradAv.addColorStop(0,corAv+'55'); gradAv.addColorStop(1,corAv+'11');
-    ctx.fillStyle=gradAv; ctx.fill();
-    if(nivel.cor){
-      ctx.strokeStyle=nivel.cor; ctx.lineWidth=5;
-    }else{
-      ctx.strokeStyle=corAv; ctx.lineWidth=3;
-    }
-    ctx.stroke();
-
-    // Foto ou letra no avatar
-    if(eu.foto_url){
-      try{
-        const img=await new Promise((res,rej)=>{const i=new Image();i.crossOrigin='anonymous';i.onload=()=>res(i);i.onerror=rej;i.src=eu.foto_url;});
-        ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,r-4,0,Math.PI*2); ctx.clip();
-        ctx.drawImage(img,cx-r+4,cy-r+4,(r-4)*2,(r-4)*2); ctx.restore();
-      }catch{
-        ctx.font=`bold ${r}px Arial`; ctx.fillStyle=corAv;
-        ctx.textAlign='center'; ctx.fillText((eu.nome||'?').charAt(0).toUpperCase(), cx, cy+r*0.35);
-      }
-    }else{
-      ctx.font=`bold ${r}px Arial`; ctx.fillStyle=corAv;
-      ctx.textAlign='center'; ctx.fillText((eu.nome||'?').charAt(0).toUpperCase(), cx, cy+r*0.35);
-    }
-
-    // Badge tier sobre avatar
-    if(nivel.emoji){
-      ctx.font='38px Arial'; ctx.textAlign='center';
-      ctx.fillText(nivel.emoji, cx+r*0.7, cy+r*0.7);
-    }
-
-    // Nome
-    ctx.font='bold 38px Arial'; ctx.fillStyle='#ffffff'; ctx.textAlign='center';
-    ctx.fillText(eu.nome||'?', W/2, 360);
-
-    // Tier
-    if(nivel.nome!=='Sem moldura'){
-      ctx.font='bold 18px Arial'; ctx.fillStyle=nivel.cor;
-      ctx.fillText(nivel.nome.toUpperCase(), W/2, 392);
-    }
-
-    // Separador dourado
-    ctx.strokeStyle='rgba(255,223,0,.3)'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(100,415); ctx.lineTo(W-100,415); ctx.stroke();
-
-    // Posição — destaque enorme
-    const posEmoji=POS_EMOJI[pos]||'';
-    ctx.font='bold 110px Arial'; ctx.fillStyle=bordaCor; ctx.textAlign='center';
-    ctx.fillText(posEmoji||(pos+'º'), W/2, 550);
-    if(!posEmoji){
-      ctx.font='bold 110px Arial'; ctx.fillStyle=bordaCor;
-      ctx.fillText(pos+'º', W/2, 550);
-    }
-    ctx.font='600 22px Arial'; ctx.fillStyle='rgba(255,255,255,.6)';
-    ctx.fillText(`de ${total} participantes`, W/2, 592);
-
-    // Pontos
-    ctx.font='bold 70px Arial'; ctx.fillStyle='#ffdf00';
-    ctx.fillText(eu.total, W/2, 700);
-    ctx.font='bold 22px Arial'; ctx.fillStyle='rgba(255,223,0,.6)';
-    ctx.fillText('PONTOS', W/2, 732);
-
-    // Detalhes (exatos, resultados)
-    ctx.font='16px Arial'; ctx.fillStyle='rgba(255,255,255,.5)';
-    const det=[`🏆 ${eu.exatos} exatos`,`✅ ${eu.resultados} resultados`];
-    if(eu.acertosClassificacao>0) det.push(`🎯 ${eu.acertosClassificacao} classificações`);
-    ctx.fillText(det.join('  ·  '), W/2, 770);
-
-    // Próximo nível
-    if(proximo){
-      const faltam=proximo.min-eu.total;
-      ctx.font='14px Arial'; ctx.fillStyle=proximo.cor||'#7aab85';
-      ctx.fillText(`Faltam ${faltam} pts para ${proximo.nome} ${proximo.emoji}`, W/2, 810);
-    }
-
-    // Separador e rodapé
-    ctx.strokeStyle='rgba(0,156,59,.2)'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(100,840); ctx.lineTo(W-100,840); ctx.stroke();
-    ctx.font='13px Arial'; ctx.fillStyle='rgba(0,156,59,.5)';
-    const dataStr=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
-    ctx.fillText(`copafamilia • ${dataStr}`, W/2, 875);
-
-    const msg=pos===1
-      ?`🥇 Tô na liderança da Copa 2026 com ${eu.total} pontos! Chega de sonhar, família! 😤⚽`
-      :`Tô em ${pos}º na Copa 2026 com ${eu.total} pontos! Ainda dá tempo! ⚽🔥`;
-    _dispararCompartilha(canvas,'copa2026-minhapos.png', msg);
-  }catch(e){console.error(e);showToast('❌ Erro ao gerar card');}
-}
-
-// Helper compartilhamento
-function _dispararCompartilha(canvas, filename, texto){
-  canvas.toBlob(async(blob)=>{
-    const file=new File([blob],filename,{type:'image/png'});
-    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
-      try{await navigator.share({files:[file],title:'Copa 2026',text:texto});}
-      catch(e){/* cancelado pelo usuário */}
-    }else{
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');
-      a.href=url; a.download=filename; a.click();
-      URL.revokeObjectURL(url);
-      showToast('📥 Imagem baixada! Compartilhe no WhatsApp 🟢');
-    }
-  },'image/png');
-}
-
-// ═══════════════════════════════════════════
-// MODAL PERFIL DE USUÁRIO (clique no avatar do ranking)
-// ═══════════════════════════════════════════
-function abrirPerfilUsuario(uid){
-  const u=todosUsuarios.find(x=>x.id===uid);
-  if(!u)return;
-  const{total,exatos,resultados,erros,acertosPrimeiroTempo,acertosClassificacao}=calcPtsTotal(uid);
-  const nivel=getNivelMoldura(total);
-  const proximo=getProximoNivel(total);
-  const jogosEnc=todosJogos.filter(j=>j.status==='encerrado'&&j.gols1!==null);
-  const jogosComPal=jogosEnc.filter(j=>(todosPalpites[j.id]||{})[uid]);
-  const taxa=jogosComPal.length?Math.round((exatos+resultados)/jogosComPal.length*100):0;
-  // Sequência máxima
-  let maxSeq=0,cur=0;
-  jogosEnc.forEach(j=>{
-    const pal=(todosPalpites[j.id]||{})[uid];if(!pal)return;
-    const{txt}=calcPts(j,pal);
-    if(txt.includes('Exato')||txt.includes('Resultado')){cur++;maxSeq=Math.max(maxSeq,cur);}else cur=0;
-  });
-  // Posição no ranking
-  const ranked=todosUsuarios.map(x=>({...x,...calcPtsTotal(x.id)})).sort((a,b)=>b.total-a.total);
-  const pos=ranked.findIndex(x=>x.id===uid)+1;
-  const POS_EMOJI={1:'🥇',2:'🥈',3:'🥉'};
-
-  // Histórico de palpites (mais recentes primeiro)
-  const historico=jogosComPal.slice().reverse();
-
-  // Gráfico de evolução — acumula pontos jogo a jogo em ordem cronológica
-  const evoJogos=jogosComPal.slice();
-  let acc=0;
-  const evoPts=evoJogos.map(j=>{
-    const pal=(todosPalpites[j.id]||{})[uid];
-    const{pts}=calcPts(j,pal);
-    let extra=0;
-    if(j.golsHT1!==null&&j.golsHT2!==null){
-      const esc=(apostasExtras[j.id]||{})[uid];
-      if(esc){let r;if(j.golsHT1>j.golsHT2)r=j.time1;else if(j.golsHT2>j.golsHT1)r=j.time2;else r='empate';if(esc===r)extra=5;}
-    }
-    acc+=pts+extra;
-    return acc;
-  });
-
-  const cor=corU(uid||'?');
-
-  // Guarda uid atual no modal para os botões de ação
-  document.getElementById('modal-perfil-usuario').dataset.uid=uid;
-
-  document.getElementById('perfil-modal-titulo').textContent=`👤 ${u.nome}`;
-
-  // Outros usuários para o seletor de comparação
-  const outrosOpts=ranked.filter(x=>x.id!==uid).map(x=>`<option value="${x.id}">${x.nome} (${x.total}pts)</option>`).join('');
-
-  const c=document.getElementById('perfil-modal-conteudo');
-  c.innerHTML=`
-    <div class="perfil-modal-hero">
-      <div style="display:inline-block;position:relative">
-        ${renderAvatar(u,72,total)}
-      </div>
-      <div class="perfil-modal-nome">${u.nome}</div>
-      <div class="perfil-modal-usuario">@${u.usuario||u.nome.toLowerCase()}</div>
-      ${nivel.cor?`<div class="perfil-modal-tier" style="color:${nivel.cor}">${nivel.emoji} ${nivel.nome}</div>`:''}
-      ${proximo?`<div style="font-size:.7rem;color:var(--muted)">Faltam <strong style="color:${proximo.cor}">${proximo.min-total} pts</strong> para ${proximo.emoji} ${proximo.nome}</div>`:'<div style="font-size:.72rem;color:var(--amarelo)">🎉 Nível máximo desbloqueado!</div>'}
-      <div class="perfil-modal-stats">
-        <div class="pms"><div class="pms-num">${total}</div><div class="pms-lbl">Pontos</div></div>
-        <div class="pms"><div class="pms-num">${POS_EMOJI[pos]||pos+'º'}</div><div class="pms-lbl">Posição</div></div>
-        <div class="pms"><div class="pms-num">${taxa}%</div><div class="pms-lbl">Acertos</div></div>
-        <div class="pms"><div class="pms-num">${exatos}</div><div class="pms-lbl">Exatos</div></div>
-        <div class="pms"><div class="pms-num">${resultados}</div><div class="pms-lbl">Resultados</div></div>
-        <div class="pms"><div class="pms-num">${maxSeq}</div><div class="pms-lbl">Seq. máx.</div></div>
-      </div>
-
-      <!-- Botões de ação -->
-      <div style="display:flex;gap:.5rem;margin-top:.85rem">
-        <button onclick="compartilharPerfilUsuario('${uid}')" style="flex:1;padding:.55rem .4rem;background:rgba(0,156,59,.15);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--verde-light);font-size:.78rem;font-weight:600;cursor:pointer">📸 Compartilhar</button>
-        <button onclick="abrirComparacao('${uid}')" style="flex:1;padding:.55rem .4rem;background:rgba(255,223,0,.1);border:1px solid rgba(255,223,0,.3);border-radius:var(--radius-sm);color:var(--amarelo);font-size:.78rem;font-weight:600;cursor:pointer">⚔️ Comparar</button>
-      </div>
-
-      <!-- Seletor de comparação (oculto até clicar) -->
-      <div id="comparacao-seletor" style="display:none;margin-top:.6rem;width:100%">
-        <div style="font-size:.72rem;color:var(--muted);margin-bottom:.4rem;text-align:left">Comparar com:</div>
-        <div style="display:flex;gap:.4rem">
-          <select id="comparacao-select" style="flex:1;background:var(--card2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);padding:.45rem .5rem;font-size:.78rem;font-family:'Inter',sans-serif">${outrosOpts}</select>
-          <button onclick="executarComparacao('${uid}')" style="padding:.45rem .75rem;background:var(--verde);border:none;border-radius:var(--radius-sm);color:#fff;font-size:.78rem;font-weight:700;cursor:pointer">Gerar ⚔️</button>
-        </div>
-      </div>
-    </div>
-
-    ${evoJogos.length>=2?`
-    <div class="perfil-modal-secao">📈 Evolução de pontos</div>
-    <canvas id="grafico-perfil" class="perfil-modal-grafico" height="130"></canvas>
-    `:''}
-
-    <div class="perfil-modal-secao">📋 Histórico de palpites (${historico.length})</div>
-    ${historico.length?historico.map(j=>{
-      const pal=(todosPalpites[j.id]||{})[uid];
-      const{pts,txt}=calcPts(j,pal);
-      let extra=0;
-      if(j.golsHT1!==null&&j.golsHT2!==null){
-        const esc=(apostasExtras[j.id]||{})[uid];
-        if(esc){let r;if(j.golsHT1>j.golsHT2)r=j.time1;else if(j.golsHT2>j.golsHT1)r=j.time2;else r='empate';if(esc===r)extra=5;}
-      }
-      const ptsFinal=pts+extra;
-      const corPts=ptsFinal>=40?'var(--amarelo)':ptsFinal>0?'var(--verde-light)':'#f88';
-      return`<div class="perfil-modal-hist-item">
-        <div class="pmhi-times">${getFlagSmall(j.time1)} ${nomePT(j.time1)} <strong>${j.gols1}×${j.gols2}</strong> ${nomePT(j.time2)} ${getFlagSmall(j.time2)}</div>
-        <div class="pmhi-pal">${pal.p1}×${pal.p2}</div>
-        <div class="pmhi-pts" style="color:${corPts}">${ptsFinal>0?'+'+ptsFinal:'0'}</div>
-      </div>`;
-    }).join(''):`<div style="padding:.75rem;color:var(--muted);font-size:.82rem;text-align:center">Nenhum palpite ainda.</div>`}
-  `;
-
-  // Renderizar gráfico após DOM ser inserido
-  if(evoJogos.length>=2){
-    requestAnimationFrame(()=>_renderGraficoEvolucao('grafico-perfil', evoPts, cor, nivel.cor||cor));
-  }
-
-  document.getElementById('modal-perfil-usuario').classList.add('show');
-}
-
-function fecharPerfilUsuario(){
-  document.getElementById('modal-perfil-usuario').classList.remove('show');
-}
-
-// ═══════════════════════════════════════════
-// COMPARTILHAR PERFIL (card estilo Stories)
-// ═══════════════════════════════════════════
-async function compartilharPerfilUsuario(uid){
-  const u=todosUsuarios.find(x=>x.id===uid);
-  if(!u)return;
-  showToast('🎨 Gerando card…');
-  try{
-    const{total,exatos,resultados,acertosPrimeiroTempo,acertosClassificacao}=calcPtsTotal(uid);
-    const nivel=getNivelMoldura(total);
-    const proximo=getProximoNivel(total);
-    const ranked=todosUsuarios.map(x=>({...x,...calcPtsTotal(x.id)})).sort((a,b)=>b.total-a.total);
-    const pos=ranked.findIndex(x=>x.id===uid)+1;
-    const total2=ranked.length;
-    const jogosEnc=todosJogos.filter(j=>j.status==='encerrado'&&j.gols1!==null);
-    const jogosComPal=jogosEnc.filter(j=>(todosPalpites[j.id]||{})[uid]);
-    const taxa=jogosComPal.length?Math.round((exatos+resultados)/jogosComPal.length*100):0;
-    const POS_EMOJI={1:'🥇',2:'🥈',3:'🥉'};
-    const bordaCor=nivel.cor||'#009c3b';
-    const corAv=corU(uid||'?');
-
-    // Evolução de pontos jogo a jogo
-    let acc=0;
-    const evoPts=jogosComPal.map(j=>{
-      const pal=(todosPalpites[j.id]||{})[uid];
-      const{pts}=calcPts(j,pal);
-      let extra=0;
-      if(j.golsHT1!==null&&j.golsHT2!==null){
-        const esc=(apostasExtras[j.id]||{})[uid];
-        if(esc){let r;if(j.golsHT1>j.golsHT2)r=j.time1;else if(j.golsHT2>j.golsHT1)r=j.time2;else r='empate';if(esc===r)extra=5;}
-      }
-      acc+=pts+extra; return acc;
-    });
-    const temGrafico=evoPts.length>=2;
-
-    const W=800, H=temGrafico?1060:900;
-    const canvas=document.createElement('canvas');
-    canvas.width=W; canvas.height=H;
-    const ctx=canvas.getContext('2d');
-
-    // ── FUNDO ──
-    const grad=ctx.createLinearGradient(0,0,0,H);
-    grad.addColorStop(0,'#001a0d'); grad.addColorStop(.5,'#002310'); grad.addColorStop(1,'#001a0d');
-    ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
-    ctx.strokeStyle=bordaCor; ctx.lineWidth=5; ctx.strokeRect(14,14,W-28,H-28);
-    const gRad=ctx.createRadialGradient(W/2,0,0,W/2,0,320);
-    gRad.addColorStop(0,bordaCor+'22'); gRad.addColorStop(1,'transparent');
-    ctx.fillStyle=gRad; ctx.fillRect(0,0,W,H);
-
-    // ── TOPO ──
-    ctx.textAlign='center'; ctx.font='bold 24px Arial'; ctx.fillStyle='rgba(255,255,255,.45)';
-    ctx.fillText('⚽ COPA 2026 — Palpites da Família', W/2, 62);
-
-    // ── AVATAR ──
-    const cx=W/2,cy=210,r=78;
-    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
-    const gAv=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
-    gAv.addColorStop(0,corAv+'55'); gAv.addColorStop(1,corAv+'11');
-    ctx.fillStyle=gAv; ctx.fill();
-    ctx.strokeStyle=bordaCor; ctx.lineWidth=5; ctx.stroke();
-    if(u.foto_url){
-      try{
-        const img=await new Promise((res,rej)=>{const i=new Image();i.crossOrigin='anonymous';i.onload=()=>res(i);i.onerror=rej;i.src=u.foto_url;});
-        ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,r-4,0,Math.PI*2); ctx.clip();
-        ctx.drawImage(img,cx-r+4,cy-r+4,(r-4)*2,(r-4)*2); ctx.restore();
-      }catch{
-        ctx.font=`bold ${r}px Arial`; ctx.fillStyle=corAv; ctx.textAlign='center';
-        ctx.fillText((u.nome||'?').charAt(0).toUpperCase(),cx,cy+r*.35);
-      }
-    }else{
-      ctx.font=`bold ${r}px Arial`; ctx.fillStyle=corAv; ctx.textAlign='center';
-      ctx.fillText((u.nome||'?').charAt(0).toUpperCase(),cx,cy+r*.35);
-    }
-    if(nivel.emoji){ctx.font='36px Arial'; ctx.fillText(nivel.emoji,cx+r*.72,cy+r*.72);}
-
-    // ── NOME + TIER ──
-    ctx.font='bold 40px Arial'; ctx.fillStyle='#fff'; ctx.textAlign='center';
-    ctx.fillText(u.nome||'?',W/2,340);
-    if(nivel.cor){ctx.font='bold 17px Arial'; ctx.fillStyle=nivel.cor; ctx.fillText(nivel.nome.toUpperCase(),W/2,368);}
-
-    ctx.strokeStyle='rgba(255,223,0,.25)'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(120,395); ctx.lineTo(W-120,395); ctx.stroke();
-
-    // ── POSIÇÃO ──
-    ctx.font='bold 100px Arial'; ctx.fillStyle=bordaCor; ctx.textAlign='center';
-    ctx.fillText(POS_EMOJI[pos]||(pos+'º'),W/2,520);
-    ctx.font='600 20px Arial'; ctx.fillStyle='rgba(255,255,255,.55)';
-    ctx.fillText(`de ${total2} participantes`,W/2,555);
-
-    // ── PONTOS ──
-    ctx.font='bold 68px Arial'; ctx.fillStyle='#ffdf00';
-    ctx.fillText(total,W/2,648);
-    ctx.font='bold 20px Arial'; ctx.fillStyle='rgba(255,223,0,.55)';
-    ctx.fillText('PONTOS',W/2,678);
-
-    // ── STATS ──
-    ctx.font='15px Arial'; ctx.fillStyle='rgba(255,255,255,.45)';
-    ctx.fillText([`🏆 ${exatos} exatos`,`✅ ${resultados} resultados`,`🎯 ${taxa}% acertos`].join('  ·  '),W/2,718);
-    if(proximo){
-      ctx.font='13px Arial'; ctx.fillStyle=proximo.cor||'#7aab85';
-      ctx.fillText(`Faltam ${proximo.min-total} pts para ${proximo.nome} ${proximo.emoji}`,W/2,748);
-    }
-
-    // ── GRÁFICO DE EVOLUÇÃO ──
-    if(temGrafico){
-      // Área do gráfico
-      const GX=60, GY=780, GW=W-120, GH=190;
-      const PAD_T=18, PAD_B=24, PAD_L=38, PAD_R=10;
-      const gw=GW-PAD_L-PAD_R, gh=GH-PAD_T-PAD_B;
-      const n=evoPts.length;
-      const maxPt=Math.max(...evoPts,1);
-      const toX=i=>GX+PAD_L+i/(n-1)*gw;
-      const toY=v=>GY+PAD_T+gh-(v/maxPt)*gh;
-
-      // Fundo do gráfico
-      ctx.fillStyle='rgba(0,0,0,.25)';
-      ctx.beginPath(); ctx.roundRect(GX,GY,GW,GH,10); ctx.fill();
-      ctx.strokeStyle=bordaCor+'40'; ctx.lineWidth=1;
-      ctx.beginPath(); ctx.roundRect(GX,GY,GW,GH,10); ctx.stroke();
-
-      // Label
-      ctx.font='bold 12px Arial'; ctx.fillStyle='rgba(255,255,255,.35)'; ctx.textAlign='left';
-      ctx.fillText('📈 Evolução de pontos', GX+PAD_L, GY+13);
-
-      // Grade horizontal
-      ctx.strokeStyle='rgba(255,255,255,.06)'; ctx.lineWidth=1;
-      [0,.25,.5,.75,1].forEach(f=>{
-        const y=GY+PAD_T+gh*(1-f);
-        ctx.beginPath(); ctx.moveTo(GX+PAD_L,y); ctx.lineTo(GX+PAD_L+gw,y); ctx.stroke();
-        ctx.fillStyle='rgba(255,255,255,.28)'; ctx.font='10px Arial'; ctx.textAlign='right';
-        ctx.fillText(Math.round(maxPt*f), GX+PAD_L-4, y+4);
-      });
-
-      // Área preenchida
-      const gradArea=ctx.createLinearGradient(0,GY+PAD_T,0,GY+PAD_T+gh);
-      gradArea.addColorStop(0,bordaCor+'55'); gradArea.addColorStop(1,bordaCor+'05');
-      ctx.beginPath();
-      ctx.moveTo(toX(0),GY+PAD_T+gh);
-      evoPts.forEach((v,i)=>ctx.lineTo(toX(i),toY(v)));
-      ctx.lineTo(toX(n-1),GY+PAD_T+gh);
-      ctx.closePath();
-      ctx.fillStyle=gradArea; ctx.fill();
-
-      // Linha
-      ctx.beginPath();
-      evoPts.forEach((v,i)=>{i===0?ctx.moveTo(toX(i),toY(v)):ctx.lineTo(toX(i),toY(v));});
-      ctx.strokeStyle=bordaCor; ctx.lineWidth=2.5; ctx.lineJoin='round'; ctx.stroke();
-
-      // Pontos
-      evoPts.forEach((v,i)=>{
-        ctx.beginPath(); ctx.arc(toX(i),toY(v),3.5,0,Math.PI*2);
-        ctx.fillStyle=bordaCor; ctx.fill();
-        ctx.strokeStyle='rgba(0,0,0,.5)'; ctx.lineWidth=1; ctx.stroke();
-      });
-
-      // Ponto final com valor
-      const lx=toX(n-1), ly=toY(evoPts[n-1]);
-      ctx.beginPath(); ctx.arc(lx,ly,6,0,Math.PI*2);
-      ctx.fillStyle=bordaCor; ctx.fill();
-      ctx.font='bold 11px Arial'; ctx.fillStyle='#fff'; ctx.textAlign='center';
-      ctx.fillText(evoPts[n-1],lx,ly-10);
-
-      // Eixo X
-      ctx.fillStyle='rgba(255,255,255,.28)'; ctx.font='10px Arial'; ctx.textAlign='center';
-      const step=Math.max(1,Math.floor(n/6));
-      evoPts.forEach((_,i)=>{
-        if(i===0||i===n-1||i%step===0)
-          ctx.fillText('J'+(i+1),toX(i),GY+PAD_T+gh+PAD_B-4);
-      });
-    }
-
-    // ── RODAPÉ ──
-    const rodapeY=H-60;
-    ctx.strokeStyle='rgba(0,156,59,.2)'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(120,rodapeY); ctx.lineTo(W-120,rodapeY); ctx.stroke();
-    const dt=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
-    ctx.font='12px Arial'; ctx.fillStyle='rgba(0,156,59,.45)'; ctx.textAlign='center';
-    ctx.fillText(`copafamilia • ${dt}`,W/2,rodapeY+28);
-
-    const msg=pos===1
-      ?`🥇 ${u.nome} tá na liderança da Copa 2026 com ${total} pontos! ⚽`
-      :`${u.nome} tá em ${pos}º na Copa 2026 com ${total} pontos! ⚽`;
-    _dispararCompartilha(canvas,'copa2026-perfil.png',msg);
-  }catch(e){console.error(e); showToast('❌ Erro ao gerar card');}
-}
-
-// ═══════════════════════════════════════════
-// COMPARAÇÃO ENTRE DOIS JOGADORES
-// ═══════════════════════════════════════════
-function abrirComparacao(uid){
-  const sel=document.getElementById('comparacao-seletor');
-  if(!sel)return;
-  sel.style.display=sel.style.display==='none'?'block':'none';
-}
-
-async function executarComparacao(uid1){
-  const sel=document.getElementById('comparacao-select');
-  if(!sel)return;
-  const uid2=sel.value;
-  if(!uid2||uid2===uid1){showToast('⚠️ Selecione uma pessoa diferente');return;}
-  const u1=todosUsuarios.find(x=>x.id===uid1);
-  const u2=todosUsuarios.find(x=>x.id===uid2);
-  if(!u1||!u2)return;
-  showToast('⚔️ Gerando comparação…');
-  try{
-    const s1=calcPtsTotal(uid1), s2=calcPtsTotal(uid2);
-    const niv1=getNivelMoldura(s1.total), niv2=getNivelMoldura(s2.total);
-    const cor1=niv1.cor||corU(uid1), cor2=niv2.cor||corU(uid2);
-    const corAv1=corU(uid1), corAv2=corU(uid2);
-
-    // Jogos encerrados onde AMBOS fizeram palpite — últimos 10
-    const jogosEnc=todosJogos.filter(j=>j.status==='encerrado'&&j.gols1!==null);
-    const jogosAmbos=jogosEnc.filter(j=>(todosPalpites[j.id]||{})[uid1]&&(todosPalpites[j.id]||{})[uid2]);
-    const jogos10=jogosAmbos.slice(-10);
-    const nJogos=jogos10.length;
-
-    // Calcula pts por jogo para cada um
-    const linhasJogos=jogos10.map(j=>{
-      const p1=(todosPalpites[j.id]||{})[uid1];
-      const p2=(todosPalpites[j.id]||{})[uid2];
-      const r1=calcPts(j,p1), r2=calcPts(j,p2);
-      return{j, p1, p2, r1, r2};
-    });
-
-    // Placar do duelo nos últimos 10
-    let wins1=0,wins2=0,empates=0;
-    linhasJogos.forEach(({r1,r2})=>{
-      if(r1.pts>r2.pts)wins1++;
-      else if(r2.pts>r1.pts)wins2++;
-      else empates++;
-    });
-
-    // taxa acertos nos últimos 10
-    const taxa1=nJogos?Math.round(linhasJogos.filter(({r1})=>r1.pts>0).length/nJogos*100):0;
-    const taxa2=nJogos?Math.round(linhasJogos.filter(({r2})=>r2.pts>0).length/nJogos*100):0;
-
-    // ── LAYOUT ──
-    // Cabeçalho: 160px  |  Tabela: nJogos * 52px + cabeçalho 36px  |  Placar duelo: 110px  |  Rodapé: 60px
-    const W=800;
-    const ROW_H=52, TABLE_HEAD=36;
-    const HEADER_H=170, TABLE_H=TABLE_HEAD+nJogos*ROW_H, SCORE_H=120, FOOTER_H=58;
-    const H=HEADER_H+TABLE_H+SCORE_H+FOOTER_H;
-
-    const canvas=document.createElement('canvas');
-    canvas.width=W; canvas.height=H;
-    const ctx=canvas.getContext('2d');
-
-    // ── FUNDO ──
-    ctx.fillStyle='#040f07'; ctx.fillRect(0,0,W,H);
-    // Borda fina verde
-    ctx.strokeStyle='#009c3b'; ctx.lineWidth=3; ctx.strokeRect(10,10,W-20,H-20);
-    // Linha dourada superior
-    ctx.fillStyle='#ffdf00'; ctx.fillRect(10,10,W-20,4);
-
-    // ── CABEÇALHO ──
-    // Fundo do cabeçalho
-    ctx.fillStyle='rgba(0,156,59,.1)'; ctx.fillRect(10,14,W-20,HEADER_H-14);
-
-    const drawAv=async(u,uid,x,y,r,corAv,nivel)=>{
-      ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
-      const g=ctx.createRadialGradient(x,y,0,x,y,r);
-      g.addColorStop(0,corAv+'44'); g.addColorStop(1,corAv+'0a');
-      ctx.fillStyle=g; ctx.fill();
-      ctx.strokeStyle=nivel.cor||corAv; ctx.lineWidth=3; ctx.stroke();
-      if(u.foto_url){
-        try{
-          const img=await new Promise((res,rej)=>{const i=new Image();i.crossOrigin='anonymous';i.onload=()=>res(i);i.onerror=rej;i.src=u.foto_url;});
-          ctx.save(); ctx.beginPath(); ctx.arc(x,y,r-2,0,Math.PI*2); ctx.clip();
-          ctx.drawImage(img,x-r+2,y-r+2,(r-2)*2,(r-2)*2); ctx.restore();
-        }catch{ ctx.font=`bold ${r}px Arial`; ctx.fillStyle=corAv; ctx.textAlign='center'; ctx.fillText((u.nome||'?')[0].toUpperCase(),x,y+r*.35); }
-      }else{ ctx.font=`bold ${r}px Arial`; ctx.fillStyle=corAv; ctx.textAlign='center'; ctx.fillText((u.nome||'?')[0].toUpperCase(),x,y+r*.35); }
-      if(nivel.emoji){ctx.font='20px Arial'; ctx.textAlign='center'; ctx.fillText(nivel.emoji,x+r*.72,y+r*.72);}
-    };
-
-    const AV_Y=70, AV_R=44;
-    await drawAv(u1,uid1, W/4, AV_Y, AV_R, corAv1, niv1);
-    await drawAv(u2,uid2, 3*W/4, AV_Y, AV_R, corAv2, niv2);
-
-    // VS
-    ctx.font='bold 22px Arial'; ctx.fillStyle='rgba(255,223,0,.6)'; ctx.textAlign='center';
-    ctx.fillText('VS', W/2, AV_Y+8);
-
-    // Nomes
-    ctx.font='bold 20px Arial'; ctx.fillStyle='#fff'; ctx.textAlign='center';
-    ctx.fillText(u1.nome||'?', W/4, AV_Y+AV_R+22);
-    ctx.fillText(u2.nome||'?', 3*W/4, AV_Y+AV_R+22);
-    if(niv1.cor){ctx.font='12px Arial'; ctx.fillStyle=niv1.cor; ctx.fillText(niv1.nome, W/4, AV_Y+AV_R+38);}
-    if(niv2.cor){ctx.font='12px Arial'; ctx.fillStyle=niv2.cor; ctx.fillText(niv2.nome, 3*W/4, AV_Y+AV_R+38);}
-
-    // Subtítulo
-    ctx.font='bold 13px Arial'; ctx.fillStyle='rgba(255,255,255,.35)'; ctx.textAlign='center';
-    ctx.fillText(`⚔️  Duelo — últimos ${nJogos} jogos em comum  ⚔️`, W/2, HEADER_H-8);
-
-    // ── TABELA ──
-    const TY=HEADER_H; // Y de início da tabela
-    // Colunas: [PAL_L | JOGO_CENTER | PAL_R]
-    const COL_PAL=190, COL_MEIO=W-COL_PAL*2; // 420px centro
-    const X_PAL1_END=COL_PAL, X_JOGO_START=COL_PAL, X_JOGO_END=COL_PAL+COL_MEIO, X_PAL2_START=COL_PAL+COL_MEIO;
-
-    // Cabeçalho da tabela
-    ctx.fillStyle='rgba(0,156,59,.25)'; ctx.fillRect(10,TY,W-20,TABLE_HEAD);
-    ctx.font='bold 12px Arial'; ctx.fillStyle=cor1; ctx.textAlign='center';
-    ctx.fillText(u1.nome||'?', COL_PAL/2, TY+TABLE_HEAD/2+5);
-    ctx.fillStyle='rgba(255,255,255,.5)'; ctx.textAlign='center';
-    ctx.fillText('JOGO  ·  PLACAR', W/2, TY+TABLE_HEAD/2+5);
-    ctx.fillStyle=cor2;
-    ctx.fillText(u2.nome||'?', X_PAL2_START+(W-10-X_PAL2_START)/2, TY+TABLE_HEAD/2+5);
-
-    // Divisores verticais do cabeçalho
-    ctx.strokeStyle='rgba(0,156,59,.3)'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(COL_PAL,TY); ctx.lineTo(COL_PAL,TY+TABLE_HEAD); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(X_PAL2_START,TY); ctx.lineTo(X_PAL2_START,TY+TABLE_HEAD); ctx.stroke();
-
-    // Pré-carrega todas as bandeiras necessárias
-    const codesNeeded=[...new Set(jogos10.flatMap(j=>[getFlagCode(j.time1),getFlagCode(j.time2)]).filter(Boolean))];
-    await Promise.all(codesNeeded.map(c=>loadFlagImg(c)));
-
-    // Linhas de jogo
-    linhasJogos.forEach(({j,p1,p2,r1,r2},i)=>{
-      const ry=TY+TABLE_HEAD+i*ROW_H;
-
-      // Fundo alternado
-      ctx.fillStyle=i%2===0?'rgba(255,255,255,.02)':'rgba(0,0,0,.15)';
-      ctx.fillRect(10,ry,W-20,ROW_H);
-
-      // Destaque na linha: quem ganhou o jogo
-      if(r1.pts>r2.pts){ ctx.fillStyle=cor1+'0d'; ctx.fillRect(10,ry,COL_PAL,ROW_H); }
-      else if(r2.pts>r1.pts){ ctx.fillStyle=cor2+'0d'; ctx.fillRect(X_PAL2_START,ry,W-10-X_PAL2_START,ROW_H); }
-
-      const cy=ry+ROW_H/2;
-
-      // — COLUNA ESQUERDA: palpite de u1 —
-      const ptsCor1=r1.pts>=40?'#ffdf00':r1.pts>0?'#00d44f':'#f87171';
-      const icone1=r1.pts>=40?'🏆':r1.pts>0?'✅':'❌';
-      ctx.font='bold 17px Arial'; ctx.fillStyle=ptsCor1; ctx.textAlign='center';
-      ctx.fillText(`${p1.p1}×${p1.p2}`, COL_PAL*0.42, cy-5);
-      ctx.font='11px Arial'; ctx.fillStyle=r1.pts>0?ptsCor1:'rgba(255,255,255,.3)';
-      ctx.fillText(`${icone1} ${r1.pts>0?'+'+r1.pts:'0'}pts`, COL_PAL*0.42, cy+13);
-
-      // — COLUNA CENTRAL: bandeiras + nome truncado + placar real —
-      const flag1=_flagCache[getFlagCode(j.time1)||'']||null;
-      const flag2=_flagCache[getFlagCode(j.time2)||'']||null;
-      const FW=18, FH=13, FY_FLAG=cy-19; // tamanho e Y das bandeirinhas
-
-      // Mede nome para centralizar com bandeiras
-      ctx.font='11px Arial';
-      const nomeT1=nomePT(j.time1), nomeT2=nomePT(j.time2);
-      const SEP=' × ';
-      const totalW=(flag1?FW+3:0)+ctx.measureText(nomeT1).width+ctx.measureText(SEP).width+(flag2?FW+3:0)+ctx.measureText(nomeT2).width;
-      let cx_cur=W/2-totalW/2;
-
-      // Bandeira t1
-      if(flag1){ctx.drawImage(flag1,cx_cur,FY_FLAG,FW,FH);cx_cur+=FW+3;}
-      // Nome t1
-      ctx.fillStyle='rgba(255,255,255,.5)'; ctx.textAlign='left'; ctx.font='11px Arial';
-      ctx.fillText(nomeT1,cx_cur,cy-8); cx_cur+=ctx.measureText(nomeT1).width;
-      // Separador
-      ctx.fillStyle='rgba(255,255,255,.3)';
-      ctx.fillText(SEP,cx_cur,cy-8); cx_cur+=ctx.measureText(SEP).width;
-      // Bandeira t2
-      if(flag2){ctx.drawImage(flag2,cx_cur,FY_FLAG,FW,FH);cx_cur+=FW+3;}
-      // Nome t2
-      ctx.fillStyle='rgba(255,255,255,.5)';
-      ctx.fillText(nomeT2,cx_cur,cy-8);
-
-      // Placar real — destaque
-      ctx.font='bold 16px Arial'; ctx.fillStyle='rgba(255,255,255,.9)'; ctx.textAlign='center';
-      ctx.fillText(`${j.gols1} – ${j.gols2}`, W/2, cy+13);
-
-      // — COLUNA DIREITA: palpite de u2 —
-      const ptsCor2=r2.pts>=40?'#ffdf00':r2.pts>0?'#00d44f':'#f87171';
-      const icone2=r2.pts>=40?'🏆':r2.pts>0?'✅':'❌';
-      const cx2=X_PAL2_START+(W-10-X_PAL2_START)/2;
-      ctx.font='bold 17px Arial'; ctx.fillStyle=ptsCor2; ctx.textAlign='center';
-      ctx.fillText(`${p2.p1}×${p2.p2}`, cx2, cy-5);
-      ctx.font='11px Arial'; ctx.fillStyle=r2.pts>0?ptsCor2:'rgba(255,255,255,.3)';
-      ctx.fillText(`${icone2} ${r2.pts>0?'+'+r2.pts:'0'}pts`, cx2, cy+13);
-
-      // Divisores verticais
-      ctx.strokeStyle='rgba(0,156,59,.15)'; ctx.lineWidth=1;
-      ctx.beginPath(); ctx.moveTo(COL_PAL,ry); ctx.lineTo(COL_PAL,ry+ROW_H); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(X_PAL2_START,ry); ctx.lineTo(X_PAL2_START,ry+ROW_H); ctx.stroke();
-      // Separador horizontal fino
-      ctx.strokeStyle='rgba(255,255,255,.05)';
-      ctx.beginPath(); ctx.moveTo(10,ry+ROW_H); ctx.lineTo(W-10,ry+ROW_H); ctx.stroke();
-    });
-
-    if(!nJogos){
-      ctx.font='bold 16px Arial'; ctx.fillStyle='rgba(255,255,255,.4)'; ctx.textAlign='center';
-      ctx.fillText('Nenhum jogo em comum ainda.', W/2, TY+TABLE_HEAD+40);
-    }
-
-    // ── PLACAR DO DUELO ──
-    const SY=TY+TABLE_H;
-    ctx.fillStyle='rgba(255,223,0,.06)'; ctx.fillRect(10,SY,W-20,SCORE_H);
-    ctx.strokeStyle='#ffdf00'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(10,SY); ctx.lineTo(W-10,SY); ctx.stroke();
-
-    // Placar wins
-    const SCY=SY+SCORE_H/2;
-    ctx.textAlign='center';
-    // Wins u1
-    ctx.font='bold 48px Arial'; ctx.fillStyle=wins1>wins2?cor1:'rgba(255,255,255,.3)';
-    ctx.fillText(wins1, W/4, SCY+16);
-    ctx.font='12px Arial'; ctx.fillStyle='rgba(255,255,255,.4)';
-    ctx.fillText('vitórias', W/4, SCY+34);
-    // Empates central
-    ctx.font='bold 20px Arial'; ctx.fillStyle='rgba(255,223,0,.6)';
-    ctx.fillText(empates>0?`${empates} empate${empates>1?'s':''}`:'—', W/2, SCY+8);
-    ctx.font='10px Arial'; ctx.fillStyle='rgba(255,255,255,.3)';
-    ctx.fillText('Acertos %', W/2, SCY+28);
-    ctx.font='bold 13px Arial'; ctx.fillStyle='rgba(255,255,255,.55)';
-    ctx.fillText(`${taxa1}%  vs  ${taxa2}%`, W/2, SCY+44);
-    // Wins u2
-    ctx.font='bold 48px Arial'; ctx.fillStyle=wins2>wins1?cor2:'rgba(255,255,255,.3)';
-    ctx.fillText(wins2, 3*W/4, SCY+16);
-    ctx.font='12px Arial'; ctx.fillStyle='rgba(255,255,255,.4)';
-    ctx.fillText('vitórias', 3*W/4, SCY+34);
-
-    // Totais pontos
-    ctx.font='bold 13px Arial'; ctx.fillStyle=s1.total>s2.total?cor1:'rgba(255,255,255,.35)'; ctx.textAlign='left';
-    ctx.fillText(`Total: ${s1.total}pts`, 26, SCY-22);
-    ctx.fillStyle=s2.total>s1.total?cor2:'rgba(255,255,255,.35)'; ctx.textAlign='right';
-    ctx.fillText(`Total: ${s2.total}pts`, W-26, SCY-22);
-
-    // ── RODAPÉ ──
-    const FY=SY+SCORE_H;
-    ctx.fillStyle='rgba(0,0,0,.3)'; ctx.fillRect(10,FY,W-20,FOOTER_H);
-    ctx.strokeStyle='rgba(0,156,59,.3)'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(10,FY); ctx.lineTo(W-10,FY); ctx.stroke();
-    const vencedor=s1.total>s2.total?u1:s2.total>s1.total?u2:null;
-    ctx.font='bold 15px Arial'; ctx.textAlign='center';
-    ctx.fillStyle=vencedor?(vencedor===u1?cor1:cor2):'#ffdf00';
-    ctx.fillText(vencedor?`🏆 ${vencedor.nome} tá na frente com ${Math.max(s1.total,s2.total)}pts!`:'🤝 Empate no total de pontos!', W/2, FY+24);
-    const dt=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
-    ctx.font='11px Arial'; ctx.fillStyle='rgba(0,156,59,.4)'; ctx.textAlign='center';
-    ctx.fillText(`copafamilia  ·  ${dt}`, W/2, FY+44);
-
-    const msg=!vencedor
-      ?`⚔️ Duelo Copa 2026: ${u1.nome} vs ${u2.nome} — empatados no total! 🤝`
-      :`⚔️ Duelo Copa 2026: ${vencedor.nome} vencendo com ${Math.max(s1.total,s2.total)}pts! ⚽`;
-    _dispararCompartilha(canvas,'copa2026-duelo.png', msg);
-  }catch(e){console.error(e); showToast('❌ Erro ao gerar duelo');}
-}
-
-function _renderGraficoEvolucao(canvasId, pts, cor, corTier){
-  const canvas=document.getElementById(canvasId);
-  if(!canvas)return;
-  const dpr=window.devicePixelRatio||1;
-  const W=canvas.offsetWidth||300;
-  const H=130;
-  canvas.width=W*dpr; canvas.height=H*dpr;
-  canvas.style.width=W+'px'; canvas.style.height=H+'px';
-  const ctx=canvas.getContext('2d');
-  ctx.scale(dpr,dpr);
-
-  const PAD_L=36,PAD_R=12,PAD_T=16,PAD_B=28;
-  const w=W-PAD_L-PAD_R, h=H-PAD_T-PAD_B;
-  const n=pts.length;
-  const maxPt=Math.max(...pts,1);
-  const toX=i=>PAD_L+i/(n-1)*w;
-  const toY=v=>PAD_T+h-(v/maxPt)*h;
-
-  // Fundo transparente (herda do sheet)
-  // Grade horizontal
-  ctx.strokeStyle='rgba(255,255,255,.06)'; ctx.lineWidth=1;
-  [0,.25,.5,.75,1].forEach(f=>{
-    const y=PAD_T+h*(1-f);
-    ctx.beginPath(); ctx.moveTo(PAD_L,y); ctx.lineTo(PAD_L+w,y); ctx.stroke();
-    ctx.fillStyle='rgba(255,255,255,.3)'; ctx.font=`${9*dpr/dpr}px Arial`; ctx.textAlign='right';
-    ctx.fillText(Math.round(maxPt*f), PAD_L-4, y+3);
-  });
-
-  // Área preenchida (gradiente)
-  const gradArea=ctx.createLinearGradient(0,PAD_T,0,PAD_T+h);
-  gradArea.addColorStop(0,(corTier||cor)+'55');
-  gradArea.addColorStop(1,(corTier||cor)+'05');
-  ctx.beginPath();
-  ctx.moveTo(toX(0),PAD_T+h);
-  pts.forEach((v,i)=>ctx.lineTo(toX(i),toY(v)));
-  ctx.lineTo(toX(n-1),PAD_T+h);
-  ctx.closePath();
-  ctx.fillStyle=gradArea; ctx.fill();
-
-  // Linha principal
-  ctx.beginPath();
-  pts.forEach((v,i)=>{if(i===0)ctx.moveTo(toX(i),toY(v));else ctx.lineTo(toX(i),toY(v));});
-  ctx.strokeStyle=corTier||cor; ctx.lineWidth=2.5; ctx.lineJoin='round'; ctx.stroke();
-
-  // Pontos nos vértices
-  pts.forEach((v,i)=>{
-    ctx.beginPath(); ctx.arc(toX(i),toY(v),3.5,0,Math.PI*2);
-    ctx.fillStyle=corTier||cor; ctx.fill();
-    ctx.strokeStyle='rgba(0,0,0,.5)'; ctx.lineWidth=1; ctx.stroke();
-  });
-
-  // Ponto final com valor
-  const lastX=toX(n-1), lastY=toY(pts[n-1]);
-  ctx.beginPath(); ctx.arc(lastX,lastY,5,0,Math.PI*2);
-  ctx.fillStyle=corTier||cor; ctx.fill();
-  ctx.font='bold 10px Arial'; ctx.fillStyle='#fff'; ctx.textAlign='center';
-  ctx.fillText(pts[n-1], lastX, lastY-9);
-
-  // Eixo X — número do jogo
-  ctx.fillStyle='rgba(255,255,255,.3)'; ctx.font='9px Arial'; ctx.textAlign='center';
-  pts.forEach((_,i)=>{if(i===0||i===n-1||i===Math.floor(n/2))ctx.fillText('J'+(i+1),toX(i),PAD_T+h+14);});
-}
-
 function vincularPalpites(c){
   c.querySelectorAll('.btn-salvar-pal').forEach(btn=>btn.addEventListener('click',()=>salvarPalpite(btn.dataset.jogo)));
   c.querySelectorAll('.palpite-n').forEach(inp=>inp.addEventListener('keydown',e=>{if(e.key==='Enter'){const id=inp.id.replace(/^pn[12]_/,'');salvarPalpite(id)}}));
@@ -3283,11 +2370,15 @@ function abrirModalPalpites(jogoId){
     lista.innerHTML=entradas.map(e=>{
       const cor=corU(e.uid);
       const souEu=e.uid===usuarioAtual?.id;
+      const podeZoar=enc&&!souEu&&e.pts===0;
+      const btnZoar=podeZoar
+        ?`<button onclick="zoarPessoa('${e.uid}','${e.nome.replace(/'/g,"\\'")}','${jogoId}')" style="background:rgba(255,80,80,.12);border:1px solid rgba(255,80,80,.3);color:#f87171;font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;margin-left:.3rem" title="Zoar ${e.nome}">😂 Zoar</button>`
+        :'';
       return`<div class="palpite-pessoa-row ${e.rowClass}">
         <div class="pp-avatar" style="background:${cor}22;color:${cor}">${e.nome.charAt(0).toUpperCase()}</div>
         <div class="pp-nome">${e.nome}${souEu?' <span style="color:var(--muted);font-size:.7rem">(você)</span>':''}</div>
         <div class="pp-palpite">${e.pal.p1}×${e.pal.p2}</div>
-        ${e.resultTag}
+        ${e.resultTag}${btnZoar}
       </div>`;
     }).join('');
   }
@@ -3297,6 +2388,39 @@ function abrirModalPalpites(jogoId){
 function fecharModalPalpites(){
   document.getElementById('modal-palpites').classList.remove('show');
 }
+
+// ═══════════════════════════════════════════
+// PROVOCAÇÃO 😂 — zoar quem errou no chat
+// ═══════════════════════════════════════════
+const ZOADAS=[
+  '${alvo}, esse palpite foi horrível 😂⚽',
+  '${alvo} dormiu nesse jogo hein 💤😂',
+  '${alvo} chutou e errou feio! ❌😂',
+  '${alvo}, que palpite foi esse meu Deus 😂🙈',
+  '${alvo} tá de brincadeira com esse placar 😂',
+  'Alguém avisa ${alvo} que futebol não é assim 😂⚽',
+  '${alvo}, até minha vó palpitaria melhor 👵😂',
+  '${alvo} escolheu o pior palpite possível 💀',
+  'Parabéns ${alvo} pelo palpite mais criativo 😂🎨',
+  '${alvo}, você tá bom? Esse palpite... 😐😂',
+];
+async function zoarPessoa(uid,nome,jogoId){
+  if(!usuarioAtual)return;
+  const j=todosJogos.find(x=>x.id===jogoId);
+  const pal=(todosPalpites[jogoId]||{})[uid];
+  if(!j||!pal)return;
+  const template=ZOADAS[Math.floor(Math.random()*ZOADAS.length)];
+  const msg=template.replace(/\${alvo}/g,nome)
+    +` (apostou ${pal.p1}×${pal.p2} em ${nomePT(j.time1)} ${j.gols1}×${j.gols2} ${nomePT(j.time2)})`;
+  try{
+    await sbPost('chat',{usuario_id:usuarioAtual.id,nome:usuarioAtual.nome,texto:msg});
+    fecharModalPalpites();
+    showToast('😂 Zoada enviada no chat!');
+    await carregarChat();
+  }catch(e){showToast('❌ Erro ao enviar zoada');}
+}
+
+
 
 // ═══════════════════════════════════════════
 // RANKING AO VIVO 📊 — pontuação simulada com o placar atual do jogo
@@ -3449,6 +2573,7 @@ function calcPtsTotal(uid){
     if(!todosEncerrados)return;
     const escolha=(classificacaoBolao[g]||{})[uid];
     if(!escolha||!escolha.length)return;
+    // Recalcula a tabela final do grupo para saber quem realmente se classificou
     const tabela={};
     jogosGrupo.forEach(j=>{
       [j.time1,j.time2].forEach(t=>{if(!tabela[t])tabela[t]={Pts:0,GP:0,GC:0}});
@@ -3499,32 +2624,66 @@ function renderRanking(){
   const emj=['🥈','🥇','🥉'];
   podio.innerHTML=ord.map((u,i)=>u?`<div class="rank-podio-card ${cls[i]}"><span class="podio-emoji">${emj[i]}</span><div style="margin:0 auto .35rem;width:52px">${renderAvatar(u,52,u.total)}</div><div class="podio-nome">${u.nome}</div><div class="podio-pts">${u.total}<small>pontos</small></div></div>`:'<div></div>').join('');
 
+  // ── SETINHAS: lê posições anteriores do localStorage ──
+  let posicoesAntigas={};
+  try{posicoesAntigas=JSON.parse(localStorage.getItem('copa_rank_posicoes')||'{}');}catch(e){}
+
+  // ── RIVAL: pessoa mais próxima em pontos do usuário logado ──
+  let rivalId=null;
+  if(usuarioAtual){
+    const meuIdx=ranked.findIndex(u=>u.id===usuarioAtual.id);
+    const meusPts=ranked[meuIdx]?.total??-1;
+    let menorDiff=Infinity;
+    ranked.forEach((u,i)=>{
+      if(u.id===usuarioAtual.id)return;
+      const diff=Math.abs(u.total-meusPts);
+      if(diff<menorDiff){menorDiff=diff;rivalId=u.id;}
+    });
+  }
+
   // ── FLIP ANIMATION: captura posições ANTES de re-renderizar ──
   const posicoesAntes={};
   lista.querySelectorAll('.rank-row[data-uid]').forEach(el=>{
     posicoesAntes[el.dataset.uid]=el.getBoundingClientRect().top;
   });
 
+  const novasPosicoes={};
   lista.innerHTML=ranked.map((u,i)=>{
+    const pos=i+1;
+    novasPosicoes[u.id]=pos;
     const detalhes=[`🏆${u.exatos}`,`✅${u.resultados}`];
     if(u.acertosPrimeiroTempo>0)detalhes.push(`⏱️${u.acertosPrimeiroTempo}`);
     if(u.acertosClassificacao>0)detalhes.push(`🎯${u.acertosClassificacao}`);
-    return`<div class="rank-row" data-uid="${u.id}"><div class="rank-pos">${i+1}º</div><span onclick="abrirPerfilUsuario('${u.id}')" class="rank-row-clicavel" style="display:inline-flex;align-items:center;border-radius:50%;flex-shrink:0" title="Ver perfil de ${u.nome}">${renderAvatar(u,44,u.total)}</span><div class="rank-info"><div class="rank-nome-txt">${u.nome}</div><div class="rank-detalhe">${detalhes.join(' · ')}</div></div><div class="rank-pts-val">${u.total}<small>pts</small></div></div>`;
+    // Setinha
+    let arrowHtml='';
+    const posAnterior=posicoesAntigas[u.id];
+    if(posAnterior&&posAnterior!==pos){
+      const diff=posAnterior-pos;
+      if(diff>0)arrowHtml=`<span class="rank-arrow up">▲${diff}</span>`;
+      else arrowHtml=`<span class="rank-arrow down">▼${Math.abs(diff)}</span>`;
+    }
+    // Badge rival
+    const isRival=rivalId&&u.id===rivalId;
+    const rivalBadge=isRival?`<span class="rival-badge">⚔️ Rival</span>`:'';
+    const isRivalClass=isRival?' rival-highlight':'';
+    return`<div class="rank-row${isRivalClass}" data-uid="${u.id}"><div class="rank-pos">${pos}º</div><span onclick="abrirPerfilUsuario('${u.id}')" class="rank-row-clicavel" style="display:inline-flex;align-items:center;border-radius:50%;flex-shrink:0" title="Ver perfil de ${u.nome}">${renderAvatar(u,44,u.total)}</span><div class="rank-info"><div class="rank-nome-txt">${u.nome}${arrowHtml}${rivalBadge}</div><div class="rank-detalhe">${detalhes.join(' · ')}</div></div><div class="rank-pts-val">${u.total}<small>pts</small></div></div>`;
   }).join('');
 
-  // ── FLIP: calcula diferença e anima (só se já tínhamos posições salvas) ──
+  // Salva posições novas no localStorage
+  try{localStorage.setItem('copa_rank_posicoes',JSON.stringify(novasPosicoes));}catch(e){}
+
+  // ── FLIP: calcula diferença e anima ──
   if(Object.keys(posicoesAntes).length>0){
     lista.querySelectorAll('.rank-row[data-uid]').forEach(el=>{
       const uid=el.dataset.uid;
       const posAntes=posicoesAntes[uid];
-      if(posAntes===undefined)return; // pessoa nova, sem posição anterior — não anima
+      if(posAntes===undefined)return;
       const posDepois=el.getBoundingClientRect().top;
       const delta=posAntes-posDepois;
-      if(Math.abs(delta)<2)return; // não mudou de posição, sem animação
+      if(Math.abs(delta)<2)return;
       el.style.transform=`translateY(${delta}px)`;
       el.style.transition='none';
       el.style.zIndex='5';
-      // Destaca brevemente quem subiu ou desceu
       const subiu=delta>0;
       el.classList.add(subiu?'rank-subiu':'rank-desceu');
       requestAnimationFrame(()=>{
@@ -4316,7 +3475,7 @@ function renderAdmin(){
 
     <div class="admin-card" style="border-color:rgba(255,223,0,.3);background:rgba(255,223,0,.04)">
       <div style="font-weight:700;margin-bottom:.15rem;font-size:.85rem;color:var(--amarelo)">🔀 Fundir contas</div>
-      <div style="font-size:.72rem;color:var(--muted);margin-bottom:.75rem">Todos os palpites da conta origem vão para a conta destino. A origem fica zerada. Palpites que destino já tem são mantidos (origem não sobrescreve).</div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:.75rem">Todos os palpites da conta origem vão para a conta destino. A origem fica zerada. Palpites que destino já tem são mantidos.</div>
       <div style="display:flex;flex-direction:column;gap:.5rem">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
           <div>
@@ -4346,7 +3505,7 @@ function renderAdmin(){
 
     <div class="admin-card" style="border-color:rgba(248,113,113,.3);background:rgba(248,113,113,.04)">
       <div style="font-weight:700;margin-bottom:.15rem;font-size:.85rem;color:#f87171">🗑️ Deletar usuário</div>
-      <div style="font-size:.72rem;color:var(--muted);margin-bottom:.75rem">Remove a conta e todos os palpites. A pessoa não conseguirá mais logar com esse usuário.</div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:.75rem">Remove a conta e todos os palpites. A pessoa não conseguirá mais logar.</div>
       <div style="display:flex;flex-direction:column;gap:.5rem">
         <select id="adm-del-user" onchange="adminDelPreview()" style="width:100%;background:var(--card2);border:1px solid rgba(248,113,113,.4);color:var(--text);border-radius:6px;padding:.5rem;font-size:.78rem">
           <option value="">— escolha quem deletar —</option>
@@ -4381,8 +3540,6 @@ function renderAdmin(){
     </div>`).join('');
 
   c.innerHTML=html;
-
-  // Carrega histórico de fusões
   adminCarregarFusoes();
 }
 
@@ -4406,9 +3563,7 @@ async function adminResetarSenha(){
   }
 }
 
-// ── Transferência de pontos ──
-let _transferencias=[]; // mantido vazio
-
+let _transferencias=[];
 function adminFusaoPreview(){
   const deId=document.getElementById('adm-fusao-de')?.value;
   const paraId=document.getElementById('adm-fusao-para')?.value;
@@ -4417,15 +3572,10 @@ function adminFusaoPreview(){
   if(!deId||!paraId||deId===paraId){box.innerHTML='';return;}
   const uDe=todosUsuarios.find(x=>x.id===deId);
   const uPara=todosUsuarios.find(x=>x.id===paraId);
-  const sOrig=calcPtsTotal(deId);
   const sDest=calcPtsTotal(paraId);
-
-  // Calcula palpites da origem que o destino NÃO tem (vão ser migrados)
   const jogosOrig=Object.keys(todosPalpites).filter(jid=>(todosPalpites[jid]||{})[deId]);
   const migrar=jogosOrig.filter(jid=>!(todosPalpites[jid]||{})[paraId]);
   const ignorar=jogosOrig.filter(jid=>(todosPalpites[jid]||{})[paraId]);
-
-  // Pontos extras que o destino vai ganhar
   let ptsExtras=0;
   migrar.forEach(jid=>{
     const j=todosJogos.find(x=>x.id===jid);
@@ -4433,15 +3583,11 @@ function adminFusaoPreview(){
     const pal=(todosPalpites[jid]||{})[deId];
     ptsExtras+=calcPts(j,pal).pts;
   });
-
-  box.innerHTML=`
-    <div style="background:rgba(255,223,0,.08);border:1px solid rgba(255,223,0,.2);border-radius:8px;padding:.6rem .75rem;display:flex;flex-direction:column;gap:.3rem">
-      <div>📦 <strong>${migrar.length}</strong> palpites serão migrados de <strong>${uDe?.nome}</strong> → <strong>${uPara?.nome}</strong>${ignorar.length?` · <span style="color:var(--muted)">${ignorar.length} já existem no destino e serão ignorados</span>`:''}</div>
-      <div>📊 <strong>${uPara?.nome}</strong> vai de <strong style="color:var(--amarelo)">${sDest.total}pts</strong> para <strong style="color:var(--verde-light)">~${sDest.total+ptsExtras}pts</strong></div>
-      <div style="color:var(--muted);font-size:.7rem">⚠️ <strong>${uDe?.nome}</strong> ficará com ${sOrig.total-ptsExtras}pts (palpites que o destino já tinha ficam em ambos)</div>
-    </div>`;
+  box.innerHTML=`<div style="background:rgba(255,223,0,.08);border:1px solid rgba(255,223,0,.2);border-radius:8px;padding:.6rem .75rem;display:flex;flex-direction:column;gap:.3rem">
+    <div>📦 <strong>${migrar.length}</strong> palpites migrados de <strong>${uDe?.nome}</strong> → <strong>${uPara?.nome}</strong>${ignorar.length?` · <span style="color:var(--muted)">${ignorar.length} ignorados</span>`:''}</div>
+    <div>📊 <strong>${uPara?.nome}</strong> vai de <strong style="color:var(--amarelo)">${sDest.total}pts</strong> para <strong style="color:var(--verde-light)">~${sDest.total+ptsExtras}pts</strong></div>
+  </div>`;
 }
-
 async function adminFundirContas(){
   if(!isAdmin())return;
   const deId=document.getElementById('adm-fusao-de')?.value;
@@ -4451,91 +3597,59 @@ async function adminFundirContas(){
   if(!paraId){showToast('⚠️ Escolha a conta destino');return;}
   if(deId===paraId){showToast('⚠️ Origem e destino são a mesma conta');return;}
   if(!motivo){showToast('⚠️ Motivo é obrigatório');return;}
-
   const uDe=todosUsuarios.find(x=>x.id===deId);
   const uPara=todosUsuarios.find(x=>x.id===paraId);
-
-  // Palpites da origem que o destino NÃO tem
   const jogosOrig=Object.keys(todosPalpites).filter(jid=>(todosPalpites[jid]||{})[deId]);
   const paraFundir=jogosOrig.filter(jid=>!(todosPalpites[jid]||{})[paraId]);
   const ignorados=jogosOrig.filter(jid=>(todosPalpites[jid]||{})[paraId]);
-
-  if(!paraFundir.length){
-    showToast(`⚠️ Nenhum palpite novo para migrar — ${uPara?.nome} já tem todos os jogos de ${uDe?.nome}`);
-    return;
-  }
-
-  // Preview dos palpites que vão mover
+  if(!paraFundir.length){showToast(`⚠️ Nenhum palpite novo para migrar`);return;}
   let ptsExtras=0;
   const resumoJogos=paraFundir.map(jid=>{
-    const j=todosJogos.find(x=>x.id===jid);
-    if(!j)return null;
+    const j=todosJogos.find(x=>x.id===jid);if(!j)return null;
     const pal=(todosPalpites[jid]||{})[deId];
     const{pts,txt}=j.gols1!==null?calcPts(j,pal):{pts:0,txt:'Futuro'};
     ptsExtras+=pts;
     return`  • ${nomePT(j.time1)}×${nomePT(j.time2)}: ${pal.p1}×${pal.p2} (${txt}${pts>0?', +'+pts+'pts':''})`;
   }).filter(Boolean).join('\n');
-
-  const confirmMsg=`🔀 Confirmar fusão?\n\nOrigem: ${uDe?.nome}\nDestino: ${uPara?.nome}\n\n${paraFundir.length} palpites serão migrados:\n${resumoJogos}${ignorados.length?`\n\n${ignorados.length} palpite(s) ignorados (destino já tem).`:''}\n\n+${ptsExtras}pts para ${uPara?.nome}\n\nMotivo: "${motivo}"`;
-  if(!confirm(confirmMsg))return;
-
+  if(!confirm(`🔀 Confirmar fusão?\n\nOrigem: ${uDe?.nome}\nDestino: ${uPara?.nome}\n\n${paraFundir.length} palpites:\n${resumoJogos}\n\n+${ptsExtras}pts para ${uPara?.nome}\n\nMotivo: "${motivo}"`))return;
   try{
     showToast(`🔀 Fundindo ${paraFundir.length} palpites…`);
     let ok=0,erro=0;
     for(const jid of paraFundir){
-      const pal=(todosPalpites[jid]||{})[deId];
-      if(!pal)continue;
+      const pal=(todosPalpites[jid]||{})[deId];if(!pal)continue;
       try{
-        // Insere no destino
         await sbUpsert('palpites',{usuario_id:paraId,jogo_id:jid,gols1:pal.p1,gols2:pal.p2},'usuario_id,jogo_id');
-        // Remove da origem
         await sbDelete('palpites',`usuario_id=eq.${deId}&jogo_id=eq.${jid}`);
-        // Atualiza cache
         if(!todosPalpites[jid])todosPalpites[jid]={};
         todosPalpites[jid][paraId]={p1:pal.p1,p2:pal.p2};
         delete todosPalpites[jid][deId];
         ok++;
       }catch(e){erro++;}
     }
-
-    // Log auditoria
-    registrarLogAuditoria('fusao_contas',
-      `${ok} palpites de ${uDe?.nome} → ${uPara?.nome} (+${ptsExtras}pts). ${ignorados.length} ignorados. Motivo: ${motivo}`);
-
-    // Salva no histórico
+    registrarLogAuditoria('fusao_contas',`${ok} palpites de ${uDe?.nome}→${uPara?.nome}. Motivo: ${motivo}`);
     try{
       await sbPost('migracoes_palpite',{
-        jogo_id:'fusao',
-        jogo_nome:`Fusão de contas: ${paraFundir.length} palpites`,
-        palpite:`${ok} migrados`,
-        pts_calculados:ptsExtras,
-        resultado_txt:`${ignorados.length} ignorados`,
-        de_usuario_id:deId, de_usuario_nome:uDe?.nome||deId,
-        para_usuario_id:paraId, para_usuario_nome:uPara?.nome||paraId,
-        motivo, admin_id:usuarioAtual.id, admin_nome:usuarioAtual.nome,
+        jogo_id:'fusao',jogo_nome:`Fusão: ${paraFundir.length} palpites`,
+        palpite:`${ok} migrados`,pts_calculados:ptsExtras,resultado_txt:`${ignorados.length} ignorados`,
+        de_usuario_id:deId,de_usuario_nome:uDe?.nome||deId,
+        para_usuario_id:paraId,para_usuario_nome:uPara?.nome||paraId,
+        motivo,admin_id:usuarioAtual.id,admin_nome:usuarioAtual.nome,
       });
-    }catch(e){/* tabela opcional */}
-
-    showToast(`✅ ${ok} palpite${ok!==1?'s':''} migrado${ok!==1?'s':''}! ${erro?'⚠️ '+erro+' erro(s).':''}`);
-    document.getElementById('adm-fusao-de').value='';
-    document.getElementById('adm-fusao-para').value='';
-    document.getElementById('adm-fusao-motivo').value='';
-    document.getElementById('adm-fusao-preview').innerHTML='';
+    }catch(e){}
+    showToast(`✅ ${ok} palpite${ok!==1?'s':''} migrado${ok!==1?'s':''}!${erro?' ⚠️ '+erro+' erro(s).':''}`);
+    ['adm-fusao-de','adm-fusao-para','adm-fusao-motivo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    const prev=document.getElementById('adm-fusao-preview');if(prev)prev.innerHTML='';
     adminCarregarFusoes();
     renderAdmin();
-    if(document.getElementById('page-ranking')?.classList.contains('active'))renderRanking();
   }catch(e){console.error(e);showToast('❌ Erro ao fundir contas');}
 }
-
 async function adminCarregarFusoes(){
-  const box=document.getElementById('adm-fusao-historico');
-  if(!box)return;
+  const box=document.getElementById('adm-fusao-historico');if(!box)return;
   try{
     const lista=await sbGet('migracoes_palpite','select=*&order=criado_em.desc&limit=10');
     if(!lista.length){box.innerHTML='<div style="font-size:.72rem;color:var(--muted);text-align:center;padding:.5rem">Nenhuma fusão ainda.</div>';return;}
-    box.innerHTML=`
-      <div style="font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.4rem">Histórico</div>
-      ${lista.map(t=>{
+    box.innerHTML=`<div style="font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.4rem">Histórico</div>`
+      +lista.map(t=>{
         const dt=t.criado_em?new Date(t.criado_em).toLocaleDateString('pt-BR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'';
         const cor=t.pts_calculados>0?'var(--verde-light)':'var(--muted)';
         return`<div style="padding:.45rem .6rem;background:var(--card2);border:1px solid var(--border);border-radius:8px;margin-bottom:.3rem;font-size:.74rem">
@@ -4546,56 +3660,41 @@ async function adminCarregarFusoes(){
           <div style="color:var(--muted)">${t.jogo_nome} · ${t.palpite}</div>
           <div style="color:var(--muted);font-size:.68rem">📝 ${t.motivo}</div>
         </div>`;
-      }).join('')}`;
-  }catch(e){
-    box.innerHTML='<div style="font-size:.72rem;color:var(--muted);padding:.4rem">Histórico indisponível.</div>';
-  }
+      }).join('');
+  }catch(e){box.innerHTML='<div style="font-size:.72rem;color:var(--muted);padding:.4rem">Histórico indisponível.</div>';}
 }
-
-// Funções de migração individual (mantidas para compatibilidade)
-function adminMigrAtualizarPreviews(){}
-async function adminMigrarPalpite(){}
-async function adminCarregarMigracoes(){}
-
 function adminDelPreview(){
   const uid=document.getElementById('adm-del-user')?.value;
-  const box=document.getElementById('adm-del-preview');
-  if(!box)return;
+  const box=document.getElementById('adm-del-preview');if(!box)return;
   if(!uid){box.innerHTML='';return;}
   const u=todosUsuarios.find(x=>x.id===uid);
   const pts=calcPtsTotal(uid).total;
   const npals=Object.values(todosPalpites).filter(p=>p[uid]).length;
-  const cor=pts>0?'#f87171':'var(--muted)';
   box.innerHTML=`<div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:.5rem .7rem">
     <div>👤 <strong>${u?.nome}</strong> · @${u?.usuario}</div>
-    <div style="color:${cor};margin-top:.2rem">⚠️ ${pts}pts e ${npals} palpite${npals!==1?'s':''} serão apagados permanentemente.</div>
-    ${pts>0?`<div style="color:#f87171;font-size:.68rem;margin-top:.2rem">⚠️ Esta conta tem pontos — tem certeza que não quer fundir antes de deletar?</div>`:''}
+    <div style="color:#f87171;margin-top:.2rem">⚠️ ${pts}pts e ${npals} palpite${npals!==1?'s':''} serão apagados.</div>
+    ${pts>0?`<div style="color:#f87171;font-size:.68rem;margin-top:.15rem">Esta conta tem pontos — considere fundir antes.</div>`:''}
   </div>`;
 }
-
 async function adminDeletarUsuario(){
   if(!isAdmin())return;
   const uid=document.getElementById('adm-del-user')?.value;
   if(!uid){showToast('⚠️ Escolha um usuário');return;}
-  if(uid===usuarioAtual?.id){showToast('⚠️ Você não pode deletar a si mesmo');return;}
+  if(uid===usuarioAtual?.id){showToast('⚠️ Não pode deletar a si mesmo');return;}
   const u=todosUsuarios.find(x=>x.id===uid);
   const pts=calcPtsTotal(uid).total;
   const npals=Object.values(todosPalpites).filter(p=>p[uid]).length;
   if(!confirm(`🗑️ Deletar permanentemente?\n\n${u?.nome} (@${u?.usuario})\n${pts}pts · ${npals} palpite${npals!==1?'s':''}\n\nEssa ação não pode ser desfeita.`))return;
   try{
     showToast('🗑️ Deletando…');
-    // Apaga todos os palpites do usuário
     await sbDelete('palpites',`usuario_id=eq.${uid}`);
-    // Apaga bolão e apostas extras
     try{await sbDelete('bolao',`usuario_id=eq.${uid}`);}catch(e){}
     try{await sbDelete('apostas_extras',`usuario_id=eq.${uid}`);}catch(e){}
     try{await sbDelete('classificacao_bolao',`usuario_id=eq.${uid}`);}catch(e){}
-    // Apaga o usuário
     await sbDelete('usuarios',`id=eq.${uid}`);
-    // Atualiza cache local
     todosUsuarios=todosUsuarios.filter(x=>x.id!==uid);
     Object.keys(todosPalpites).forEach(jid=>{delete todosPalpites[jid][uid];});
-    registrarLogAuditoria('usuario_deletado',`${u?.nome} (@${u?.usuario}) deletado pelo admin. Tinha ${pts}pts e ${npals} palpites.`);
+    registrarLogAuditoria('usuario_deletado',`${u?.nome} (@${u?.usuario}) deletado. Tinha ${pts}pts e ${npals} palpites.`);
     showToast(`✅ ${u?.nome} deletado!`);
     document.getElementById('adm-del-user').value='';
     document.getElementById('adm-del-preview').innerHTML='';
@@ -4603,8 +3702,12 @@ async function adminDeletarUsuario(){
     if(document.getElementById('page-ranking')?.classList.contains('active'))renderRanking();
   }catch(e){console.error(e);showToast('❌ Erro ao deletar usuário');}
 }
+function adminMigrAtualizarPreviews(){}
+async function adminMigrarPalpite(){}
+async function adminCarregarMigracoes(){}
+
 function adminSalvar(id){
-  if(!isAdmin())return; // proteção extra na própria ação
+  if(!isAdmin())return;
   const j=todosJogos.find(x=>x.id===id);if(!j)return;
   const g1=parseInt(document.getElementById('adm1_'+id)?.value);
   const g2=parseInt(document.getElementById('adm2_'+id)?.value);
@@ -4615,6 +3718,7 @@ function adminSalvar(id){
   renderAdmin();
   registrarLogAuditoria('placar_editado', `${nomePT(j.time1)} ${g1}x${g2} ${nomePT(j.time2)}`);
 }
+
 
 // ═══════════════════════════════════════════
 // AUDITORIA 🔍 — restrita ao admin
@@ -4633,6 +3737,460 @@ async function registrarLogAuditoria(tipo, detalhe){
   }catch(e){console.warn('Log de auditoria falhou (tabela pode não existir ainda):',e.message)}
 }
 
+// ═══════════════════════════════════════════
+// COMPARTILHAR RANKING 📸
+// ═══════════════════════════════════════════
+async function compartilharRanking(){
+  if(!todosUsuarios.length){showToast('⏳ Carregando dados…');return;}
+  showToast('🎨 Gerando imagem do ranking…');
+  try{
+    const ranked=todosUsuarios.map(u=>({...u,...calcPtsTotal(u.id)})).sort((a,b)=>b.total-a.total);
+    const LINHA=54,PAD=28,TOPO=160,W=800;
+    const H=Math.max(600,TOPO+ranked.length*LINHA+80);
+    const canvas=document.createElement('canvas');
+    canvas.width=W;canvas.height=H;
+    const ctx=canvas.getContext('2d');
+    const grad=ctx.createLinearGradient(0,0,W,H);
+    grad.addColorStop(0,'#001a0d');grad.addColorStop(1,'#00100a');
+    ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='#009c3b';ctx.lineWidth=4;ctx.strokeRect(12,12,W-24,H-24);
+    const gTopo=ctx.createLinearGradient(0,0,W,0);
+    gTopo.addColorStop(0,'#009c3b');gTopo.addColorStop(1,'#007a2e');
+    ctx.fillStyle=gTopo;ctx.fillRect(12,12,W-24,100);
+    ctx.textAlign='center';ctx.font='bold 44px Arial';ctx.fillStyle='#ffdf00';
+    ctx.fillText('⚽ COPA 2026',W/2,68);
+    ctx.font='600 18px Arial';ctx.fillStyle='rgba(255,255,255,.85)';
+    ctx.fillText('🏅 Ranking — Palpites da Família',W/2,100);
+    const dataStr=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
+    ctx.font='13px Arial';ctx.fillStyle='rgba(255,255,255,.5)';ctx.fillText(dataStr,W/2,130);
+    ctx.fillStyle='rgba(0,156,59,.25)';ctx.fillRect(PAD,TOPO-30,W-PAD*2,30);
+    ctx.font='bold 13px Arial';ctx.fillStyle='#7aab85';ctx.textAlign='left';
+    ctx.fillText('#',PAD+8,TOPO-10);ctx.fillText('Nome',PAD+60,TOPO-10);
+    ctx.textAlign='right';ctx.fillText('Pts',W-PAD-8,TOPO-10);
+    ctx.strokeStyle='rgba(0,156,59,.35)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(PAD,TOPO);ctx.lineTo(W-PAD,TOPO);ctx.stroke();
+    const TEMOJI={'Bronze':'🥉','Prata':'🥈','Ouro':'🥇','Platina':'💎','Diamante':'👑','Sem moldura':''};
+    const PEMOJI={1:'🥇',2:'🥈',3:'🥉'};
+    ranked.forEach((u,i)=>{
+      const y=TOPO+i*LINHA+LINHA/2;
+      const nivel=getNivelMoldura(u.total);
+      if(i%2===0){ctx.fillStyle='rgba(255,255,255,.03)';ctx.fillRect(PAD,TOPO+i*LINHA,W-PAD*2,LINHA);}
+      if(i<3){ctx.fillStyle=i===0?'rgba(255,215,0,.06)':i===1?'rgba(192,192,192,.05)':'rgba(205,127,50,.05)';ctx.fillRect(PAD,TOPO+i*LINHA,W-PAD*2,LINHA);}
+      ctx.textAlign='left';ctx.font=i<3?'bold 20px Arial':'bold 16px Arial';
+      ctx.fillStyle=i===0?'#ffd700':i===1?'#c0c0c0':i===2?'#cd7f32':'#7aab85';
+      ctx.fillText(PEMOJI[i+1]||(i+1)+'º',PAD+8,y+6);
+      const cor=corU(u.id||u.usuario||'?');
+      const inicial=(u.nome||'?').charAt(0).toUpperCase();
+      ctx.beginPath();ctx.arc(PAD+48,y,16,0,Math.PI*2);ctx.fillStyle=cor+'33';ctx.fill();
+      if(nivel.cor){ctx.strokeStyle=nivel.cor;ctx.lineWidth=2;}else{ctx.strokeStyle=cor+'66';ctx.lineWidth=1;}
+      ctx.stroke();ctx.font='bold 14px Arial';ctx.fillStyle=cor;ctx.textAlign='center';ctx.fillText(inicial,PAD+48,y+5);
+      ctx.textAlign='left';ctx.font=i<3?'bold 18px Arial':'500 16px Arial';
+      ctx.fillStyle=i<3?'#ffffff':'#e8f5eb';ctx.fillText(u.nome||'?',PAD+72,y+6);
+      if(TEMOJI[nivel.nome]){ctx.textAlign='right';ctx.font='16px Arial';ctx.fillText(TEMOJI[nivel.nome],W-PAD-60,y+6);}
+      ctx.textAlign='right';ctx.font=i<3?'bold 20px Arial':'bold 16px Arial';
+      ctx.fillStyle=nivel.cor||'#e8f5eb';ctx.fillText(u.total,W-PAD-8,y+6);
+      ctx.strokeStyle='rgba(0,156,59,.15)';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(PAD,TOPO+(i+1)*LINHA);ctx.lineTo(W-PAD,TOPO+(i+1)*LINHA);ctx.stroke();
+    });
+    ctx.textAlign='center';ctx.font='13px Arial';ctx.fillStyle='rgba(0,156,59,.6)';
+    ctx.fillText('copafamilia • pauloadam.github.io',W/2,H-20);
+    _dispararCompartilha(canvas,'copa2026-ranking.png','🏅 Ranking Copa 2026 da família — atualizado! Quem tá na frente? ⚽');
+  }catch(e){console.error(e);showToast('❌ Erro ao gerar imagem');}
+}
+
+// ═══════════════════════════════════════════
+// COMPARTILHAR MINHA POSIÇÃO
+// ═══════════════════════════════════════════
+async function compartilharMinhaPos(){
+  if(!usuarioAtual){showToast('⚠️ Faça login primeiro');return;}
+  await compartilharPerfilUsuario(usuarioAtual.id);
+}
+
+// ═══════════════════════════════════════════
+// COMPARTILHAR PERFIL (card estilo Stories)
+// ═══════════════════════════════════════════
+async function compartilharPerfilUsuario(uid){
+  const u=todosUsuarios.find(x=>x.id===uid);if(!u)return;
+  showToast('🎨 Gerando card…');
+  try{
+    const{total,exatos,resultados}=calcPtsTotal(uid);
+    const nivel=getNivelMoldura(total);
+    const proximo=getProximoNivel(total);
+    const ranked=todosUsuarios.map(x=>({...x,...calcPtsTotal(x.id)})).sort((a,b)=>b.total-a.total);
+    const pos=ranked.findIndex(x=>x.id===uid)+1;
+    const total2=ranked.length;
+    const jogosEnc=todosJogos.filter(j=>j.status==='encerrado'&&j.gols1!==null);
+    const jogosComPal=jogosEnc.filter(j=>(todosPalpites[j.id]||{})[uid]);
+    const taxa=jogosComPal.length?Math.round((exatos+resultados)/jogosComPal.length*100):0;
+    const POS_EMOJI={1:'🥇',2:'🥈',3:'🥉'};
+    const bordaCor=nivel.cor||'#009c3b';
+    const corAv=corU(uid||'?');
+    let acc=0;
+    const evoPts=jogosComPal.map(j=>{
+      const pal=(todosPalpites[j.id]||{})[uid];
+      const{pts}=calcPts(j,pal);
+      let extra=0;
+      if(j.golsHT1!==null&&j.golsHT2!==null){
+        const esc=(apostasExtras[j.id]||{})[uid];
+        if(esc){let r;if(j.golsHT1>j.golsHT2)r=j.time1;else if(j.golsHT2>j.golsHT1)r=j.time2;else r='empate';if(esc===r)extra=5;}
+      }
+      acc+=pts+extra;return acc;
+    });
+    const temGrafico=evoPts.length>=2;
+    const W=800,H=temGrafico?1060:900;
+    const canvas=document.createElement('canvas');
+    canvas.width=W;canvas.height=H;
+    const ctx=canvas.getContext('2d');
+    const grad=ctx.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0,'#001a0d');grad.addColorStop(.5,'#002310');grad.addColorStop(1,'#001a0d');
+    ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle=bordaCor;ctx.lineWidth=5;ctx.strokeRect(14,14,W-28,H-28);
+    const gRad=ctx.createRadialGradient(W/2,0,0,W/2,0,320);
+    gRad.addColorStop(0,bordaCor+'22');gRad.addColorStop(1,'transparent');
+    ctx.fillStyle=gRad;ctx.fillRect(0,0,W,H);
+    ctx.textAlign='center';ctx.font='bold 24px Arial';ctx.fillStyle='rgba(255,255,255,.45)';
+    ctx.fillText('⚽ COPA 2026 — Palpites da Família',W/2,62);
+    const cx=W/2,cy=210,r=78;
+    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
+    const gAv=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+    gAv.addColorStop(0,corAv+'55');gAv.addColorStop(1,corAv+'11');
+    ctx.fillStyle=gAv;ctx.fill();
+    ctx.strokeStyle=bordaCor;ctx.lineWidth=5;ctx.stroke();
+    if(u.foto_url){
+      try{
+        const img=await new Promise((res,rej)=>{const i=new Image();i.crossOrigin='anonymous';i.onload=()=>res(i);i.onerror=rej;i.src=u.foto_url;});
+        ctx.save();ctx.beginPath();ctx.arc(cx,cy,r-4,0,Math.PI*2);ctx.clip();
+        ctx.drawImage(img,cx-r+4,cy-r+4,(r-4)*2,(r-4)*2);ctx.restore();
+      }catch{ctx.font=`bold ${r}px Arial`;ctx.fillStyle=corAv;ctx.textAlign='center';ctx.fillText((u.nome||'?').charAt(0).toUpperCase(),cx,cy+r*.35);}
+    }else{ctx.font=`bold ${r}px Arial`;ctx.fillStyle=corAv;ctx.textAlign='center';ctx.fillText((u.nome||'?').charAt(0).toUpperCase(),cx,cy+r*.35);}
+    if(nivel.emoji){ctx.font='36px Arial';ctx.fillText(nivel.emoji,cx+r*.72,cy+r*.72);}
+    ctx.font='bold 40px Arial';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(u.nome||'?',W/2,340);
+    if(nivel.cor){ctx.font='bold 17px Arial';ctx.fillStyle=nivel.cor;ctx.fillText(nivel.nome.toUpperCase(),W/2,368);}
+    ctx.strokeStyle='rgba(255,223,0,.25)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(120,395);ctx.lineTo(W-120,395);ctx.stroke();
+    ctx.font='bold 100px Arial';ctx.fillStyle=bordaCor;ctx.textAlign='center';
+    ctx.fillText(POS_EMOJI[pos]||(pos+'º'),W/2,520);
+    ctx.font='600 20px Arial';ctx.fillStyle='rgba(255,255,255,.55)';
+    ctx.fillText(`de ${total2} participantes`,W/2,555);
+    ctx.font='bold 68px Arial';ctx.fillStyle='#ffdf00';ctx.fillText(total,W/2,648);
+    ctx.font='bold 20px Arial';ctx.fillStyle='rgba(255,223,0,.55)';ctx.fillText('PONTOS',W/2,678);
+    ctx.font='15px Arial';ctx.fillStyle='rgba(255,255,255,.45)';
+    ctx.fillText([`🏆 ${exatos} exatos`,`✅ ${resultados} resultados`,`🎯 ${taxa}% acertos`].join('  ·  '),W/2,718);
+    if(proximo){ctx.font='13px Arial';ctx.fillStyle=proximo.cor||'#7aab85';ctx.fillText(`Faltam ${proximo.min-total} pts para ${proximo.nome} ${proximo.emoji}`,W/2,748);}
+    if(temGrafico){
+      const GX=60,GY=780,GW=W-120,GH=190;
+      const PAD_T=18,PAD_B=24,PAD_L=38,PAD_R=10;
+      const gw=GW-PAD_L-PAD_R,gh=GH-PAD_T-PAD_B;
+      const n=evoPts.length,maxPt=Math.max(...evoPts,1);
+      const toX=i=>GX+PAD_L+i/(n-1)*gw;
+      const toY=v=>GY+PAD_T+gh-(v/maxPt)*gh;
+      ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.roundRect(GX,GY,GW,GH,10);ctx.fill();
+      ctx.strokeStyle=bordaCor+'40';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(GX,GY,GW,GH,10);ctx.stroke();
+      ctx.font='bold 12px Arial';ctx.fillStyle='rgba(255,255,255,.35)';ctx.textAlign='left';
+      ctx.fillText('📈 Evolução de pontos',GX+PAD_L,GY+13);
+      ctx.strokeStyle='rgba(255,255,255,.06)';ctx.lineWidth=1;
+      [0,.25,.5,.75,1].forEach(f=>{
+        const y=GY+PAD_T+gh*(1-f);
+        ctx.beginPath();ctx.moveTo(GX+PAD_L,y);ctx.lineTo(GX+PAD_L+gw,y);ctx.stroke();
+        ctx.fillStyle='rgba(255,255,255,.28)';ctx.font='10px Arial';ctx.textAlign='right';
+        ctx.fillText(Math.round(maxPt*f),GX+PAD_L-4,y+4);
+      });
+      const gA=ctx.createLinearGradient(0,GY+PAD_T,0,GY+PAD_T+gh);
+      gA.addColorStop(0,bordaCor+'55');gA.addColorStop(1,bordaCor+'05');
+      ctx.beginPath();ctx.moveTo(toX(0),GY+PAD_T+gh);
+      evoPts.forEach((v,i)=>ctx.lineTo(toX(i),toY(v)));
+      ctx.lineTo(toX(n-1),GY+PAD_T+gh);ctx.closePath();ctx.fillStyle=gA;ctx.fill();
+      ctx.beginPath();evoPts.forEach((v,i)=>{i===0?ctx.moveTo(toX(i),toY(v)):ctx.lineTo(toX(i),toY(v));});
+      ctx.strokeStyle=bordaCor;ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.stroke();
+      evoPts.forEach((v,i)=>{ctx.beginPath();ctx.arc(toX(i),toY(v),3.5,0,Math.PI*2);ctx.fillStyle=bordaCor;ctx.fill();});
+      const lx=toX(n-1),ly=toY(evoPts[n-1]);
+      ctx.beginPath();ctx.arc(lx,ly,6,0,Math.PI*2);ctx.fillStyle=bordaCor;ctx.fill();
+      ctx.font='bold 11px Arial';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(evoPts[n-1],lx,ly-10);
+    }
+    const rodapeY=H-60;
+    ctx.strokeStyle='rgba(0,156,59,.2)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(120,rodapeY);ctx.lineTo(W-120,rodapeY);ctx.stroke();
+    const dt=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
+    ctx.font='12px Arial';ctx.fillStyle='rgba(0,156,59,.45)';ctx.textAlign='center';
+    ctx.fillText(`copafamilia • ${dt}`,W/2,rodapeY+28);
+    const msg=pos===1?`🥇 ${u.nome} tá na liderança da Copa 2026 com ${total} pontos! ⚽`:`${u.nome} tá em ${pos}º na Copa 2026 com ${total} pontos! ⚽`;
+    _dispararCompartilha(canvas,'copa2026-perfil.png',msg);
+  }catch(e){console.error(e);showToast('❌ Erro ao gerar card');}
+}
+
+function _dispararCompartilha(canvas,filename,texto){
+  canvas.toBlob(async(blob)=>{
+    const file=new File([blob],filename,{type:'image/png'});
+    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+      try{await navigator.share({files:[file],title:'Copa 2026',text:texto});}catch(e){}
+    }else{
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');a.href=url;a.download=filename;a.click();
+      URL.revokeObjectURL(url);showToast('📥 Imagem baixada! Compartilhe no WhatsApp 🟢');
+    }
+  },'image/png');
+}
+
+// ═══════════════════════════════════════════
+// MODAL PERFIL DE USUÁRIO
+// ═══════════════════════════════════════════
+function abrirPerfilUsuario(uid){
+  const u=todosUsuarios.find(x=>x.id===uid);if(!u)return;
+  const{total,exatos,resultados,acertosPrimeiroTempo,acertosClassificacao}=calcPtsTotal(uid);
+  const nivel=getNivelMoldura(total);
+  const proximo=getProximoNivel(total);
+  const jogosEnc=todosJogos.filter(j=>j.status==='encerrado'&&j.gols1!==null);
+  const jogosComPal=jogosEnc.filter(j=>(todosPalpites[j.id]||{})[uid]);
+  const taxa=jogosComPal.length?Math.round((exatos+resultados)/jogosComPal.length*100):0;
+  let maxSeq=0,cur=0;
+  jogosEnc.forEach(j=>{
+    const pal=(todosPalpites[j.id]||{})[uid];if(!pal)return;
+    const{txt}=calcPts(j,pal);
+    if(txt.includes('Exato')||txt.includes('Resultado')){cur++;maxSeq=Math.max(maxSeq,cur);}else cur=0;
+  });
+  const ranked=todosUsuarios.map(x=>({...x,...calcPtsTotal(x.id)})).sort((a,b)=>b.total-a.total);
+  const pos=ranked.findIndex(x=>x.id===uid)+1;
+  const POS_EMOJI={1:'🥇',2:'🥈',3:'🥉'};
+  const historico=jogosComPal.slice().reverse();
+  const evoJogos=jogosComPal.slice();
+  let acc=0;
+  const evoPts=evoJogos.map(j=>{
+    const pal=(todosPalpites[j.id]||{})[uid];
+    const{pts}=calcPts(j,pal);
+    let extra=0;
+    if(j.golsHT1!==null&&j.golsHT2!==null){
+      const esc=(apostasExtras[j.id]||{})[uid];
+      if(esc){let r;if(j.golsHT1>j.golsHT2)r=j.time1;else if(j.golsHT2>j.golsHT1)r=j.time2;else r='empate';if(esc===r)extra=5;}
+    }
+    acc+=pts+extra;return acc;
+  });
+  const cor=corU(uid||'?');
+  document.getElementById('modal-perfil-usuario').dataset.uid=uid;
+  document.getElementById('perfil-modal-titulo').textContent=`👤 ${u.nome}`;
+  const outrosOpts=ranked.filter(x=>x.id!==uid).map(x=>`<option value="${x.id}">${x.nome} (${x.total}pts)</option>`).join('');
+  const c=document.getElementById('perfil-modal-conteudo');
+  c.innerHTML=`
+    <div class="perfil-modal-hero">
+      <div style="display:inline-block;position:relative">${renderAvatar(u,72,total)}</div>
+      <div class="perfil-modal-nome">${u.nome}</div>
+      <div class="perfil-modal-usuario">@${u.usuario||u.nome.toLowerCase()}</div>
+      ${nivel.cor?`<div class="perfil-modal-tier" style="color:${nivel.cor}">${nivel.emoji} ${nivel.nome}</div>`:''}
+      ${proximo?`<div style="font-size:.7rem;color:var(--muted)">Faltam <strong style="color:${proximo.cor}">${proximo.min-total} pts</strong> para ${proximo.emoji} ${proximo.nome}</div>`:'<div style="font-size:.72rem;color:var(--amarelo)">🎉 Nível máximo!</div>'}
+      <div class="perfil-modal-stats">
+        <div class="pms"><div class="pms-num">${total}</div><div class="pms-lbl">Pontos</div></div>
+        <div class="pms"><div class="pms-num">${POS_EMOJI[pos]||pos+'º'}</div><div class="pms-lbl">Posição</div></div>
+        <div class="pms"><div class="pms-num">${taxa}%</div><div class="pms-lbl">Acertos</div></div>
+        <div class="pms"><div class="pms-num">${exatos}</div><div class="pms-lbl">Exatos</div></div>
+        <div class="pms"><div class="pms-num">${resultados}</div><div class="pms-lbl">Resultados</div></div>
+        <div class="pms"><div class="pms-num">${maxSeq}</div><div class="pms-lbl">Seq. máx.</div></div>
+      </div>
+      <div style="display:flex;gap:.5rem;margin-top:.85rem">
+        <button onclick="compartilharPerfilUsuario('${uid}')" style="flex:1;padding:.55rem .4rem;background:rgba(0,156,59,.15);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--verde-light);font-size:.78rem;font-weight:600;cursor:pointer">📸 Compartilhar</button>
+        <button onclick="abrirComparacao('${uid}')" style="flex:1;padding:.55rem .4rem;background:rgba(255,223,0,.1);border:1px solid rgba(255,223,0,.3);border-radius:var(--radius-sm);color:var(--amarelo);font-size:.78rem;font-weight:600;cursor:pointer">⚔️ Comparar</button>
+      </div>
+      <div id="comparacao-seletor" style="display:none;margin-top:.6rem;width:100%">
+        <div style="font-size:.72rem;color:var(--muted);margin-bottom:.4rem;text-align:left">Comparar com:</div>
+        <div style="display:flex;gap:.4rem">
+          <select id="comparacao-select" style="flex:1;background:var(--card2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);padding:.45rem .5rem;font-size:.78rem;font-family:'Inter',sans-serif">${outrosOpts}</select>
+          <button onclick="executarComparacao('${uid}')" style="padding:.45rem .75rem;background:var(--verde);border:none;border-radius:var(--radius-sm);color:#fff;font-size:.78rem;font-weight:700;cursor:pointer">Gerar ⚔️</button>
+        </div>
+      </div>
+    </div>
+    ${evoJogos.length>=2?`<div class="perfil-modal-secao">📈 Evolução de pontos</div><canvas id="grafico-perfil" class="perfil-modal-grafico" height="130"></canvas>`:''}
+    <div class="perfil-modal-secao">📋 Histórico de palpites (${historico.length})</div>
+    ${historico.length?historico.map(j=>{
+      const pal=(todosPalpites[j.id]||{})[uid];
+      const{pts,txt}=calcPts(j,pal);
+      let extra=0;
+      if(j.golsHT1!==null&&j.golsHT2!==null){
+        const esc=(apostasExtras[j.id]||{})[uid];
+        if(esc){let r;if(j.golsHT1>j.golsHT2)r=j.time1;else if(j.golsHT2>j.golsHT1)r=j.time2;else r='empate';if(esc===r)extra=5;}
+      }
+      const ptsFinal=pts+extra;
+      const corPts=ptsFinal>=40?'var(--amarelo)':ptsFinal>0?'var(--verde-light)':'#f88';
+      return`<div class="perfil-modal-hist-item">
+        <div class="pmhi-times">${getFlagSmall(j.time1)} ${nomePT(j.time1)} <strong>${j.gols1}×${j.gols2}</strong> ${nomePT(j.time2)} ${getFlagSmall(j.time2)}</div>
+        <div class="pmhi-pal">${pal.p1}×${pal.p2}</div>
+        <div class="pmhi-pts" style="color:${corPts}">${ptsFinal>0?'+'+ptsFinal:'0'}</div>
+      </div>`;
+    }).join(''):`<div style="padding:.75rem;color:var(--muted);font-size:.82rem;text-align:center">Nenhum palpite ainda.</div>`}
+  `;
+  if(evoJogos.length>=2){
+    requestAnimationFrame(()=>_renderGraficoEvolucao('grafico-perfil',evoPts,cor,nivel.cor||cor));
+  }
+  document.getElementById('modal-perfil-usuario').classList.add('show');
+}
+function fecharPerfilUsuario(){document.getElementById('modal-perfil-usuario').classList.remove('show');}
+function abrirComparacao(uid){
+  const sel=document.getElementById('comparacao-seletor');if(!sel)return;
+  sel.style.display=sel.style.display==='none'?'block':'none';
+}
+async function executarComparacao(uid1){
+  const sel=document.getElementById('comparacao-select');if(!sel)return;
+  const uid2=sel.value;
+  if(!uid2||uid2===uid1){showToast('⚠️ Selecione uma pessoa diferente');return;}
+  const u1=todosUsuarios.find(x=>x.id===uid1),u2=todosUsuarios.find(x=>x.id===uid2);
+  if(!u1||!u2)return;
+  showToast('⚔️ Gerando comparação…');
+  try{
+    const s1=calcPtsTotal(uid1),s2=calcPtsTotal(uid2);
+    const niv1=getNivelMoldura(s1.total),niv2=getNivelMoldura(s2.total);
+    const cor1=niv1.cor||corU(uid1),cor2=niv2.cor||corU(uid2);
+    const corAv1=corU(uid1),corAv2=corU(uid2);
+    const jogosEnc=todosJogos.filter(j=>j.status==='encerrado'&&j.gols1!==null);
+    const jogosAmbos=jogosEnc.filter(j=>(todosPalpites[j.id]||{})[uid1]&&(todosPalpites[j.id]||{})[uid2]);
+    const jogos10=jogosAmbos.slice(-10);
+    const nJogos=jogos10.length;
+    const linhasJogos=jogos10.map(j=>{
+      const p1=(todosPalpites[j.id]||{})[uid1],p2=(todosPalpites[j.id]||{})[uid2];
+      return{j,p1,p2,r1:calcPts(j,p1),r2:calcPts(j,p2)};
+    });
+    let wins1=0,wins2=0,empates=0;
+    linhasJogos.forEach(({r1,r2})=>{if(r1.pts>r2.pts)wins1++;else if(r2.pts>r1.pts)wins2++;else empates++;});
+    const taxa1=nJogos?Math.round(linhasJogos.filter(({r1})=>r1.pts>0).length/nJogos*100):0;
+    const taxa2=nJogos?Math.round(linhasJogos.filter(({r2})=>r2.pts>0).length/nJogos*100):0;
+    const W=800,ROW_H=52,TABLE_HEAD=36,HEADER_H=170;
+    const TABLE_H=TABLE_HEAD+nJogos*ROW_H,SCORE_H=120,FOOTER_H=58;
+    const H=HEADER_H+TABLE_H+SCORE_H+FOOTER_H;
+    const canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
+    const ctx=canvas.getContext('2d');
+    ctx.fillStyle='#040f07';ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle='#009c3b';ctx.lineWidth=3;ctx.strokeRect(10,10,W-20,H-20);
+    ctx.fillStyle='#ffdf00';ctx.fillRect(10,10,W-20,4);
+    ctx.fillStyle='rgba(0,156,59,.1)';ctx.fillRect(10,14,W-20,HEADER_H-14);
+    const drawAv=async(u,x,y,r,corAv,nivel)=>{
+      ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+      const g=ctx.createRadialGradient(x,y,0,x,y,r);
+      g.addColorStop(0,corAv+'44');g.addColorStop(1,corAv+'0a');
+      ctx.fillStyle=g;ctx.fill();ctx.strokeStyle=nivel.cor||corAv;ctx.lineWidth=3;ctx.stroke();
+      if(u.foto_url){
+        try{
+          const img=await new Promise((res,rej)=>{const i=new Image();i.crossOrigin='anonymous';i.onload=()=>res(i);i.onerror=rej;i.src=u.foto_url;});
+          ctx.save();ctx.beginPath();ctx.arc(x,y,r-2,0,Math.PI*2);ctx.clip();
+          ctx.drawImage(img,x-r+2,y-r+2,(r-2)*2,(r-2)*2);ctx.restore();
+        }catch{ctx.font=`bold ${r}px Arial`;ctx.fillStyle=corAv;ctx.textAlign='center';ctx.fillText((u.nome||'?')[0].toUpperCase(),x,y+r*.35);}
+      }else{ctx.font=`bold ${r}px Arial`;ctx.fillStyle=corAv;ctx.textAlign='center';ctx.fillText((u.nome||'?')[0].toUpperCase(),x,y+r*.35);}
+      if(nivel.emoji){ctx.font='20px Arial';ctx.textAlign='center';ctx.fillText(nivel.emoji,x+r*.72,y+r*.72);}
+    };
+    const AV_Y=70,AV_R=44;
+    await drawAv(u1,W/4,AV_Y,AV_R,corAv1,niv1);
+    await drawAv(u2,3*W/4,AV_Y,AV_R,corAv2,niv2);
+    ctx.font='bold 22px Arial';ctx.fillStyle='rgba(255,223,0,.6)';ctx.textAlign='center';ctx.fillText('VS',W/2,AV_Y+8);
+    ctx.font='bold 20px Arial';ctx.fillStyle='#fff';ctx.textAlign='center';
+    ctx.fillText(u1.nome||'?',W/4,AV_Y+AV_R+22);ctx.fillText(u2.nome||'?',3*W/4,AV_Y+AV_R+22);
+    if(niv1.cor){ctx.font='12px Arial';ctx.fillStyle=niv1.cor;ctx.fillText(niv1.nome,W/4,AV_Y+AV_R+38);}
+    if(niv2.cor){ctx.font='12px Arial';ctx.fillStyle=niv2.cor;ctx.fillText(niv2.nome,3*W/4,AV_Y+AV_R+38);}
+    ctx.font='bold 13px Arial';ctx.fillStyle='rgba(255,255,255,.35)';ctx.textAlign='center';
+    ctx.fillText(`⚔️  Duelo — últimos ${nJogos} jogos em comum  ⚔️`,W/2,HEADER_H-8);
+    const TY=HEADER_H,COL_PAL=190,COL_MEIO=W-COL_PAL*2,X_PAL2_START=COL_PAL+COL_MEIO;
+    ctx.fillStyle='rgba(0,156,59,.25)';ctx.fillRect(10,TY,W-20,TABLE_HEAD);
+    ctx.font='bold 12px Arial';ctx.fillStyle=cor1;ctx.textAlign='center';
+    ctx.fillText(u1.nome||'?',COL_PAL/2,TY+TABLE_HEAD/2+5);
+    ctx.fillStyle='rgba(255,255,255,.5)';ctx.fillText('JOGO  ·  PLACAR',W/2,TY+TABLE_HEAD/2+5);
+    ctx.fillStyle=cor2;ctx.fillText(u2.nome||'?',X_PAL2_START+(W-10-X_PAL2_START)/2,TY+TABLE_HEAD/2+5);
+    ctx.strokeStyle='rgba(0,156,59,.3)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(COL_PAL,TY);ctx.lineTo(COL_PAL,TY+TABLE_HEAD);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(X_PAL2_START,TY);ctx.lineTo(X_PAL2_START,TY+TABLE_HEAD);ctx.stroke();
+    const codesNeeded=[...new Set(jogos10.flatMap(j=>[getFlagCode(j.time1),getFlagCode(j.time2)]).filter(Boolean))];
+    await Promise.all(codesNeeded.map(c=>loadFlagImg(c)));
+    linhasJogos.forEach(({j,p1,p2,r1,r2},i)=>{
+      const ry=TY+TABLE_HEAD+i*ROW_H;
+      ctx.fillStyle=i%2===0?'rgba(255,255,255,.02)':'rgba(0,0,0,.15)';ctx.fillRect(10,ry,W-20,ROW_H);
+      if(r1.pts>r2.pts){ctx.fillStyle=cor1+'0d';ctx.fillRect(10,ry,COL_PAL,ROW_H);}
+      else if(r2.pts>r1.pts){ctx.fillStyle=cor2+'0d';ctx.fillRect(X_PAL2_START,ry,W-10-X_PAL2_START,ROW_H);}
+      const cy=ry+ROW_H/2;
+      const ptsCor1=r1.pts>=40?'#ffdf00':r1.pts>0?'#00d44f':'#f87171';
+      const icone1=r1.pts>=40?'🏆':r1.pts>0?'✅':'❌';
+      ctx.font='bold 17px Arial';ctx.fillStyle=ptsCor1;ctx.textAlign='center';
+      ctx.fillText(`${p1.p1}×${p1.p2}`,COL_PAL*0.42,cy-5);
+      ctx.font='11px Arial';ctx.fillStyle=r1.pts>0?ptsCor1:'rgba(255,255,255,.3)';
+      ctx.fillText(`${icone1} ${r1.pts>0?'+'+r1.pts:'0'}pts`,COL_PAL*0.42,cy+13);
+      const flag1=_flagCache[getFlagCode(j.time1)||'']||null;
+      const flag2=_flagCache[getFlagCode(j.time2)||'']||null;
+      const FW=18,FH=13,FY_FLAG=cy-19;
+      ctx.font='11px Arial';
+      const nomeT1=nomePT(j.time1),nomeT2=nomePT(j.time2),SEP=' × ';
+      const totalW=(flag1?FW+3:0)+ctx.measureText(nomeT1).width+ctx.measureText(SEP).width+(flag2?FW+3:0)+ctx.measureText(nomeT2).width;
+      let cx_cur=W/2-totalW/2;
+      if(flag1){ctx.drawImage(flag1,cx_cur,FY_FLAG,FW,FH);cx_cur+=FW+3;}
+      ctx.fillStyle='rgba(255,255,255,.5)';ctx.textAlign='left';ctx.fillText(nomeT1,cx_cur,cy-8);cx_cur+=ctx.measureText(nomeT1).width;
+      ctx.fillStyle='rgba(255,255,255,.3)';ctx.fillText(SEP,cx_cur,cy-8);cx_cur+=ctx.measureText(SEP).width;
+      if(flag2){ctx.drawImage(flag2,cx_cur,FY_FLAG,FW,FH);cx_cur+=FW+3;}
+      ctx.fillStyle='rgba(255,255,255,.5)';ctx.fillText(nomeT2,cx_cur,cy-8);
+      ctx.font='bold 16px Arial';ctx.fillStyle='rgba(255,255,255,.9)';ctx.textAlign='center';
+      ctx.fillText(`${j.gols1} – ${j.gols2}`,W/2,cy+13);
+      const ptsCor2=r2.pts>=40?'#ffdf00':r2.pts>0?'#00d44f':'#f87171';
+      const icone2=r2.pts>=40?'🏆':r2.pts>0?'✅':'❌';
+      const cx2=X_PAL2_START+(W-10-X_PAL2_START)/2;
+      ctx.font='bold 17px Arial';ctx.fillStyle=ptsCor2;ctx.textAlign='center';
+      ctx.fillText(`${p2.p1}×${p2.p2}`,cx2,cy-5);
+      ctx.font='11px Arial';ctx.fillStyle=r2.pts>0?ptsCor2:'rgba(255,255,255,.3)';
+      ctx.fillText(`${icone2} ${r2.pts>0?'+'+r2.pts:'0'}pts`,cx2,cy+13);
+      ctx.strokeStyle='rgba(0,156,59,.15)';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(COL_PAL,ry);ctx.lineTo(COL_PAL,ry+ROW_H);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(X_PAL2_START,ry);ctx.lineTo(X_PAL2_START,ry+ROW_H);ctx.stroke();
+      ctx.strokeStyle='rgba(255,255,255,.05)';
+      ctx.beginPath();ctx.moveTo(10,ry+ROW_H);ctx.lineTo(W-10,ry+ROW_H);ctx.stroke();
+    });
+    if(!nJogos){ctx.font='bold 16px Arial';ctx.fillStyle='rgba(255,255,255,.4)';ctx.textAlign='center';ctx.fillText('Nenhum jogo em comum ainda.',W/2,TY+TABLE_HEAD+40);}
+    const SY=TY+TABLE_H;
+    ctx.fillStyle='rgba(255,223,0,.06)';ctx.fillRect(10,SY,W-20,SCORE_H);
+    ctx.strokeStyle='#ffdf00';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(10,SY);ctx.lineTo(W-10,SY);ctx.stroke();
+    const SCY=SY+SCORE_H/2;
+    ctx.textAlign='center';
+    ctx.font='bold 48px Arial';ctx.fillStyle=wins1>wins2?cor1:'rgba(255,255,255,.3)';ctx.fillText(wins1,W/4,SCY+16);
+    ctx.font='12px Arial';ctx.fillStyle='rgba(255,255,255,.4)';ctx.fillText('vitórias',W/4,SCY+34);
+    ctx.font='bold 20px Arial';ctx.fillStyle='rgba(255,223,0,.6)';ctx.fillText(empates>0?`${empates} empate${empates>1?'s':''}`:'—',W/2,SCY+8);
+    ctx.font='10px Arial';ctx.fillStyle='rgba(255,255,255,.3)';ctx.fillText('Acertos %',W/2,SCY+28);
+    ctx.font='bold 13px Arial';ctx.fillStyle='rgba(255,255,255,.55)';ctx.fillText(`${taxa1}%  vs  ${taxa2}%`,W/2,SCY+44);
+    ctx.font='bold 48px Arial';ctx.fillStyle=wins2>wins1?cor2:'rgba(255,255,255,.3)';ctx.fillText(wins2,3*W/4,SCY+16);
+    ctx.font='12px Arial';ctx.fillStyle='rgba(255,255,255,.4)';ctx.fillText('vitórias',3*W/4,SCY+34);
+    ctx.font='bold 13px Arial';ctx.fillStyle=s1.total>s2.total?cor1:'rgba(255,255,255,.35)';ctx.textAlign='left';ctx.fillText(`Total: ${s1.total}pts`,26,SCY-22);
+    ctx.fillStyle=s2.total>s1.total?cor2:'rgba(255,255,255,.35)';ctx.textAlign='right';ctx.fillText(`Total: ${s2.total}pts`,W-26,SCY-22);
+    const FY2=SY+SCORE_H;
+    ctx.fillStyle='rgba(0,0,0,.3)';ctx.fillRect(10,FY2,W-20,FOOTER_H);
+    ctx.strokeStyle='rgba(0,156,59,.3)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(10,FY2);ctx.lineTo(W-10,FY2);ctx.stroke();
+    const vencedor=s1.total>s2.total?u1:s2.total>s1.total?u2:null;
+    ctx.font='bold 15px Arial';ctx.textAlign='center';
+    ctx.fillStyle=vencedor?(vencedor===u1?cor1:cor2):'#ffdf00';
+    ctx.fillText(vencedor?`🏆 ${vencedor.nome} tá na frente com ${Math.max(s1.total,s2.total)}pts!`:'🤝 Empate no total de pontos!',W/2,FY2+24);
+    const dt=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
+    ctx.font='11px Arial';ctx.fillStyle='rgba(0,156,59,.4)';ctx.textAlign='center';ctx.fillText(`copafamilia  ·  ${dt}`,W/2,FY2+44);
+    const msg=!vencedor?`⚔️ Duelo Copa 2026: ${u1.nome} vs ${u2.nome} — empatados! 🤝`:`⚔️ Duelo Copa 2026: ${vencedor.nome} vencendo com ${Math.max(s1.total,s2.total)}pts! ⚽`;
+    _dispararCompartilha(canvas,'copa2026-duelo.png',msg);
+  }catch(e){console.error(e);showToast('❌ Erro ao gerar duelo');}
+}
+
+function _renderGraficoEvolucao(canvasId,pts,cor,corTier){
+  const canvas=document.getElementById(canvasId);if(!canvas)return;
+  const dpr=window.devicePixelRatio||1,W=canvas.offsetWidth||300,H=130;
+  canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  const PAD_L=36,PAD_R=12,PAD_T=16,PAD_B=28,w=W-PAD_L-PAD_R,h=H-PAD_T-PAD_B,n=pts.length,maxPt=Math.max(...pts,1);
+  const toX=i=>PAD_L+i/(n-1)*w,toY=v=>PAD_T+h-(v/maxPt)*h;
+  ctx.strokeStyle='rgba(255,255,255,.06)';ctx.lineWidth=1;
+  [0,.25,.5,.75,1].forEach(f=>{
+    const y=PAD_T+h*(1-f);ctx.beginPath();ctx.moveTo(PAD_L,y);ctx.lineTo(PAD_L+w,y);ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,.3)';ctx.font='9px Arial';ctx.textAlign='right';ctx.fillText(Math.round(maxPt*f),PAD_L-4,y+3);
+  });
+  const gA=ctx.createLinearGradient(0,PAD_T,0,PAD_T+h);
+  gA.addColorStop(0,(corTier||cor)+'55');gA.addColorStop(1,(corTier||cor)+'05');
+  ctx.beginPath();ctx.moveTo(toX(0),PAD_T+h);
+  pts.forEach((v,i)=>ctx.lineTo(toX(i),toY(v)));
+  ctx.lineTo(toX(n-1),PAD_T+h);ctx.closePath();ctx.fillStyle=gA;ctx.fill();
+  ctx.beginPath();pts.forEach((v,i)=>{if(i===0)ctx.moveTo(toX(i),toY(v));else ctx.lineTo(toX(i),toY(v));});
+  ctx.strokeStyle=corTier||cor;ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.stroke();
+  pts.forEach((v,i)=>{ctx.beginPath();ctx.arc(toX(i),toY(v),3.5,0,Math.PI*2);ctx.fillStyle=corTier||cor;ctx.fill();ctx.strokeStyle='rgba(0,0,0,.5)';ctx.lineWidth=1;ctx.stroke();});
+  const lastX=toX(n-1),lastY=toY(pts[n-1]);
+  ctx.beginPath();ctx.arc(lastX,lastY,5,0,Math.PI*2);ctx.fillStyle=corTier||cor;ctx.fill();
+  ctx.font='bold 10px Arial';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText(pts[n-1],lastX,lastY-9);
+  ctx.fillStyle='rgba(255,255,255,.3)';ctx.font='9px Arial';ctx.textAlign='center';
+  pts.forEach((_,i)=>{if(i===0||i===n-1||i===Math.floor(n/2))ctx.fillText('J'+(i+1),toX(i),PAD_T+h+14);});
+}
+
+// ═══════════════════════════════════════════
+// ESTATÍSTICAS DE PARTICIPAÇÃO (Auditoria → Engajamento v75)
+// ═══════════════════════════════════════════
 async function renderAuditoria(){
   const c=document.getElementById('auditoria-container');
   if(!isAdmin()){
@@ -4703,38 +4261,63 @@ function renderAuditEngajamento(cont){
   Object.values(todosPalpites).forEach(porJogo=>{
     Object.keys(porJogo).forEach(uid=>{contagemPorUsuario[uid]=(contagemPorUsuario[uid]||0)+1});
   });
-  let maisAtivo=null,maisAtivoCount=0;
-  Object.entries(contagemPorUsuario).forEach(([uid,n])=>{
-    if(n>maisAtivoCount){maisAtivoCount=n;maisAtivo=todosUsuarios.find(u=>u.id===uid)}
-  });
-  const semPalpite=todosUsuarios.filter(u=>!contagemPorUsuario[u.id]);
   const totalUsuarios=todosUsuarios.length;
-  const comPalpite=totalUsuarios-semPalpite.length;
-  const taxaConversao=totalUsuarios?Math.round((comPalpite/totalUsuarios)*100):0;
-
-  // Funil: jogos futuros vistos vs palpitados (aproximação: todos jogos futuros = "vistos")
+  const totalJogosEncerrados=todosJogos.filter(j=>j.status==='encerrado').length;
+  const rankParticipacao=todosUsuarios.map(u=>({u,n:contagemPorUsuario[u.id]||0})).sort((a,b)=>b.n-a.n);
+  const maxN=rankParticipacao[0]?.n||1;
   const jogosFuturos=todosJogos.filter(j=>j.status==='futuro');
   const totalPalpitesFuturos=jogosFuturos.reduce((acc,j)=>acc+Object.keys(todosPalpites[j.id]||{}).length,0);
   const maxPossivel=jogosFuturos.length*totalUsuarios;
   const taxaPreenchimento=maxPossivel?Math.round((totalPalpitesFuturos/maxPossivel)*100):0;
-
+  const jogosEnc=todosJogos.filter(j=>j.status==='encerrado').slice(-5);
+  const sumiram=todosUsuarios.filter(u=>{
+    const palpitouRecente=jogosEnc.some(j=>(todosPalpites[j.id]||{})[u.id]);
+    return !palpitouRecente&&(contagemPorUsuario[u.id]||0)>0;
+  });
+  const nunca=todosUsuarios.filter(u=>!(contagemPorUsuario[u.id]||0));
+  const barrasHTML=rankParticipacao.map(({u,n})=>{
+    const pct=Math.round((n/Math.max(totalJogosEncerrados,1))*100);
+    const corBarra=pct>=70?'var(--verde-light)':pct>=40?'var(--amarelo)':'#f87171';
+    const cor=corU(u.id);
+    return`<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">
+      <div style="width:22px;height:22px;border-radius:50%;background:${cor}22;color:${cor};display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;flex-shrink:0">${u.nome.charAt(0)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between;font-size:.7rem;margin-bottom:2px">
+          <span style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${u.nome}</span>
+          <span style="color:${corBarra};font-weight:700;flex-shrink:0;margin-left:.3rem">${n}/${totalJogosEncerrados} (${pct}%)</span>
+        </div>
+        <div style="background:rgba(255,255,255,.07);border-radius:4px;height:6px;overflow:hidden">
+          <div style="background:${corBarra};height:100%;width:${Math.round((n/maxN)*100)}%;border-radius:4px;transition:width .4s"></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
   cont.innerHTML=`
     <div class="card">
-      <div class="card-title">🏆 Quem mais participa</div>
-      <div style="font-size:.82rem;line-height:1.8">
-        ${maisAtivo?`<div>Mais ativo: <strong style="color:var(--amarelo)">${maisAtivo.nome}</strong> (${maisAtivoCount} palpites)</div>`:'<div style="color:var(--muted)">Sem dados ainda</div>'}
-        <div style="margin-top:.4rem">✅ Pessoas que já palpitaram: <strong style="color:var(--verde-light)">${comPalpite}/${totalUsuarios}</strong> (${taxaConversao}%)</div>
-        ${semPalpite.length?`<div style="color:var(--vermelho-claro);margin-top:.4rem">⚠️ Ainda sem nenhum palpite: ${semPalpite.map(u=>u.nome).join(', ')}</div>`:'<div style="color:var(--verde-light);margin-top:.4rem">✅ Todos já deram pelo menos 1 palpite</div>'}
-      </div>
+      <div class="card-title">📊 Participação por pessoa</div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:.75rem">% de jogos encerrados com palpite dado</div>
+      ${barrasHTML||'<div style="color:var(--muted);font-size:.8rem">Sem dados ainda.</div>'}
     </div>
     <div class="card">
-      <div class="card-title">🎯 Taxa de preenchimento dos jogos futuros</div>
-      <div style="font-size:.78rem;color:var(--muted);margin-bottom:.5rem">De todos os palpites possíveis para jogos que ainda vão rolar, quantos já foram preenchidos:</div>
+      <div class="card-title">⚠️ Quem sumiu</div>
+      ${sumiram.length
+        ?`<div style="font-size:.75rem;margin-bottom:.4rem;color:var(--muted)">Participou antes mas não palpitou nos últimos 5 jogos:</div>`
+         +sumiram.map(u=>`<div style="display:flex;align-items:center;gap:.5rem;padding:.35rem 0;border-bottom:1px solid var(--border);font-size:.8rem">
+            <div style="width:22px;height:22px;border-radius:50%;background:${corU(u.id)}22;color:${corU(u.id)};display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700">${u.nome.charAt(0)}</div>
+            <span style="flex:1">${u.nome}</span>
+            <span style="color:var(--muted);font-size:.68rem">${contagemPorUsuario[u.id]||0} palpites no total</span>
+          </div>`).join('')
+        :`<div style="color:var(--verde-light);font-size:.8rem">✅ Todos que já participaram palpitaram recentemente!</div>`}
+      ${nunca.length?`<div style="margin-top:.6rem;padding-top:.5rem;border-top:1px solid var(--border);font-size:.72rem;color:var(--vermelho-claro)">❌ Nunca palpitou: ${nunca.map(u=>u.nome).join(', ')}</div>`:''}
+    </div>
+    <div class="card">
+      <div class="card-title">🎯 Cobertura dos jogos futuros</div>
+      <div style="font-size:.78rem;color:var(--muted);margin-bottom:.5rem">Palpites já dados para jogos que ainda vão acontecer:</div>
       <div style="background:rgba(255,255,255,.06);border-radius:8px;height:24px;overflow:hidden;position:relative">
         <div style="background:linear-gradient(90deg,var(--verde),var(--verde-light));height:100%;width:${taxaPreenchimento}%;transition:width .4s"></div>
         <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff">${taxaPreenchimento}%</div>
       </div>
-      <div style="font-size:.68rem;color:var(--muted);margin-top:.4rem">${totalPalpitesFuturos} de ${maxPossivel} palpites possíveis</div>
+      <div style="font-size:.68rem;color:var(--muted);margin-top:.4rem">${totalPalpitesFuturos} de ${maxPossivel} possíveis</div>
     </div>
     <div class="card">
       <div class="card-title">📅 Retenção — quem voltou hoje</div>
@@ -4750,6 +4333,7 @@ function renderAuditEngajamento(cont){
 }
 
 async function carregarRetencao(){
+
   const cont=document.getElementById('audit-retencao');
   if(!cont)return;
   try{
