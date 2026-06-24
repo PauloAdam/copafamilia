@@ -494,6 +494,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <div class="topbar-logo"><span class="logo-ball">⚽</span> COPA <span>2026</span></div>
     <div class="topbar-actions">
       <button class="btn-icon" id="btn-musica-toggle" onclick="toggleMusicaAmbiente()" title="Música ambiente">🔇</button>
+      <button class="btn-icon" id="btn-torcida" onclick="toggleModoTorcida()" title="Modo Torcida — alerta de gols">📣</button>
       <button class="btn-icon" onclick="toggleTheme()" title="Tema">🌙</button>
       <button class="btn-icon" onclick="irPara('perfil',document.querySelector('.nav-btn[data-page=perfil]'))" title="Perfil">
         <div class="user-avatar" id="topbar-avatar" style="width:24px;height:24px;font-size:.7rem">?</div>
@@ -698,7 +699,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '75';
+const APP_VERSION = '76';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -1258,6 +1259,7 @@ async function iniciarApp(){
       if(paginaAtual)renderPagina(paginaAtual);
     }
     carregarChat();
+    checarZoadasNoChat();
   },10000); // atualiza a cada 10s (mais rápido para placares ao vivo)
 }
 
@@ -1678,19 +1680,9 @@ function notificarGol(time,g1,g2,jogo){
   enviarNotifGol(nm,g1,g2,jogo);
 }
 function tocarSomGol(brasil){
-  try{
-    const ctx=new(window.AudioContext||window.webkitAudioContext)();
-    const notas=brasil?[523,659,784,1047]:[523,659,784];
-    notas.forEach((freq,i)=>{
-      const o=ctx.createOscillator(),g=ctx.createGain();
-      o.connect(g);g.connect(ctx.destination);
-      o.frequency.value=freq;o.type='sine';
-      const t=ctx.currentTime+i*0.15;
-      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.3,t+0.05);
-      g.gain.linearRampToValueAtTime(0,t+0.3);
-      o.start(t);o.stop(t+0.35);
-    });
-  }catch(e){}
+  tocarNarradorGol();
+  // Vibra no celular junto com o gol
+  try{if(navigator.vibrate)navigator.vibrate([100,50,100,50,200]);}catch(e){}
 }
 
 // ═══════════════════════════════════════════
@@ -1698,6 +1690,23 @@ function tocarSomGol(brasil){
 // Arquivo de áudio real, fornecido pelo usuário, tocando em loop
 // ═══════════════════════════════════════════
 let elementoAudio = null;
+let audioGol = null;
+let modoTorcidaAtivo = false;
+
+function getAudioGol(){
+  if(!audioGol){
+    audioGol = new Audio('galvao-bueno-olha-o-gol.mp3');
+    audioGol.volume = 1.0;
+  }
+  return audioGol;
+}
+function tocarNarradorGol(){
+  try{
+    const a = getAudioGol();
+    a.currentTime = 0;
+    a.play().catch(e=>console.warn('Áudio gol bloqueado:',e.message));
+  }catch(e){}
+}
 let tocandoAmbiente = false;
 
 function getElementoAudio() {
@@ -1749,7 +1758,31 @@ function atualizarBotaoMusica() {
   if (btn) btn.textContent = tocandoAmbiente ? '🔊' : '🔇';
 }
 
-// Fallback: se o autoplay foi bloqueado no login, tenta de novo no primeiro toque na tela
+// ═══════════════════════════════════════════
+// MODO TORCIDA 📣 — alerta de gols mesmo com tela bloqueada
+// ═══════════════════════════════════════════
+function toggleModoTorcida(){
+  modoTorcidaAtivo=!modoTorcidaAtivo;
+  const btn=document.getElementById('btn-torcida');
+  if(modoTorcidaAtivo){
+    // Pré-carrega o áudio com interação do usuário (necessário para mobile)
+    try{getAudioGol().load();}catch(e){}
+    if(btn){btn.textContent='🔴';btn.style.borderColor='rgba(255,80,80,.6)';btn.style.color='#ff4444';}
+    showToast('📣 Modo Torcida ativado! Vai narrar cada gol!');
+    // Mantém tela acesa se possível
+    if(navigator.wakeLock){
+      navigator.wakeLock.request('screen').then(lock=>{
+        window._wakeLock=lock;
+      }).catch(()=>{});
+    }
+  }else{
+    if(btn){btn.textContent='📣';btn.style.borderColor='';btn.style.color='';}
+    showToast('📣 Modo Torcida desativado');
+    if(window._wakeLock){try{window._wakeLock.release();}catch(e){}window._wakeLock=null;}
+  }
+}
+
+
 document.addEventListener('click', function tentarAutoplayNoPrimeiroClique() {
   const musicaPref = localStorage.getItem('copa_musica_ativa');
   if (!tocandoAmbiente && musicaPref !== '0' && usuarioAtual) {
@@ -2363,6 +2396,12 @@ function abrirModalPalpites(jogoId){
   });
   entradas.sort((a,b)=>enc?b.pts-a.pts:a.nome.localeCompare(b.nome));
 
+  // Carrega reações salvas localmente para esse jogo
+  let reacoesJogo={};
+  try{reacoesJogo=JSON.parse(localStorage.getItem('copa_reacoes_'+jogoId)||'{}');}catch(e){}
+
+  const EMOJIS_PAL=['😤','👏','💀','🔥','😂'];
+
   const lista=document.getElementById('modal-palpites-lista');
   if(!entradas.length){
     lista.innerHTML='<div class="empty-state" style="padding:1rem"><p>Ninguém palpitou ainda.</p></div>';
@@ -2374,11 +2413,24 @@ function abrirModalPalpites(jogoId){
       const btnZoar=podeZoar
         ?`<button onclick="zoarPessoa('${e.uid}','${e.nome.replace(/'/g,"\\'")}','${jogoId}')" style="background:rgba(255,80,80,.12);border:1px solid rgba(255,80,80,.3);color:#f87171;font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;margin-left:.3rem" title="Zoar ${e.nome}">😂 Zoar</button>`
         :'';
-      return`<div class="palpite-pessoa-row ${e.rowClass}">
+      // Reações deste palpite
+      const reacoesUid=reacoesJogo[e.uid]||{};
+      const reacoesHtml=EMOJIS_PAL.map(em=>{
+        const quem=reacoesUid[em]||[];
+        const euReagi=quem.includes(usuarioAtual?.id);
+        const count=quem.length;
+        return`<button onclick="reagirPalpite('${jogoId}','${e.uid}','${em}')" style="background:${euReagi?'rgba(0,156,59,.2)':'rgba(255,255,255,.05)'};border:1px solid ${euReagi?'rgba(0,156,59,.5)':'rgba(255,255,255,.1)'};border-radius:12px;padding:1px 6px;font-size:.75rem;cursor:pointer;transition:all .15s">${em}${count>0?` <span style="font-size:.6rem;color:var(--muted)">${count}</span>`:''}</button>`;
+      }).join('');
+      return`<div class="palpite-pessoa-row ${e.rowClass}" id="pal-row-${jogoId}-${e.uid}">
         <div class="pp-avatar" style="background:${cor}22;color:${cor}">${e.nome.charAt(0).toUpperCase()}</div>
-        <div class="pp-nome">${e.nome}${souEu?' <span style="color:var(--muted);font-size:.7rem">(você)</span>':''}</div>
-        <div class="pp-palpite">${e.pal.p1}×${e.pal.p2}</div>
-        ${e.resultTag}${btnZoar}
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:.3rem;flex-wrap:wrap">
+            <span class="pp-nome">${e.nome}${souEu?' <span style="color:var(--muted);font-size:.7rem">(você)</span>':''}</span>
+            <span class="pp-palpite">${e.pal.p1}×${e.pal.p2}</span>
+            ${e.resultTag}${btnZoar}
+          </div>
+          <div style="display:flex;gap:.25rem;flex-wrap:wrap;margin-top:.35rem">${reacoesHtml}</div>
+        </div>
       </div>`;
     }).join('');
   }
@@ -2417,7 +2469,52 @@ async function zoarPessoa(uid,nome,jogoId){
     fecharModalPalpites();
     showToast('😂 Zoada enviada no chat!');
     await carregarChat();
+    // Notifica badge do chat como zoada
+    _marcarZoadaNoChat(uid);
   }catch(e){showToast('❌ Erro ao enviar zoada');}
+}
+
+// Reações em palpites — salvo localmente (localStorage por jogo)
+function reagirPalpite(jogoId,uidAlvo,emoji){
+  if(!usuarioAtual)return;
+  let reacoesJogo={};
+  try{reacoesJogo=JSON.parse(localStorage.getItem('copa_reacoes_'+jogoId)||'{}');}catch(e){}
+  if(!reacoesJogo[uidAlvo])reacoesJogo[uidAlvo]={};
+  if(!reacoesJogo[uidAlvo][emoji])reacoesJogo[uidAlvo][emoji]=[];
+  const lista=reacoesJogo[uidAlvo][emoji];
+  const idx=lista.indexOf(usuarioAtual.id);
+  if(idx>=0)lista.splice(idx,1); // toggle off
+  else lista.push(usuarioAtual.id); // toggle on
+  try{localStorage.setItem('copa_reacoes_'+jogoId,JSON.stringify(reacoesJogo));}catch(e){}
+  try{if(navigator.vibrate)navigator.vibrate(30);}catch(e){}
+  // Re-renderiza só o modal sem fechar
+  abrirModalPalpites(jogoId);
+}
+
+// Notificação de zoada — acende badge do chat com mensagem especial
+function _marcarZoadaNoChat(uidZoado){
+  if(uidZoado===usuarioAtual?.id){
+    // Você foi zoado — destaca o badge
+    const badge=document.getElementById('badge-chat');
+    if(badge){badge.textContent='😂';badge.classList.add('show');}
+  }
+}
+
+// Verifica se alguma mensagem recente no chat é uma zoada direcionada ao usuário logado
+function checarZoadasNoChat(){
+  if(!usuarioAtual||!chatMsgs.length)return;
+  const ZOADAS_CHECK=ZOADAS.map(z=>z.replace('${alvo}',usuarioAtual.nome).substring(0,20));
+  const recentes=chatMsgs.slice(-10);
+  const foiZoado=recentes.some(m=>
+    m.usuario_id!==usuarioAtual.id&&
+    ZOADAS_CHECK.some(z=>m.texto.startsWith(z.substring(0,15)))
+  );
+  if(foiZoado){
+    const badge=document.getElementById('badge-chat');
+    if(badge&&!document.getElementById('page-chat')?.classList.contains('active')){
+      badge.textContent='😂';badge.classList.add('show');
+    }
+  }
 }
 
 
@@ -2513,6 +2610,7 @@ async function salvarPalpite(jogoId){
     todosPalpites[jogoId][usuarioAtual.id]={p1:g1,p2:g2};
     const j=todosJogos.find(x=>x.id===jogoId);
     showToast(`✅ Palpite ${g1}×${g2} salvo! ${j?`(${nomePT(j.time1)} vs ${nomePT(j.time2)})`:''}`)
+    try{if(navigator.vibrate)navigator.vibrate([40,30,40]);}catch(e){}
     const pag=document.querySelector('.page.active')?.id?.replace('page-','');
     if(pag)renderPagina(pag);
   }catch(e){
