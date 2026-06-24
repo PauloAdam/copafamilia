@@ -3964,6 +3964,8 @@ function renderAdmin(){
       }).catch(()=>{});
   }
 }
+
+async function adminResetarSenha(){
   if(!isAdmin())return;
   const userId=document.getElementById('adm-user-select')?.value;
   const novaSenha=document.getElementById('adm-nova-senha')?.value;
@@ -3981,9 +3983,7 @@ function renderAdmin(){
     showToast('❌ Erro ao resetar senha');
     console.error(e);
   }
-}
-
-let _transferencias=[];
+}let _transferencias=[];
 function adminFusaoPreview(){
   const deId=document.getElementById('adm-fusao-de')?.value;
   const paraId=document.getElementById('adm-fusao-para')?.value;
