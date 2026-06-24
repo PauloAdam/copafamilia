@@ -699,7 +699,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '76';
+const APP_VERSION = '77';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -3316,21 +3316,21 @@ async function checarBolaoArtilheiro(){
   if(!usuarioAtual)return;
   const hoje=new Date().toISOString().split('T')[0];
   if(hoje!==BOLAO_ARTILHEIRO_CONFIG.dataJogo)return; // só aparece hoje
-  const chave=`copa_artilheiro_visto_${usuarioAtual.id}_${hoje}`;
-  if(localStorage.getItem(chave))return; // já viu hoje
+  // Usa versão do app como chave — garante que TODOS vejam mesmo que já abriram hoje
+  const chave=`copa_artilheiro_visto_${usuarioAtual.id}_v${APP_VERSION}`;
+  if(localStorage.getItem(chave))return; // já viu nessa versão
   // Busca se já apostou
   try{
     const res=await sbGet('bolao_artilheiro',`usuario_id=eq.${usuarioAtual.id}&data_jogo=eq.${hoje}&select=jogador_id`);
     mostrarPopupArtilheiro(res?.[0]?.jogador_id||null);
   }catch(e){
-    // Tabela não existe ainda — mostra o popup mesmo assim
     mostrarPopupArtilheiro(null);
   }
 }
 
 function mostrarPopupArtilheiro(escolhaAtual){
   const hoje=new Date().toISOString().split('T')[0];
-  const chave=`copa_artilheiro_visto_${usuarioAtual.id}_${hoje}`;
+  const chave=`copa_artilheiro_visto_${usuarioAtual.id}_v${APP_VERSION}`;
   const cfg=BOLAO_ARTILHEIRO_CONFIG;
   const jaApostou=!!escolhaAtual;
 
