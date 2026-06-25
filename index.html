@@ -407,6 +407,57 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .notif-text span{color:var(--muted);font-size:.73rem}
 .btn-notif{background:var(--verde);border:none;color:#fff;font-size:.75rem;font-weight:700;padding:.45rem .9rem;border-radius:20px;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif}
 
+/* NOTÍCIAS */
+.noticia-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:.75rem;overflow:hidden;transition:border-color .2s}
+.noticia-card:hover{border-color:var(--border2)}
+.noticia-img{width:100%;height:160px;object-fit:cover;display:block;background:var(--card2)}
+.noticia-img-placeholder{width:100%;height:160px;background:linear-gradient(135deg,var(--card2),var(--card));display:flex;align-items:center;justify-content:center;font-size:3rem}
+.noticia-body{padding:.85rem 1rem}
+.noticia-meta{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;flex-wrap:wrap}
+.noticia-tag{font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:.5px}
+.noticia-tag.brasil{background:rgba(0,156,59,.15);color:var(--verde-light);border:1px solid rgba(0,156,59,.3)}
+.noticia-tag.curiosidade{background:rgba(255,223,0,.12);color:var(--amarelo);border:1px solid rgba(255,223,0,.25)}
+.noticia-tag.noticia{background:rgba(0,39,118,.2);color:var(--azul-claro);border:1px solid rgba(0,39,118,.35)}
+.noticia-tag.jogo{background:rgba(255,80,80,.12);color:#f87171;border:1px solid rgba(255,80,80,.25)}
+.noticia-fonte{font-size:.65rem;color:var(--muted)}
+.noticia-tempo{font-size:.65rem;color:var(--muted);margin-left:auto}
+.noticia-titulo{font-size:.95rem;font-weight:700;color:var(--text);line-height:1.4;margin-bottom:.4rem}
+.noticia-resumo{font-size:.78rem;color:var(--muted);line-height:1.6;margin-bottom:.75rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.noticia-acoes{display:flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border-top:1px solid var(--border);background:rgba(0,0,0,.1)}
+.reacao-noticia{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:3px 10px;font-size:.78rem;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:.3rem}
+.reacao-noticia:hover{background:rgba(255,255,255,.1)}
+.reacao-noticia.ativa{background:rgba(0,156,59,.15);border-color:rgba(0,156,59,.4)}
+.reacao-noticia .cnt{font-size:.65rem;color:var(--muted)}
+.noticia-ler{margin-left:auto;font-size:.72rem;color:var(--azul-claro);text-decoration:none;font-weight:600;padding:4px 10px;border:1px solid rgba(0,39,118,.4);border-radius:8px;background:rgba(0,39,118,.1)}
+.curiosidade-card{background:linear-gradient(135deg,rgba(255,223,0,.07),rgba(0,156,59,.05));border:1px solid rgba(255,223,0,.2);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:.75rem;position:relative;overflow:hidden}
+.curiosidade-card::before{content:'🧠';position:absolute;right:-.5rem;top:-.5rem;font-size:4rem;opacity:.06}
+.curiosidade-num{font-size:.65rem;font-weight:700;color:rgba(255,223,0,.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:.3rem}
+.curiosidade-txt{font-size:.85rem;color:var(--text);line-height:1.6;font-style:italic}
+.curiosidade-acoes{display:flex;gap:.4rem;margin-top:.65rem}
+
+/* NOTÍCIAS */
+.noticia-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:.75rem;transition:border-color .2s}
+.noticia-card:hover{border-color:var(--border2)}
+.noticia-img{width:100%;height:160px;object-fit:cover;display:block;background:var(--card2)}
+.noticia-img-placeholder{width:100%;height:120px;background:linear-gradient(135deg,var(--card2),rgba(0,156,59,.1));display:flex;align-items:center;justify-content:center;font-size:2.5rem}
+.noticia-body{padding:.85rem 1rem}
+.noticia-fonte{font-size:.65rem;font-weight:700;color:var(--verde-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:.3rem;display:flex;align-items:center;gap:.4rem}
+.noticia-badge{font-size:.6rem;padding:1px 7px;border-radius:10px;font-weight:700}
+.badge-noticia{background:rgba(0,156,59,.15);color:var(--verde-light);border:1px solid rgba(0,156,59,.3)}
+.badge-curiosidade{background:rgba(255,223,0,.12);color:var(--amarelo);border:1px solid rgba(255,223,0,.3)}
+.noticia-titulo{font-size:.92rem;font-weight:700;color:var(--text);line-height:1.35;margin-bottom:.4rem}
+.noticia-desc{font-size:.78rem;color:var(--muted);line-height:1.5;margin-bottom:.65rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.noticia-footer{display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap}
+.noticia-tempo{font-size:.65rem;color:var(--muted)}
+.noticia-reacoes{display:flex;gap:.3rem;flex-wrap:wrap}
+.reacao-noticia{background:rgba(255,255,255,.05);border:0.5px solid rgba(255,255,255,.1);border-radius:12px;padding:2px 8px;font-size:.75rem;cursor:pointer;transition:all .15s;user-select:none}
+.reacao-noticia.ativa{background:rgba(0,156,59,.2);border-color:rgba(0,156,59,.4)}
+.noticia-link{font-size:.72rem;color:var(--azul-claro);text-decoration:none;font-weight:600}
+.curiosidade-card{background:linear-gradient(135deg,rgba(255,223,0,.06),rgba(0,156,59,.04));border:1px solid rgba(255,223,0,.2);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:.75rem}
+.curiosidade-icon{font-size:1.8rem;margin-bottom:.5rem}
+.curiosidade-titulo{font-size:.85rem;font-weight:700;color:var(--amarelo);margin-bottom:.35rem}
+.curiosidade-texto{font-size:.82rem;color:var(--text);line-height:1.55}
+
 /* MISC */
 .loading-spinner{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.75rem;padding:3rem 1rem;color:var(--muted);font-size:.85rem}
 .spinner{width:32px;height:32px;border:3px solid var(--border2);border-top-color:var(--verde);border-radius:50%;animation:spin .8s linear infinite}
@@ -577,6 +628,33 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     </div>
 
     <!-- CHAT -->
+    <!-- NOTÍCIAS -->
+    <div id="page-noticias" class="page">
+      <div class="section-title">📰 Notícias da Copa</div>
+      <!-- Filtros -->
+      <div class="filtro-bar" id="noticias-filtros" style="margin-bottom:.75rem">
+        <button class="filtro-btn active" onclick="filtrarNoticias('tudo',this)">🌍 Tudo</button>
+        <button class="filtro-btn" onclick="filtrarNoticias('brasil',this)">🇧🇷 Brasil</button>
+        <button class="filtro-btn" onclick="filtrarNoticias('curiosidades',this)">🧠 Curiosidades</button>
+        <button class="filtro-btn" onclick="filtrarNoticias('jogos',this)">⚽ Jogos</button>
+        <button class="filtro-btn" onclick="filtrarNoticias('times',this)">🏆 Times</button>
+      </div>
+      <div id="noticias-container">
+        <div class="loading-spinner"><div class="spinner"></div><span>Carregando notícias…</span></div>
+      </div>
+    </div>
+
+    <!-- NOTÍCIAS -->
+    <div id="page-noticias" class="page">
+      <div class="section-title">📰 Notícias & Curiosidades</div>
+      <div class="filtro-bar" id="noticias-tabs" style="margin-bottom:.75rem">
+        <button class="filtro-btn active" onclick="trocarAbaNoticias('noticias',this)">📰 Notícias</button>
+        <button class="filtro-btn" onclick="trocarAbaNoticias('curiosidades',this)">💡 Curiosidades</button>
+        <button class="filtro-btn" onclick="trocarAbaNoticias('todos',this)">🌎 Todos</button>
+      </div>
+      <div id="noticias-container"><div class="loading-spinner"><div class="spinner"></div><span>Carregando notícias…</span></div></div>
+    </div>
+
     <div id="page-chat" class="page">
       <div class="section-title">💬 Chat da Família</div>
       <div class="card" style="padding:.75rem">
@@ -645,8 +723,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   <nav class="bottom-nav">
     <button class="nav-btn active" data-page="hoje" onclick="irPara('hoje',this)"><span class="icon">📅</span>Hoje</button>
     <button class="nav-btn" data-page="jogos" onclick="irPara('jogos',this)"><span class="icon">⚽</span>Jogos</button>
+    <button class="nav-btn" data-page="noticias" onclick="irPara('noticias',this)"><span class="icon">📰</span>Notícias<span class="nav-badge" id="badge-noticias"></span></button>
     <button class="nav-btn" data-page="chat" onclick="irPara('chat',this)"><span class="icon">💬</span>Chat<span class="nav-badge" id="badge-chat"></span></button>
-    <button class="nav-btn" data-page="ranking" onclick="irPara('ranking',this)"><span class="icon">🏅</span>Ranking</button>
     <button class="nav-btn" data-page="grupos" onclick="irPara('grupos',this)"><span class="icon">📊</span>Mais<span class="nav-badge" id="badge-mais"></span></button>
   </nav>
 </div>
@@ -2150,6 +2228,7 @@ function renderPagina(pag){
   else if(pag==='ranking')renderRanking();
   else if(pag==='grupos')renderGrupos();
   else if(pag==='chat'){carregarChat();renderChat()}
+  else if(pag==='noticias')renderNoticias();
   else if(pag==='mata')renderMata();
   else if(pag==='bolao')renderBolao();
   else if(pag==='perfil')renderPerfil();
@@ -3029,6 +3108,7 @@ function renderChat(){
   document.getElementById('badge-chat').classList.remove('show');
   if(!chatMsgs.length){c.innerHTML='<div class="empty-state" style="padding:1.5rem"><p>Nenhuma mensagem ainda. Comece o papo! ⚽</p></div>';return}
   const uid=usuarioAtual?.id;
+  const admin=isAdmin();
   const EMOJIS_RAPIDOS=['👏','😂','🔥','💀'];
   c.innerHTML=chatMsgs.map(m=>{
     const minha=m.usuario_id===uid;
@@ -3040,11 +3120,12 @@ function renderChat(){
     ).join('');
     const botoesRapidos=EMOJIS_RAPIDOS.map(emo=>`<span class="reacao-add-btn" onclick="reagirChat('${m.id}','${emo}')">${emo}</span>`).join('');
     const ptsAutor=calcPtsTotal(m.usuario_id).total;
-    return`<div class="chat-msg${minha?' minha':''}">
+    const btnApagar=(admin||minha)?`<button onclick="apagarMsgChat('${m.id}')" style="background:none;border:none;color:rgba(248,113,113,.5);font-size:.7rem;cursor:pointer;padding:0 2px;line-height:1;margin-left:.3rem;transition:color .15s" title="Apagar mensagem" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='rgba(248,113,113,.5)'">🗑️</button>`:'';
+    return`<div class="chat-msg${minha?' minha':''}" id="chat-msg-${m.id}">
       ${renderAvatar(u,36,ptsAutor)}
       <div style="max-width:75%">
         <div class="chat-bubble">${escHtml(m.texto)}</div>
-        <div class="chat-meta">${minha?'Você':escHtml(m.nome)} · ${t}</div>
+        <div class="chat-meta" style="display:flex;align-items:center;gap:.2rem">${minha?'Você':escHtml(m.nome)} · ${t}${btnApagar}</div>
         <div class="chat-reacoes-row">${reacoesHtml}<span class="reacao-add-wrap">${botoesRapidos}</span></div>
       </div>
     </div>`;
@@ -3079,11 +3160,188 @@ async function enviarChat(){
     await carregarChat();renderChat();
   }catch(e){showToast('❌ Erro ao enviar');inp.value=txt}
 }
+
+async function apagarMsgChat(msgId){
+  if(!usuarioAtual)return;
+  const msg=chatMsgs.find(m=>m.id===msgId);
+  if(!msg)return;
+  // Admin apaga qualquer msg; usuário comum só apaga a própria
+  if(!isAdmin()&&msg.usuario_id!==usuarioAtual.id){showToast('⚠️ Só pode apagar suas próprias mensagens');return;}
+  // Animação de saída
+  const el=document.getElementById('chat-msg-'+msgId);
+  if(el){el.style.transition='opacity .2s,transform .2s';el.style.opacity='0';el.style.transform='scale(.95)';}
+  try{
+    await sbDelete('chat',`id=eq.${msgId}`);
+    chatMsgs=chatMsgs.filter(m=>m.id!==msgId);
+    setTimeout(()=>renderChat(),200);
+    if(isAdmin())registrarLogAuditoria('msg_apagada',`Mensagem de ${msg.nome} apagada pelo admin`);
+  }catch(e){
+    if(el){el.style.opacity='1';el.style.transform='';}
+    showToast('❌ Erro ao apagar mensagem');
+  }
+}
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 
 // ═══════════════════════════════════════════
 // MATA-MATA CHAVEAMENTO ⚔️
 // ═══════════════════════════════════════════
+// ═══════════════════════════════════════════
+// NOTÍCIAS & CURIOSIDADES 📰
+// ═══════════════════════════════════════════
+let _noticiaCache=[];
+let _abaNoticiasAtiva='noticias';
+
+function trocarAbaNoticias(aba,btn){
+  _abaNoticiasAtiva=aba;
+  document.querySelectorAll('#noticias-tabs .filtro-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderNoticias();
+}
+
+async function renderNoticias(){
+  const c=document.getElementById('noticias-container');
+  if(!c)return;
+  if(_noticiaCache.length){
+    _renderNoticiasLista(c);
+    return;
+  }
+  c.innerHTML='<div class="loading-spinner"><div class="spinner"></div><span>Buscando notícias…</span></div>';
+  await carregarNoticias();
+  _renderNoticiasLista(c);
+}
+
+async function carregarNoticias(){
+  try{
+    const [noticias,curiosidades]=await Promise.allSettled([
+      sbGet('copa_noticias','select=*&order=publicado_em.desc&limit=30'),
+      sbGet('copa_curiosidades','select=*&order=criado_em.desc&limit=20'),
+    ]);
+    const ns=(noticias.status==='fulfilled'?noticias.value:[])||[];
+    const cs=(curiosidades.status==='fulfilled'?curiosidades.value:[])||[];
+    // Mescla e ordena por data
+    _noticiaCache=[
+      ...ns.map(n=>({...n,tipo:'noticia'})),
+      ...cs.map(c=>({...c,tipo:'curiosidade',titulo:c.fato?.substring(0,80)+'…',publicado_em:c.criado_em})),
+    ].sort((a,b)=>new Date(b.publicado_em)-new Date(a.publicado_em));
+  }catch(e){
+    console.warn('Notícias:',e.message);
+    _noticiaCache=[];
+  }
+}
+
+function _renderNoticiasLista(c){
+  let lista=_noticiaCache;
+  if(_abaNoticiasAtiva==='noticias') lista=lista.filter(n=>n.tipo==='noticia');
+  else if(_abaNoticiasAtiva==='curiosidades') lista=lista.filter(n=>n.tipo==='curiosidade');
+
+  if(!lista.length){
+    c.innerHTML=`<div class="empty-state"><span class="ei">📰</span><p>Nenhum conteúdo ainda.<br>Volte em breve!</p></div>`;
+    return;
+  }
+
+  c.innerHTML=lista.map(item=>{
+    if(item.tipo==='curiosidade') return _curiosidadeHTML(item);
+    return _noticiaHTML(item);
+  }).join('');
+}
+
+function _noticiaHTML(n){
+  const uid=usuarioAtual?.id||'';
+  const reacoes=n.reacoes||{};
+  const EMOJIS=['❤️','😂','🔥','😮','👏'];
+  const reacoesHtml=EMOJIS.map(em=>{
+    const quem=reacoes[em]||[];
+    const ativa=quem.includes(uid);
+    const count=quem.length;
+    return`<button onclick="reagirNoticia('${n.id}','${em}')" class="reacao-noticia${ativa?' ativa':''}">${em}${count>0?' '+count:''}</button>`;
+  }).join('');
+  const tempo=_tempoRelativo(n.publicado_em);
+  const imgHtml=n.imagem_url
+    ?`<img class="noticia-img" src="${n.imagem_url}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='<div class=noticia-img-placeholder>📰</div>'">`
+    :`<div class="noticia-img-placeholder">⚽</div>`;
+  return`<div class="noticia-card" id="noticia-${n.id}">
+    ${imgHtml}
+    <div class="noticia-body">
+      <div class="noticia-fonte">
+        <span class="noticia-badge badge-noticia">📰 Notícia</span>
+        <span>${n.fonte||'Copa 2026'}</span>
+        <span style="margin-left:auto;color:var(--muted)">${tempo}</span>
+      </div>
+      <div class="noticia-titulo">${n.titulo||''}</div>
+      ${n.descricao?`<div class="noticia-desc">${n.descricao}</div>`:''}
+      <div class="noticia-footer">
+        <div class="noticia-reacoes">${reacoesHtml}</div>
+        ${n.url?`<a href="${n.url}" target="_blank" rel="noopener" class="noticia-link">Ler mais ↗</a>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function _curiosidadeHTML(n){
+  const uid=usuarioAtual?.id||'';
+  const reacoes=n.reacoes||{};
+  const EMOJIS=['❤️','😮','🔥','👏','😂'];
+  const reacoesHtml=EMOJIS.map(em=>{
+    const quem=reacoes[em]||[];
+    const ativa=quem.includes(uid);
+    const count=quem.length;
+    return`<button onclick="reagirCuriosidade('${n.id}','${em}')" class="reacao-noticia${ativa?' ativa':''}">${em}${count>0?' '+count:''}</button>`;
+  }).join('');
+  const tempo=_tempoRelativo(n.criado_em);
+  const icones=['⚽','🌟','🏆','🌎','📊','🎯','🔥','💡'];
+  const icon=icones[Math.abs(n.id?.charCodeAt(0)||0)%icones.length]||'💡';
+  return`<div class="curiosidade-card" id="curiosidade-${n.id}">
+    <div class="noticia-fonte">
+      <span class="noticia-badge badge-curiosidade">💡 Curiosidade</span>
+      <span style="margin-left:auto;color:var(--muted)">${tempo}</span>
+    </div>
+    <div style="font-size:1.6rem;margin:.4rem 0">${icon}</div>
+    ${n.titulo?`<div class="curiosidade-titulo">${n.titulo}</div>`:''}
+    <div class="curiosidade-texto">${n.fato||''}</div>
+    <div class="noticia-reacoes" style="margin-top:.65rem">${reacoesHtml}</div>
+  </div>`;
+}
+
+async function reagirNoticia(id,emoji){
+  if(!usuarioAtual)return;
+  const item=_noticiaCache.find(n=>n.id===id&&n.tipo==='noticia');
+  if(!item)return;
+  if(!item.reacoes)item.reacoes={};
+  if(!item.reacoes[emoji])item.reacoes[emoji]=[];
+  const idx=item.reacoes[emoji].indexOf(usuarioAtual.id);
+  if(idx>=0)item.reacoes[emoji].splice(idx,1);
+  else item.reacoes[emoji].push(usuarioAtual.id);
+  try{if(navigator.vibrate)navigator.vibrate(30);}catch(e){}
+  // Re-renderiza o card
+  const c=document.getElementById('noticias-container');
+  if(c)_renderNoticiasLista(c);
+  try{await sbPatch('copa_noticias',`id=eq.${id}`,{reacoes:item.reacoes});}catch(e){}
+}
+
+async function reagirCuriosidade(id,emoji){
+  if(!usuarioAtual)return;
+  const item=_noticiaCache.find(n=>n.id===id&&n.tipo==='curiosidade');
+  if(!item)return;
+  if(!item.reacoes)item.reacoes={};
+  if(!item.reacoes[emoji])item.reacoes[emoji]=[];
+  const idx=item.reacoes[emoji].indexOf(usuarioAtual.id);
+  if(idx>=0)item.reacoes[emoji].splice(idx,1);
+  else item.reacoes[emoji].push(usuarioAtual.id);
+  try{if(navigator.vibrate)navigator.vibrate(30);}catch(e){}
+  const c=document.getElementById('noticias-container');
+  if(c)_renderNoticiasLista(c);
+  try{await sbPatch('copa_curiosidades',`id=eq.${id}`,{reacoes:item.reacoes});}catch(e){}
+}
+
+function _tempoRelativo(iso){
+  if(!iso)return'';
+  const diff=(Date.now()-new Date(iso))/1000;
+  if(diff<60)return'agora';
+  if(diff<3600)return Math.floor(diff/60)+'min atrás';
+  if(diff<86400)return Math.floor(diff/3600)+'h atrás';
+  return Math.floor(diff/86400)+'d atrás';
+}
+
 function renderMata(){
   const c=document.getElementById('bracket-container');
   const fases=['Round of 32','Round of 16','Quarter-final','Semi-final','Final'];
@@ -4679,7 +4937,7 @@ function _renderGraficoEvolucao(canvasId,pts,cor,corTier){
 
 // ═══════════════════════════════════════════
 // ESTATÍSTICAS DE PARTICIPAÇÃO (Auditoria → Engajamento v75)
-// ═══════════════════════════════════════════
+
 async function renderAuditoria(){
   const c=document.getElementById('auditoria-container');
   if(!isAdmin()){
