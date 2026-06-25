@@ -756,15 +756,37 @@ function mostrarBannerInstalar() {
   const ehIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
   if (ehIOS) {
-    // iOS não tem prompt automático — mostra instruções manuais
+    // iOS não tem prompt automático — mostra instruções visuais detalhadas
     banner.innerHTML = `
-      <div class="notif-banner" style="border-color:rgba(0,156,59,.4)">
-        <div class="notif-icon">📲</div>
-        <div class="notif-text">
-          <strong>Instalar como app</strong>
-          <span>Toque em <strong>Compartilhar</strong> ⬆️ e depois em <strong>"Adicionar à Tela de Início"</strong></span>
+      <div style="background:var(--card);border:1px solid rgba(0,156,59,.4);border-radius:var(--radius);padding:1rem;margin-bottom:.75rem">
+        <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.85rem">
+          <span style="font-size:1.5rem">📲</span>
+          <div>
+            <div style="font-weight:700;font-size:.9rem">Instalar o app no iPhone</div>
+            <div style="font-size:.72rem;color:var(--muted)">Siga os 3 passos abaixo</div>
+          </div>
+          <button onclick="dispensarInstalar()" style="margin-left:auto;background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:.2rem">✕</button>
         </div>
-        <button class="btn-notif" onclick="dispensarInstalar()" style="background:var(--card2);color:var(--muted)">Ok</button>
+        <div style="display:flex;flex-direction:column;gap:.6rem">
+          <div style="display:flex;align-items:center;gap:.75rem;background:var(--card2);border-radius:10px;padding:.65rem .8rem">
+            <div style="width:28px;height:28px;border-radius:50%;background:rgba(0,156,59,.2);border:1px solid rgba(0,156,59,.4);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:var(--verde-light);flex-shrink:0">1</div>
+            <div style="flex:1;font-size:.8rem">Toque no botão <strong>Compartilhar</strong> no Safari</div>
+            <div style="font-size:1.4rem;flex-shrink:0">⬆️</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:.75rem;background:var(--card2);border-radius:10px;padding:.65rem .8rem">
+            <div style="width:28px;height:28px;border-radius:50%;background:rgba(0,156,59,.2);border:1px solid rgba(0,156,59,.4);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:var(--verde-light);flex-shrink:0">2</div>
+            <div style="flex:1;font-size:.8rem">Role a lista e toque em <strong style="color:var(--azul-claro)">"Adicionar à Tela de Início"</strong></div>
+            <div style="font-size:1.4rem;flex-shrink:0">➕</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:.75rem;background:var(--card2);border-radius:10px;padding:.65rem .8rem">
+            <div style="width:28px;height:28px;border-radius:50%;background:rgba(255,223,0,.15);border:1px solid rgba(255,223,0,.4);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:var(--amarelo);flex-shrink:0">3</div>
+            <div style="flex:1;font-size:.8rem">Toque em <strong style="color:var(--amarelo)">"Adicionar"</strong> no canto superior direito</div>
+            <div style="font-size:1.4rem;flex-shrink:0">✅</div>
+          </div>
+        </div>
+        <div style="margin-top:.75rem;padding:.5rem .75rem;background:rgba(0,156,59,.06);border-radius:8px;font-size:.72rem;color:var(--muted);text-align:center">
+          ⚡ Depois de instalar o app abre direto da tela inicial, sem abrir o Safari
+        </div>
       </div>`;
   } else if (promptInstalacao) {
     banner.innerHTML = `
@@ -905,10 +927,28 @@ function renderBotaoInstalarPermanente() {
   const ehIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
   if (ehIOS) {
     c.innerHTML = `
-      <div class="card" style="text-align:center">
-        <div style="font-size:1.8rem;margin-bottom:.4rem">📲</div>
-        <div style="font-weight:700;margin-bottom:.3rem">Instalar como app</div>
-        <div style="font-size:.78rem;color:var(--muted)">Toque em <strong>Compartilhar</strong> ⬆️ e depois em <strong>"Adicionar à Tela de Início"</strong></div>
+      <div class="card">
+        <div class="card-title">📲 Instalar no iPhone</div>
+        <div style="display:flex;flex-direction:column;gap:.5rem">
+          <div style="display:flex;align-items:center;gap:.75rem;background:var(--card2);border-radius:10px;padding:.65rem .8rem">
+            <div style="width:26px;height:26px;border-radius:50%;background:rgba(0,156,59,.2);border:1px solid rgba(0,156,59,.4);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:var(--verde-light);flex-shrink:0">1</div>
+            <div style="flex:1;font-size:.8rem">Toque em <strong>Compartilhar</strong> na barra do Safari</div>
+            <span style="font-size:1.3rem">⬆️</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:.75rem;background:var(--card2);border-radius:10px;padding:.65rem .8rem">
+            <div style="width:26px;height:26px;border-radius:50%;background:rgba(0,156,59,.2);border:1px solid rgba(0,156,59,.4);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:var(--verde-light);flex-shrink:0">2</div>
+            <div style="flex:1;font-size:.8rem">Role e toque em <strong style="color:var(--azul-claro)">"Adicionar à Tela de Início"</strong></div>
+            <span style="font-size:1.3rem">➕</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:.75rem;background:var(--card2);border-radius:10px;padding:.65rem .8rem">
+            <div style="width:26px;height:26px;border-radius:50%;background:rgba(255,223,0,.15);border:1px solid rgba(255,223,0,.4);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:var(--amarelo);flex-shrink:0">3</div>
+            <div style="flex:1;font-size:.8rem">Toque em <strong style="color:var(--amarelo)">"Adicionar"</strong> no canto superior direito</div>
+            <span style="font-size:1.3rem">✅</span>
+          </div>
+        </div>
+        <div style="margin-top:.75rem;font-size:.72rem;color:var(--muted);text-align:center;padding:.4rem;background:rgba(0,156,59,.06);border-radius:8px">
+          ⚠️ Só funciona pelo <strong>Safari</strong> — não pelo Chrome no iPhone
+        </div>
       </div>`;
   } else {
     c.innerHTML = `
