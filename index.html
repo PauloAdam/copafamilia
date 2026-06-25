@@ -3948,7 +3948,7 @@ function renderAdmin(){
 
   // Bolão artilheiro — botão só aparece no dia do jogo
   const hojeAdmin=new Date().toISOString().split('T')[0];
-  if(hojeAdmin===BOLAO_ARTILHEIRO_CONFIG.dataJogo){
+  if(true){ // sempre visível para o admin
     const artBox=document.createElement('div');
     artBox.className='admin-card';
     artBox.style.cssText='border-color:rgba(255,223,0,.4);background:rgba(255,223,0,.05);margin-bottom:.75rem';
