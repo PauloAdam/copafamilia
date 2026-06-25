@@ -1058,12 +1058,13 @@ function corU(id){let n=0;String(id).split('').forEach(c=>n=(n*31+c.charCodeAt(0
 // SISTEMA DE MOLDURAS 🏅 — desbloqueadas por pontuação
 // ═══════════════════════════════════════════
 const NIVEIS_MOLDURA = [
-  { min: 0,   nome: 'Sem moldura', cor: null,      emoji: '' },
-  { min: 50,  nome: 'Bronze',      cor: '#cd7f32', emoji: '🥉' },
-  { min: 100, nome: 'Prata',       cor: '#c0c0c0', emoji: '🥈' },
-  { min: 200, nome: 'Ouro',        cor: '#ffd700', emoji: '🥇' },
-  { min: 350, nome: 'Platina',     cor: '#00e5ff', emoji: '💎' },
-  { min: 500, nome: 'Diamante',    cor: '#b388ff', emoji: '👑' },
+  { min: 0,    nome: 'Sem moldura', cor: null,      emoji: '' },
+  { min: 50,   nome: 'Bronze',      cor: '#cd7f32', emoji: '🥉' },
+  { min: 100,  nome: 'Prata',       cor: '#c0c0c0', emoji: '🥈' },
+  { min: 200,  nome: 'Ouro',        cor: '#ffd700', emoji: '🥇' },
+  { min: 350,  nome: 'Platina',     cor: '#00e5ff', emoji: '💎' },
+  { min: 500,  nome: 'Diamante',    cor: '#b388ff', emoji: '👑' },
+  { min: 1000, nome: 'Lenda',       cor: '#ff6b35', emoji: '🌟' },
 ];
 function getNivelMoldura(pts){
   let nivel = NIVEIS_MOLDURA[0];
