@@ -3314,6 +3314,7 @@ const BOLAO_ARTILHEIRO_CONFIG = {
 
 async function checarBolaoArtilheiro(){
   if(!usuarioAtual)return;
+  if(isAdmin())return; // admin não vê o popup — usa o painel para gerir
   const hoje=new Date().toISOString().split('T')[0];
   if(hoje!==BOLAO_ARTILHEIRO_CONFIG.dataJogo)return; // só aparece hoje
   // Usa versão do app como chave — garante que TODOS vejam mesmo que já abriram hoje
@@ -3484,10 +3485,11 @@ function fecharPopupArtilheiro(){
 // Calcula pontos do bolão artilheiro após o jogo
 async function calcularPontosArtilheiro(){
   if(!isAdmin())return;
-  // Admin informa quem marcou
-  const marcaram=prompt('Quais jogador_ids marcaram gol? (separados por vírgula)\nEx: vini,endrick,paqueta');
-  if(!marcaram)return;
-  const ids=marcaram.split(',').map(s=>s.trim());
+  const inputEl=document.getElementById('artilheiro-input-gols');
+  const marcaram=inputEl?.value?.trim();
+  if(!marcaram){showToast('⚠️ Digite os IDs de quem marcou');return;}
+  const ids=marcaram.split(',').map(s=>s.trim()).filter(Boolean);
+  if(!ids.length){showToast('⚠️ Nenhum ID válido');return;}
   try{
     const apostas=await sbGet('bolao_artilheiro',`data_jogo=eq.${BOLAO_ARTILHEIRO_CONFIG.dataJogo}&select=*`);
     let acertos=0;
@@ -3504,6 +3506,7 @@ async function calcularPontosArtilheiro(){
     showToast(`✅ ${acertos} pessoa(s) ganharam +${BOLAO_ARTILHEIRO_CONFIG.pontos}pts!`);
     await carregarDadosSupabase();
     renderRanking();
+    renderAdmin(); // atualiza lista no painel
   }catch(e){showToast('❌ Erro: '+e.message);}
 }
 
@@ -3952,7 +3955,13 @@ function renderAdmin(){
     artBox.innerHTML=`
       <div style="font-weight:700;font-size:.85rem;color:var(--amarelo);margin-bottom:.5rem">🇧🇷 Bolão Artilheiro — Brasil × Escócia</div>
       <div id="artilheiro-admin-lista" style="font-size:.75rem;color:var(--muted);margin-bottom:.75rem">Carregando apostas…</div>
-      <button class="btn-admin-save" style="background:rgba(255,223,0,.2);border-color:rgba(255,223,0,.4);color:var(--amarelo)" onclick="calcularPontosArtilheiro()">🏆 Calcular pontos (após o jogo)</button>`;
+      <div style="font-size:.7rem;color:var(--muted);margin-bottom:.4rem">IDs de quem marcou gol (separados por vírgula):</div>
+      <div style="font-size:.65rem;color:var(--muted);margin-bottom:.5rem;line-height:1.6">
+        paqueta · rayan · cunha · vini · neymar · endrick · martinelli · luizh
+      </div>
+      <input type="text" id="artilheiro-input-gols" placeholder="Ex: vini,endrick" 
+        style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.5rem;font-size:.82rem;margin-bottom:.5rem;font-family:'Inter',sans-serif">
+      <button class="btn-admin-save" style="background:rgba(255,223,0,.2);border-color:rgba(255,223,0,.4);color:var(--amarelo);width:100%;padding:.55rem" onclick="calcularPontosArtilheiro()">🏆 Calcular pontos (após o jogo)</button>`;
     c.insertBefore(artBox, c.firstChild);
     sbGet('bolao_artilheiro',`data_jogo=eq.${BOLAO_ARTILHEIRO_CONFIG.dataJogo}&select=usuario_nome,jogador_nome,acertou,pontos_ganhos&order=criado_em.asc`)
       .then(lista=>{
