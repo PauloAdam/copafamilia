@@ -1245,6 +1245,8 @@ async function iniciarApp(){
   checarMudancaRanking();
   registrarAcessoDispositivo();
   setTimeout(checarBolaoArtilheiro, 2000);
+  // Atualiza avatar topbar com moldura correta (dados já carregados)
+  atualizarAvatarTopbar();
   setInterval(async()=>{
     if(bloqueandoAutoRefresh)return; // alguma ação está em andamento (salvando palpite, etc) — espera a próxima rodada
     const prevPlacares={...placaresPrev};
@@ -1262,6 +1264,7 @@ async function iniciarApp(){
     }
     carregarChat();
     checarZoadasNoChat();
+    atualizarAvatarTopbar();
   },10000); // atualiza a cada 10s (mais rápido para placares ao vivo)
 }
 
@@ -1797,6 +1800,21 @@ function atualizarBotaoTorcida(){
     btn.textContent='🔴';btn.style.borderColor='rgba(255,80,80,.6)';btn.style.color='#ff4444';
   }else{
     btn.textContent='📣';btn.style.borderColor='';btn.style.color='';
+  }
+}
+
+function atualizarAvatarTopbar(){
+  if(!usuarioAtual)return;
+  const pts=calcPtsTotal(usuarioAtual.id).total;
+  const novo=renderAvatar(usuarioAtual,32,pts)
+    .replace('<img ','<img id="topbar-avatar" ')
+    .replace('<div ','<div id="topbar-avatar" ')
+    .replace('<span style="position:relative','<span id="topbar-avatar" style="position:relative');
+  const el=document.getElementById('topbar-avatar');
+  if(el){
+    // Substitui o elemento pai se for o span wrapper
+    const parent=el.closest('[id="topbar-avatar"]')||el;
+    parent.outerHTML=novo;
   }
 }
 
@@ -2692,6 +2710,7 @@ async function salvarPalpite(jogoId){
     const j=todosJogos.find(x=>x.id===jogoId);
     showToast(`✅ Palpite ${g1}×${g2} salvo! ${j?`(${nomePT(j.time1)} vs ${nomePT(j.time2)})`:''}`)
     try{if(navigator.vibrate)navigator.vibrate([40,30,40]);}catch(e){}
+    atualizarAvatarTopbar();
     const pag=document.querySelector('.page.active')?.id?.replace('page-','');
     if(pag)renderPagina(pag);
   }catch(e){
