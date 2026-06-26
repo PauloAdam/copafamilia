@@ -2882,9 +2882,32 @@ function renderRanking(){
   const emj=['🥈','🥇','🥉'];
   podio.innerHTML=ord.map((u,i)=>u?`<div class="rank-podio-card ${cls[i]}"><span class="podio-emoji">${emj[i]}</span><div style="margin:0 auto .35rem;width:52px">${renderAvatar(u,52,u.total)}</div><div class="podio-nome">${u.nome}</div><div class="podio-pts">${u.total}<small>pontos</small></div></div>`:'<div></div>').join('');
 
-  // ── SETINHAS: lê posições anteriores do localStorage ──
+  // ── SETINHAS POR RODADA ──
+  // Identifica a rodada atual pela data mais recente com jogo encerrado
+  const jogosEncerrados=todosJogos.filter(j=>j.status==='encerrado');
+  const dataRodadaAtual=jogosEncerrados.length
+    ?[...new Set(jogosEncerrados.map(j=>j.data))].sort().reverse()[0]
+    :null;
+  const chaveSnap=dataRodadaAtual?`copa_rank_snap_${dataRodadaAtual}`:null;
+
+  // Lê posições da rodada ANTERIOR (snapshot mais recente diferente da atual)
   let posicoesAntigas={};
-  try{posicoesAntigas=JSON.parse(localStorage.getItem('copa_rank_posicoes')||'{}');}catch(e){}
+  try{
+    const todasChaves=Object.keys(localStorage).filter(k=>k.startsWith('copa_rank_snap_')).sort();
+    const chaveAnterior=todasChaves.reverse().find(k=>k!==chaveSnap);
+    if(chaveAnterior)posicoesAntigas=JSON.parse(localStorage.getItem(chaveAnterior)||'{}');
+  }catch(e){}
+
+  // Salva snapshot da rodada atual SE ainda não existir
+  if(chaveSnap&&!localStorage.getItem(chaveSnap)){
+    const snap={};ranked.forEach((u,i)=>snap[u.id]=i+1);
+    try{
+      localStorage.setItem(chaveSnap,JSON.stringify(snap));
+      // Limpa snapshots antigos (mantém só os 3 mais recentes)
+      const chaves=Object.keys(localStorage).filter(k=>k.startsWith('copa_rank_snap_')).sort();
+      while(chaves.length>3)localStorage.removeItem(chaves.shift());
+    }catch(e){}
+  }
 
   // ── RIVAL: pessoa mais próxima em pontos do usuário logado ──
   let rivalId=null;
@@ -2926,9 +2949,6 @@ function renderRanking(){
     const isRivalClass=isRival?' rival-highlight':'';
     return`<div class="rank-row${isRivalClass}" data-uid="${u.id}"><div class="rank-pos">${pos}º</div><span onclick="abrirPerfilUsuario('${u.id}')" class="rank-row-clicavel" style="display:inline-flex;align-items:center;border-radius:50%;flex-shrink:0" title="Ver perfil de ${u.nome}">${renderAvatar(u,44,u.total)}</span><div class="rank-info"><div class="rank-nome-txt">${u.nome}${arrowHtml}${rivalBadge}</div><div class="rank-detalhe">${detalhes.join(' · ')}</div></div><div class="rank-pts-val">${u.total}<small>pts</small></div></div>`;
   }).join('');
-
-  // Salva posições novas no localStorage
-  try{localStorage.setItem('copa_rank_posicoes',JSON.stringify(novasPosicoes));}catch(e){}
 
   // ── FLIP: calcula diferença e anima ──
   if(Object.keys(posicoesAntes).length>0){
