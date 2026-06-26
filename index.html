@@ -71,9 +71,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .splash-titulo{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--amarelo);letter-spacing:3px;margin-top:1rem;opacity:0;animation:splashTextIn .3s ease .3s forwards}
 .splash-titulo span{color:var(--verde-light)}
 .splash-sub{font-size:.8rem;color:var(--muted);margin-top:.3rem;opacity:0;animation:splashTextIn .3s ease .5s forwards}
-@keyframes hackFlicker{from{opacity:1}to{opacity:.6}}
-@keyframes hackBlink{0%,100%{opacity:1}50%{opacity:0}}
-@keyframes hackGlitch{0%,100%{transform:translate(0)}20%{transform:translate(-3px,2px)}40%{transform:translate(3px,-2px)}60%{transform:translate(-1px,3px)}80%{transform:translate(2px,-1px)}}
 
 
 @keyframes splashTextIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -505,51 +502,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <body>
 
 <!-- SPLASH SCREEN -->
-<!-- TELA HACKEADO (ZOEIRA) -->
-<div id="hacker-screen" style="position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;overflow:hidden">
-  <!-- Scanlines effect -->
-  <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,255,0,.03) 0px,rgba(0,255,0,.03) 1px,transparent 1px,transparent 4px);pointer-events:none;z-index:1"></div>
-
-  <div style="position:relative;z-index:2;text-align:center;padding:2rem;max-width:400px">
-    <!-- Skull -->
-    <div id="hack-skull" style="font-size:5rem;margin-bottom:1rem;animation:hackFlicker .15s infinite alternate">💀</div>
-
-    <!-- HACKED -->
-    <div style="font-size:2.5rem;font-weight:900;color:#ff0000;letter-spacing:6px;text-shadow:0 0 20px #ff0000,0 0 40px #ff0000;animation:hackFlicker .1s infinite alternate;margin-bottom:.5rem">
-      HACKED
-    </div>
-
-    <!-- Linha vermelha -->
-    <div style="width:100%;height:2px;background:#ff0000;box-shadow:0 0 10px #ff0000;margin:.75rem 0"></div>
-
-    <!-- Mensagem principal -->
-    <div id="hack-msg" style="color:#00ff00;font-size:.85rem;line-height:1.8;text-align:left;margin-bottom:1rem">
-      <span id="hack-typing"></span><span id="hack-cursor" style="animation:hackBlink .5s infinite">█</span>
-    </div>
-
-    <!-- Barra de progresso apagando -->
-    <div style="background:#1a0000;border:1px solid #ff0000;border-radius:2px;height:18px;width:100%;overflow:hidden;margin-bottom:.75rem">
-      <div id="hack-bar" style="background:linear-gradient(90deg,#ff0000,#ff4400);height:100%;width:0%;transition:width .1s;box-shadow:0 0 10px #ff0000"></div>
-    </div>
-    <div id="hack-pct" style="color:#ff0000;font-size:.75rem;letter-spacing:2px">DELETANDO: 0%</div>
-
-    <!-- Aviso de IP -->
-    <div style="margin-top:1rem;padding:.5rem;border:1px solid #ff000044;background:#ff000011;border-radius:4px">
-      <div style="color:#ff4444;font-size:.7rem;letter-spacing:1px">⚠ DADOS EXPOSTOS ⚠</div>
-      <div style="color:#ff0000;font-size:.65rem;margin-top:.25rem;opacity:.8">IP: 189.xxx.xxx.xxx | Localização: Araraquara, São Paulo</div>
-    </div>
-  </div>
-
-  <!-- Reveal de zoeira -->
-  <div id="hack-reveal" style="display:none;position:absolute;inset:0;background:#000;z-index:10;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem">
-    <div style="font-size:5rem;margin-bottom:1rem">😂</div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:3rem;color:#ffdf00;letter-spacing:4px;margin-bottom:.5rem">CAIU FEIO!</div>
-    <div style="color:#00d44f;font-size:1rem;font-weight:700;margin-bottom:.25rem">Tá tudo bem, ninguém hackeou nada 😂</div>
-    <div style="color:#7aab85;font-size:.82rem;margin-bottom:1.5rem">o bolão tá salvo, seus palpites estão todos aqui!</div>
-    <div style="font-size:2rem">⚽🏆🇧🇷</div>
-  </div>
-</div>
-
 <div id="splash-screen">
   <div class="splash-content">
     <div class="splash-ball">⚽</div>
@@ -823,73 +775,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 <script>
 // ═══════════════════════════════════════════
-// ═══════════════════════════════════════════
-// ZOEIRA: TELA DE HACKEADO 😂
-// ═══════════════════════════════════════════
-(function(){
-  const el=document.getElementById('hacker-screen');
-  if(!el)return;
-
-  // Texto digitado
-  const linhas=[
-    '> Acessando servidor...',
-    '> ACESSO CONCEDIDO ',
-    '> Deletando palpites... ████████',
-    '> Apagando ranking...',
-    '> Encontramos seus dados ',
-    '> Copa 2026 comprometida!',
-    '> Transmitindo para hackers...',
-  ];
-  let linhaAtual=0,charAtual=0,textoAcumulado='';
-  const typing=document.getElementById('hack-typing');
-  function digitarChar(){
-    if(linhaAtual>=linhas.length)return;
-    const linha=linhas[linhaAtual];
-    if(charAtual<linha.length){
-      textoAcumulado+=linha[charAtual++];
-      if(typing)typing.innerHTML=textoAcumulado.replace(/\n/g,'<br>');
-      setTimeout(digitarChar,35+Math.random()*45);
-    }else{
-      textoAcumulado+='\n';linhaAtual++;charAtual=0;
-      setTimeout(digitarChar,350);
-    }
-  }
-  setTimeout(digitarChar,400);
-
-  // Barra deletando — vai de 0 a 100%
-  const bar=document.getElementById('hack-bar');
-  const pct=document.getElementById('hack-pct');
-  let pctVal=0;
-  if(bar)bar.style.width='0%';
-  const iv=setInterval(()=>{
-    pctVal=Math.min(100,pctVal+(0.8+Math.random()*2));
-    if(bar)bar.style.width=pctVal+'%';
-    if(pct)pct.textContent='DELETANDO: '+Math.round(pctVal)+'%';
-    if(pctVal>=100)clearInterval(iv);
-  },80);
-
-  // Skull piscando
-  const skull=document.getElementById('hack-skull');
-  const emojis=['💀','☠️','💀','☠️','🔓'];
-  let ei=0;
-  setInterval(()=>{if(skull)skull.textContent=emojis[ei++%emojis.length];},300);
-
-  // A tela SÓ some se NÃO estiver travada pelo admin
-  // A flag travado='1' é setada pela função ativarTelaHacker()
-  // Quando o admin desativar, a pessoa precisa recarregar a página
-  setTimeout(()=>{
-    if(el.dataset.travado==='1')return; // admin ativou — fica preso
-    // Modo zoeira local: mostra reveal por 3s e entra no app
-    const reveal=document.getElementById('hack-reveal');
-    if(reveal)reveal.style.display='flex';
-    setTimeout(()=>{
-      el.style.transition='opacity .5s';
-      el.style.opacity='0';
-      setTimeout(()=>{el.style.display='none';},500);
-    },3000);
-  },5000);
-})();
-
 // ═══════════════════════════════════════════
 // CONFIG
 // ═══════════════════════════════════════════
@@ -1483,7 +1368,6 @@ async function iniciarApp(){
   checarResumoSemanal();
   checarStoriesDoDia();
   checarMudancaRanking();
-  checarModoHacker();
   registrarAcessoDispositivo();
   setTimeout(checarBolaoArtilheiro, 2000);
   // Atualiza avatar topbar com moldura correta (dados já carregados)
@@ -4346,67 +4230,6 @@ function renderPerfil(){
 // ═══════════════════════════════════════════
 // ADMIN PANEL ⚙️
 // ═══════════════════════════════════════════
-// ═══════════════════════════════════════════
-// MODO HACKEADO 💀 — controlado pelo admin via Supabase
-// ═══════════════════════════════════════════
-const HACKER_KEY='copa_hacker_mode';
-
-async function checarModoHacker(){
-  // Admin nunca vê a tela hacker
-  if(isAdmin())return;
-  try{
-    const rows=await sbGet('configuracoes',`chave=eq.${HACKER_KEY}&select=valor`);
-    const ativo=rows?.[0]?.valor==='true';
-    if(ativo) ativarTelaHacker();
-  }catch(e){
-    // Tabela pode não existir — sem problema, ignora
-  }
-}
-
-function ativarTelaHacker(){
-  const el=document.getElementById('hacker-screen');
-  if(!el)return;
-  el.style.display='flex';
-  // Garante que não some sozinho — fica travado até admin desativar
-  el.dataset.travado='1';
-}
-
-async function toggleModoHacker(){
-  try{
-    const rows=await sbGet('configuracoes',`chave=eq.${HACKER_KEY}&select=valor`);
-    const atual=rows?.[0]?.valor==='true';
-    const novo=!atual;
-    await sbUpsert('configuracoes',{chave:HACKER_KEY,valor:String(novo)},'chave');
-    atualizarBotaoHacker(novo);
-    showToast(novo?'💀 Modo Hackeado ATIVADO — todo mundo tá travado!':'✅ Modo Hackeado DESATIVADO — acesso liberado!');
-  }catch(e){
-    // Tenta criar a tabela não existe — guia o admin
-    showToast('⚠️ Crie a tabela "configuracoes" no Supabase! (chave TEXT, valor TEXT)');
-  }
-}
-
-async function atualizarBotaoHacker(estadoForcado){
-  const statusEl=document.getElementById('adm-hacker-status');
-  const btnEl=document.getElementById('adm-hacker-btn');
-  if(!statusEl||!btnEl)return;
-  let ativo=estadoForcado;
-  if(ativo===undefined){
-    try{
-      const rows=await sbGet('configuracoes',`chave=eq.${HACKER_KEY}&select=valor`);
-      ativo=rows?.[0]?.valor==='true';
-    }catch(e){ativo=false;}
-  }
-  if(ativo){
-    statusEl.innerHTML='<span style="color:#ff4444">💀 ATIVADO — todo mundo vê a tela hacker</span>';
-    btnEl.textContent='✅ DESATIVAR';
-    btnEl.style.cssText='padding:.55rem 1.25rem;border:none;border-radius:8px;font-family:Inter,sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;background:rgba(0,156,59,.2);color:#00d44f;border:1px solid rgba(0,156,59,.4)';
-  }else{
-    statusEl.innerHTML='<span style="color:var(--muted)">⬜ Desativado — app funcionando normal</span>';
-    btnEl.textContent='💀 ATIVAR MODO HACKEADO';
-    btnEl.style.cssText='padding:.55rem 1.25rem;border:none;border-radius:8px;font-family:Inter,sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;background:rgba(255,0,0,.2);color:#ff4444;border:1px solid rgba(255,0,0,.4)';
-  }
-}
-
 function isAdmin(){
   return usuarioAtual && CFG.admin_users.includes((usuarioAtual.usuario||'').toLowerCase().trim());
 }
@@ -4419,17 +4242,6 @@ function renderAdmin(){
 
   const opcoesUsuarios=todosUsuarios.map(u=>`<option value="${u.id}">${u.nome} (@${u.usuario})</option>`).join('');
   let html=`
-    <div class="admin-card" style="border-color:rgba(255,0,0,.5);background:rgba(255,0,0,.06);margin-bottom:1rem">
-      <div style="font-weight:700;font-size:.95rem;color:#ff4444;margin-bottom:.5rem">💀 MODO HACKEADO — Zoeira</div>
-      <div style="font-size:.78rem;color:var(--muted);margin-bottom:.75rem">Quando ativado: <strong style="color:#fff">todo mundo vê a tela hacker e não consegue entrar</strong>. Só você (admin) acessa normalmente.</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem">
-        <div id="adm-hacker-status" style="font-size:.85rem;font-weight:700"></div>
-        <button id="adm-hacker-btn" onclick="toggleModoHacker()" style="padding:.55rem 1.25rem;border:none;border-radius:8px;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer"></button>
-      </div>
-    </div>
-`;
-
-  html+=`
     <div class="admin-card" style="border-color:rgba(0,156,59,.3);background:rgba(0,156,59,.06)">
       <div style="font-weight:700;margin-bottom:.6rem;font-size:.85rem;color:var(--verde-light)">🔑 Resetar senha de alguém</div>
       <div style="display:flex;flex-direction:column;gap:.5rem">
@@ -4510,7 +4322,6 @@ function renderAdmin(){
 
   c.innerHTML=html;
   adminCarregarFusoes();
-  atualizarBotaoHacker();
 
   // Bolão artilheiro — botão só aparece no dia do jogo
   const hojeAdmin=new Date().toISOString().split('T')[0];
@@ -5623,47 +5434,10 @@ function showToast(msg){
 // ═══════════════════════════════════════════
 // AUTO-LOGIN
 // ═══════════════════════════════════════════
-(async function(){
-  // Checa modo hacker PRIMEIRO — antes de qualquer login
-  // Admin (paulo) nunca é bloqueado
-  const usuarioSalvo = localStorage.getItem('copa_user');
-  let nomeUsuario = '';
-  try{ nomeUsuario = JSON.parse(usuarioSalvo||'{}').usuario||''; }catch(e){}
-  const ehAdmin = CFG.admin_users.includes(nomeUsuario.toLowerCase().trim());
-
-  if(!ehAdmin){
-    try{
-      const rows = await sbGet('configuracoes',`chave=eq.${HACKER_KEY}&select=valor`);
-      const hackerAtivo = rows?.[0]?.valor === 'true';
-      if(hackerAtivo){
-        // Trava na tela hacker — não deixa entrar
-        const el = document.getElementById('hacker-screen');
-        if(el){ el.style.display='flex'; el.dataset.travado='1'; }
-        return; // para tudo — não faz auto-login nem mostra tela de login
-      }
-    }catch(e){ /* tabela não existe ainda — ignora */ }
-  }
-
-  // Modo hacker inativo — fluxo normal
-  const s = localStorage.getItem('copa_user');
+(function(){
+  const s=localStorage.getItem('copa_user');
   if(s){try{usuarioAtual=JSON.parse(s);iniciarApp()}catch{localStorage.removeItem('copa_user')}}
 })();
-
-// Também bloqueia o botão de entrar se modo hacker ativo
-const _fazerLoginOriginal = fazerLogin;
-fazerLogin = async function(){
-  if(!isAdmin()){
-    try{
-      const rows = await sbGet('configuracoes',`chave=eq.${HACKER_KEY}&select=valor`);
-      if(rows?.[0]?.valor === 'true'){
-        const el = document.getElementById('hacker-screen');
-        if(el){ el.style.display='flex'; el.dataset.travado='1'; }
-        return;
-      }
-    }catch(e){}
-  }
-  return _fazerLoginOriginal();
-};
 
 document.getElementById('login-senha').addEventListener('keydown',e=>{if(e.key==='Enter')fazerLogin()});
 document.getElementById('cad-senha').addEventListener('keydown',e=>{if(e.key==='Enter')fazerCadastro()});
