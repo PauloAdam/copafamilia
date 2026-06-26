@@ -529,14 +529,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
     <!-- Barra de progresso apagando -->
     <div style="background:#1a0000;border:1px solid #ff0000;border-radius:2px;height:18px;width:100%;overflow:hidden;margin-bottom:.75rem">
-      <div id="hack-bar" style="background:linear-gradient(90deg,#ff0000,#ff4400);height:100%;width:100%;transition:width .1s;box-shadow:0 0 10px #ff0000"></div>
+      <div id="hack-bar" style="background:linear-gradient(90deg,#ff0000,#ff4400);height:100%;width:0%;transition:width .1s;box-shadow:0 0 10px #ff0000"></div>
     </div>
-    <div id="hack-pct" style="color:#ff0000;font-size:.75rem;letter-spacing:2px">DELETANDO: 100%</div>
+    <div id="hack-pct" style="color:#ff0000;font-size:.75rem;letter-spacing:2px">DELETANDO: 0%</div>
 
     <!-- Aviso de IP -->
     <div style="margin-top:1rem;padding:.5rem;border:1px solid #ff000044;background:#ff000011;border-radius:4px">
       <div style="color:#ff4444;font-size:.7rem;letter-spacing:1px">⚠ DADOS EXPOSTOS ⚠</div>
-      <div style="color:#ff0000;font-size:.65rem;margin-top:.25rem;opacity:.8">IP: 189.xxx.xxx.072 | Localização: Araraquara, São Paulo</div>
+      <div style="color:#ff0000;font-size:.65rem;margin-top:.25rem;opacity:.8">IP: 189.xxx.xxx.xxx | Localização: Araraquara, São Paulo</div>
     </div>
   </div>
 
@@ -833,10 +833,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   // Texto digitado
   const linhas=[
     '> Acessando servidor...',
-    '> ACESSO CONCEDIDO 🔓',
+    '> ACESSO CONCEDIDO ',
     '> Deletando palpites... ████████',
     '> Apagando ranking...',
-    '> Encontramos seus dados 😈',
+    '> Encontramos seus dados ',
     '> Copa 2026 comprometida!',
     '> Transmitindo para hackers...',
   ];
@@ -856,15 +856,16 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   }
   setTimeout(digitarChar,400);
 
-  // Barra deletando
+  // Barra deletando — vai de 0 a 100%
   const bar=document.getElementById('hack-bar');
   const pct=document.getElementById('hack-pct');
-  let pctVal=100;
+  let pctVal=0;
+  if(bar)bar.style.width='0%';
   const iv=setInterval(()=>{
-    pctVal=Math.max(0,pctVal-(0.8+Math.random()*2));
+    pctVal=Math.min(100,pctVal+(0.8+Math.random()*2));
     if(bar)bar.style.width=pctVal+'%';
     if(pct)pct.textContent='DELETANDO: '+Math.round(pctVal)+'%';
-    if(pctVal<=0)clearInterval(iv);
+    if(pctVal>=100)clearInterval(iv);
   },80);
 
   // Skull piscando
