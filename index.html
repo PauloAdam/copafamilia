@@ -45,7 +45,7 @@
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;-webkit-font-smoothing:antialiased;
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
 ::-webkit-scrollbar{width:3px;height:3px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--verde-dark);border-radius:2px}
@@ -71,7 +71,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .splash-titulo{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--amarelo);letter-spacing:3px;margin-top:1rem;opacity:0;animation:splashTextIn .3s ease .3s forwards}
 .splash-titulo span{color:var(--verde-light)}
 .splash-sub{font-size:.8rem;color:var(--muted);margin-top:.3rem;opacity:0;animation:splashTextIn .3s ease .5s forwards}
-@keyframes splashBounce{from{transform:translateY(0) scaleY(1)}to{transform:translateY(-30px) scaleY(1.05)}}
+@keyframes hackFlicker{from{opacity:1}to{opacity:.6}}
+@keyframes hackBlink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes hackGlitch{0%,100%{transform:translate(0)}20%{transform:translate(-3px,2px)}40%{transform:translate(3px,-2px)}60%{transform:translate(-1px,3px)}80%{transform:translate(2px,-1px)}}
+
+
 @keyframes splashTextIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes splashFadeOut{to{opacity:0;visibility:hidden;pointer-events:none}}
 
@@ -408,6 +412,57 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .notif-text span{color:var(--muted);font-size:.73rem}
 .btn-notif{background:var(--verde);border:none;color:#fff;font-size:.75rem;font-weight:700;padding:.45rem .9rem;border-radius:20px;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif}
 
+/* NOTÍCIAS */
+.noticia-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:.75rem;overflow:hidden;transition:border-color .2s}
+.noticia-card:hover{border-color:var(--border2)}
+.noticia-img{width:100%;height:160px;object-fit:cover;display:block;background:var(--card2)}
+.noticia-img-placeholder{width:100%;height:160px;background:linear-gradient(135deg,var(--card2),var(--card));display:flex;align-items:center;justify-content:center;font-size:3rem}
+.noticia-body{padding:.85rem 1rem}
+.noticia-meta{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;flex-wrap:wrap}
+.noticia-tag{font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:.5px}
+.noticia-tag.brasil{background:rgba(0,156,59,.15);color:var(--verde-light);border:1px solid rgba(0,156,59,.3)}
+.noticia-tag.curiosidade{background:rgba(255,223,0,.12);color:var(--amarelo);border:1px solid rgba(255,223,0,.25)}
+.noticia-tag.noticia{background:rgba(0,39,118,.2);color:var(--azul-claro);border:1px solid rgba(0,39,118,.35)}
+.noticia-tag.jogo{background:rgba(255,80,80,.12);color:#f87171;border:1px solid rgba(255,80,80,.25)}
+.noticia-fonte{font-size:.65rem;color:var(--muted)}
+.noticia-tempo{font-size:.65rem;color:var(--muted);margin-left:auto}
+.noticia-titulo{font-size:.95rem;font-weight:700;color:var(--text);line-height:1.4;margin-bottom:.4rem}
+.noticia-resumo{font-size:.78rem;color:var(--muted);line-height:1.6;margin-bottom:.75rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.noticia-acoes{display:flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border-top:1px solid var(--border);background:rgba(0,0,0,.1)}
+.reacao-noticia{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:3px 10px;font-size:.78rem;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:.3rem}
+.reacao-noticia:hover{background:rgba(255,255,255,.1)}
+.reacao-noticia.ativa{background:rgba(0,156,59,.15);border-color:rgba(0,156,59,.4)}
+.reacao-noticia .cnt{font-size:.65rem;color:var(--muted)}
+.noticia-ler{margin-left:auto;font-size:.72rem;color:var(--azul-claro);text-decoration:none;font-weight:600;padding:4px 10px;border:1px solid rgba(0,39,118,.4);border-radius:8px;background:rgba(0,39,118,.1)}
+.curiosidade-card{background:linear-gradient(135deg,rgba(255,223,0,.07),rgba(0,156,59,.05));border:1px solid rgba(255,223,0,.2);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:.75rem;position:relative;overflow:hidden}
+.curiosidade-card::before{content:'🧠';position:absolute;right:-.5rem;top:-.5rem;font-size:4rem;opacity:.06}
+.curiosidade-num{font-size:.65rem;font-weight:700;color:rgba(255,223,0,.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:.3rem}
+.curiosidade-txt{font-size:.85rem;color:var(--text);line-height:1.6;font-style:italic}
+.curiosidade-acoes{display:flex;gap:.4rem;margin-top:.65rem}
+
+/* NOTÍCIAS */
+.noticia-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:.75rem;transition:border-color .2s}
+.noticia-card:hover{border-color:var(--border2)}
+.noticia-img{width:100%;height:160px;object-fit:cover;display:block;background:var(--card2)}
+.noticia-img-placeholder{width:100%;height:120px;background:linear-gradient(135deg,var(--card2),rgba(0,156,59,.1));display:flex;align-items:center;justify-content:center;font-size:2.5rem}
+.noticia-body{padding:.85rem 1rem}
+.noticia-fonte{font-size:.65rem;font-weight:700;color:var(--verde-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:.3rem;display:flex;align-items:center;gap:.4rem}
+.noticia-badge{font-size:.6rem;padding:1px 7px;border-radius:10px;font-weight:700}
+.badge-noticia{background:rgba(0,156,59,.15);color:var(--verde-light);border:1px solid rgba(0,156,59,.3)}
+.badge-curiosidade{background:rgba(255,223,0,.12);color:var(--amarelo);border:1px solid rgba(255,223,0,.3)}
+.noticia-titulo{font-size:.92rem;font-weight:700;color:var(--text);line-height:1.35;margin-bottom:.4rem}
+.noticia-desc{font-size:.78rem;color:var(--muted);line-height:1.5;margin-bottom:.65rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.noticia-footer{display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap}
+.noticia-tempo{font-size:.65rem;color:var(--muted)}
+.noticia-reacoes{display:flex;gap:.3rem;flex-wrap:wrap}
+.reacao-noticia{background:rgba(255,255,255,.05);border:0.5px solid rgba(255,255,255,.1);border-radius:12px;padding:2px 8px;font-size:.75rem;cursor:pointer;transition:all .15s;user-select:none}
+.reacao-noticia.ativa{background:rgba(0,156,59,.2);border-color:rgba(0,156,59,.4)}
+.noticia-link{font-size:.72rem;color:var(--azul-claro);text-decoration:none;font-weight:600}
+.curiosidade-card{background:linear-gradient(135deg,rgba(255,223,0,.06),rgba(0,156,59,.04));border:1px solid rgba(255,223,0,.2);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:.75rem}
+.curiosidade-icon{font-size:1.8rem;margin-bottom:.5rem}
+.curiosidade-titulo{font-size:.85rem;font-weight:700;color:var(--amarelo);margin-bottom:.35rem}
+.curiosidade-texto{font-size:.82rem;color:var(--text);line-height:1.55}
+
 /* MISC */
 .loading-spinner{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.75rem;padding:3rem 1rem;color:var(--muted);font-size:.85rem}
 .spinner{width:32px;height:32px;border:3px solid var(--border2);border-top-color:var(--verde);border-radius:50%;animation:spin .8s linear infinite}
@@ -450,6 +505,51 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <body>
 
 <!-- SPLASH SCREEN -->
+<!-- TELA HACKEADO (ZOEIRA) -->
+<div id="hacker-screen" style="position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;overflow:hidden">
+  <!-- Scanlines effect -->
+  <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,255,0,.03) 0px,rgba(0,255,0,.03) 1px,transparent 1px,transparent 4px);pointer-events:none;z-index:1"></div>
+
+  <div style="position:relative;z-index:2;text-align:center;padding:2rem;max-width:400px">
+    <!-- Skull -->
+    <div id="hack-skull" style="font-size:5rem;margin-bottom:1rem;animation:hackFlicker .15s infinite alternate">💀</div>
+
+    <!-- HACKED -->
+    <div style="font-size:2.5rem;font-weight:900;color:#ff0000;letter-spacing:6px;text-shadow:0 0 20px #ff0000,0 0 40px #ff0000;animation:hackFlicker .1s infinite alternate;margin-bottom:.5rem">
+      HACKED
+    </div>
+
+    <!-- Linha vermelha -->
+    <div style="width:100%;height:2px;background:#ff0000;box-shadow:0 0 10px #ff0000;margin:.75rem 0"></div>
+
+    <!-- Mensagem principal -->
+    <div id="hack-msg" style="color:#00ff00;font-size:.85rem;line-height:1.8;text-align:left;margin-bottom:1rem">
+      <span id="hack-typing"></span><span id="hack-cursor" style="animation:hackBlink .5s infinite">█</span>
+    </div>
+
+    <!-- Barra de progresso apagando -->
+    <div style="background:#1a0000;border:1px solid #ff0000;border-radius:2px;height:18px;width:100%;overflow:hidden;margin-bottom:.75rem">
+      <div id="hack-bar" style="background:linear-gradient(90deg,#ff0000,#ff4400);height:100%;width:100%;transition:width .1s;box-shadow:0 0 10px #ff0000"></div>
+    </div>
+    <div id="hack-pct" style="color:#ff0000;font-size:.75rem;letter-spacing:2px">DELETANDO: 100%</div>
+
+    <!-- Aviso de IP -->
+    <div style="margin-top:1rem;padding:.5rem;border:1px solid #ff000044;background:#ff000011;border-radius:4px">
+      <div style="color:#ff4444;font-size:.7rem;letter-spacing:1px">⚠ DADOS EXPOSTOS ⚠</div>
+      <div style="color:#ff0000;font-size:.65rem;margin-top:.25rem;opacity:.8">IP: 189.xxx.xxx.xxx | Localização: São Paulo, BR</div>
+    </div>
+  </div>
+
+  <!-- Reveal de zoeira -->
+  <div id="hack-reveal" style="display:none;position:absolute;inset:0;background:#000;z-index:10;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem">
+    <div style="font-size:5rem;margin-bottom:1rem">😂</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:3rem;color:#ffdf00;letter-spacing:4px;margin-bottom:.5rem">CAIU FEIO!</div>
+    <div style="color:#00d44f;font-size:1rem;font-weight:700;margin-bottom:.25rem">Tá tudo bem, ninguém hackeou nada 😂</div>
+    <div style="color:#7aab85;font-size:.82rem;margin-bottom:1.5rem">o bolão tá salvo, seus palpites estão todos aqui!</div>
+    <div style="font-size:2rem">⚽🏆🇧🇷</div>
+  </div>
+</div>
+
 <div id="splash-screen">
   <div class="splash-content">
     <div class="splash-ball">⚽</div>
@@ -578,6 +678,33 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     </div>
 
     <!-- CHAT -->
+    <!-- NOTÍCIAS -->
+    <div id="page-noticias" class="page">
+      <div class="section-title">📰 Notícias da Copa</div>
+      <!-- Filtros -->
+      <div class="filtro-bar" id="noticias-filtros" style="margin-bottom:.75rem">
+        <button class="filtro-btn active" onclick="filtrarNoticias('tudo',this)">🌍 Tudo</button>
+        <button class="filtro-btn" onclick="filtrarNoticias('brasil',this)">🇧🇷 Brasil</button>
+        <button class="filtro-btn" onclick="filtrarNoticias('curiosidades',this)">🧠 Curiosidades</button>
+        <button class="filtro-btn" onclick="filtrarNoticias('jogos',this)">⚽ Jogos</button>
+        <button class="filtro-btn" onclick="filtrarNoticias('times',this)">🏆 Times</button>
+      </div>
+      <div id="noticias-container">
+        <div class="loading-spinner"><div class="spinner"></div><span>Carregando notícias…</span></div>
+      </div>
+    </div>
+
+    <!-- NOTÍCIAS -->
+    <div id="page-noticias" class="page">
+      <div class="section-title">📰 Notícias & Curiosidades</div>
+      <div class="filtro-bar" id="noticias-tabs" style="margin-bottom:.75rem">
+        <button class="filtro-btn active" onclick="trocarAbaNoticias('noticias',this)">📰 Notícias</button>
+        <button class="filtro-btn" onclick="trocarAbaNoticias('curiosidades',this)">💡 Curiosidades</button>
+        <button class="filtro-btn" onclick="trocarAbaNoticias('todos',this)">🌎 Todos</button>
+      </div>
+      <div id="noticias-container"><div class="loading-spinner"><div class="spinner"></div><span>Carregando notícias…</span></div></div>
+    </div>
+
     <div id="page-chat" class="page">
       <div class="section-title">💬 Chat da Família</div>
       <div class="card" style="padding:.75rem">
@@ -646,8 +773,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   <nav class="bottom-nav">
     <button class="nav-btn active" data-page="hoje" onclick="irPara('hoje',this)"><span class="icon">📅</span>Hoje</button>
     <button class="nav-btn" data-page="jogos" onclick="irPara('jogos',this)"><span class="icon">⚽</span>Jogos</button>
-    <button class="nav-btn" data-page="chat" onclick="irPara('chat',this)"><span class="icon">💬</span>Chat<span class="nav-badge" id="badge-chat"></span></button>
     <button class="nav-btn" data-page="ranking" onclick="irPara('ranking',this)"><span class="icon">🏅</span>Ranking</button>
+    <button class="nav-btn" data-page="chat" onclick="irPara('chat',this)"><span class="icon">💬</span>Chat<span class="nav-badge" id="badge-chat"></span></button>
     <button class="nav-btn" data-page="grupos" onclick="irPara('grupos',this)"><span class="icon">📊</span>Mais<span class="nav-badge" id="badge-mais"></span></button>
   </nav>
 </div>
@@ -696,23 +823,78 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 <script>
 // ═══════════════════════════════════════════
+// ═══════════════════════════════════════════
+// ZOEIRA: TELA DE HACKEADO 😂
+// ═══════════════════════════════════════════
+(function(){
+  const el=document.getElementById('hacker-screen');
+  if(!el)return;
+
+  // Texto digitado
+  const linhas=[
+    '> Acessando servidor...',
+    '> ACESSO CONCEDIDO 🔓',
+    '> Deletando palpites... ████████',
+    '> Apagando ranking...',
+    '> Encontramos seus dados 😈',
+    '> Copa 2026 comprometida!',
+    '> Transmitindo para hackers...',
+  ];
+  let linhaAtual=0,charAtual=0,textoAcumulado='';
+  const typing=document.getElementById('hack-typing');
+  function digitarChar(){
+    if(linhaAtual>=linhas.length)return;
+    const linha=linhas[linhaAtual];
+    if(charAtual<linha.length){
+      textoAcumulado+=linha[charAtual++];
+      if(typing)typing.innerHTML=textoAcumulado.replace(/\n/g,'<br>');
+      setTimeout(digitarChar,35+Math.random()*45);
+    }else{
+      textoAcumulado+='\n';linhaAtual++;charAtual=0;
+      setTimeout(digitarChar,350);
+    }
+  }
+  setTimeout(digitarChar,400);
+
+  // Barra deletando
+  const bar=document.getElementById('hack-bar');
+  const pct=document.getElementById('hack-pct');
+  let pctVal=100;
+  const iv=setInterval(()=>{
+    pctVal=Math.max(0,pctVal-(0.8+Math.random()*2));
+    if(bar)bar.style.width=pctVal+'%';
+    if(pct)pct.textContent='DELETANDO: '+Math.round(pctVal)+'%';
+    if(pctVal<=0)clearInterval(iv);
+  },80);
+
+  // Skull piscando
+  const skull=document.getElementById('hack-skull');
+  const emojis=['💀','☠️','💀','☠️','🔓'];
+  let ei=0;
+  setInterval(()=>{if(skull)skull.textContent=emojis[ei++%emojis.length];},300);
+
+  // A tela SÓ some se NÃO estiver travada pelo admin
+  // A flag travado='1' é setada pela função ativarTelaHacker()
+  // Quando o admin desativar, a pessoa precisa recarregar a página
+  setTimeout(()=>{
+    if(el.dataset.travado==='1')return; // admin ativou — fica preso
+    // Modo zoeira local: mostra reveal por 3s e entra no app
+    const reveal=document.getElementById('hack-reveal');
+    if(reveal)reveal.style.display='flex';
+    setTimeout(()=>{
+      el.style.transition='opacity .5s';
+      el.style.opacity='0';
+      setTimeout(()=>{el.style.display='none';},500);
+    },3000);
+  },5000);
+})();
+
+// ═══════════════════════════════════════════
 // CONFIG
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '81';
-
-// Migração: limpa snapshot de posições no formato antigo (sem pts) para forçar recriação
-(function(){
-  try{
-    const snap=JSON.parse(localStorage.getItem('copa_rank_posicoes')||'{}');
-    const primeiroValor=Object.values(snap)[0];
-    // Formato antigo era número puro (ex: {uid: 3}), novo é objeto (ex: {uid: {pos:3,pts:610}})
-    if(primeiroValor!==undefined&&typeof primeiroValor!=='object'){
-      localStorage.removeItem('copa_rank_posicoes');
-    }
-  }catch(e){}
-})();
+const APP_VERSION = '82';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -1012,19 +1194,17 @@ if (!jaInstalado && ehAndroidChrome && !localStorage.getItem('copa_install_dispe
 const ALIASES_TIME = {
   'turkiye':'turkey', 'türkiye':'turkey',
   'usa':'united states', 'united states':'usa',
-  'u.s.a':'united states', 'u.s.':'united states',
-  'us':'united states',
+  'u.s.a':'united states', 'u.s':'united states',
   'south korea':'korea republic', 'korea republic':'south korea',
   'ivory coast':"cote d'ivoire", "cote d'ivoire":'ivory coast',
-  'dr congo':'congo', 'democratic republic of congo':'congo',
-  'ir iran':'iran',
+  'dr congo':'congo', 'ir iran':'iran',
   'bosnia and herzegovina':'bosnia',
 };
 function normalizarNomeTime(nome){
   if(!nome)return'';
   let n=nome.toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // remove acentos
-    .replace(/\./g,'').trim(); // remove pontos (U.S.A → USA)
+    .replace(/\./g,'').trim(); // remove pontos: U.S.A → USA
   return ALIASES_TIME[n]||n;
 }
 
@@ -1302,6 +1482,7 @@ async function iniciarApp(){
   checarResumoSemanal();
   checarStoriesDoDia();
   checarMudancaRanking();
+  checarModoHacker();
   registrarAcessoDispositivo();
   setTimeout(checarBolaoArtilheiro, 2000);
   // Atualiza avatar topbar com moldura correta (dados já carregados)
@@ -1447,13 +1628,10 @@ async function tentarESPN(){
 
     const candidatos=todosJogos.filter(j=>{
       const n1=normalizarNomeTime(j.time1),n2=normalizarNomeTime(j.time2);
-      // Compara usando alias dos dois lados — resolve USA↔United States, Türkiye↔Turkey, etc
       const matchTime=(nJogo,tEspn)=>{
         if(nJogo===tEspn)return true;
-        // alias inverso: converte o time ESPN para o mesmo padrão
         const tAlias=ALIASES_TIME[tEspn]||tEspn;
         if(nJogo===tAlias)return true;
-        // fallback: matching por palavra (mínimo 3 chars)
         const wJ=nJogo.split(' '),wE=tEspn.split(' ');
         return wJ.some(w=>w.length>2&&tEspn.includes(w))||wE.some(w=>w.length>2&&nJogo.includes(w));
       };
@@ -2176,6 +2354,7 @@ function renderPagina(pag){
   else if(pag==='ranking')renderRanking();
   else if(pag==='grupos')renderGrupos();
   else if(pag==='chat'){carregarChat();renderChat()}
+  else if(pag==='noticias')renderNoticias();
   else if(pag==='mata')renderMata();
   else if(pag==='bolao')renderBolao();
   else if(pag==='perfil')renderPerfil();
@@ -2895,19 +3074,17 @@ function renderRanking(){
   const emj=['🥈','🥇','🥉'];
   podio.innerHTML=ord.map((u,i)=>u?`<div class="rank-podio-card ${cls[i]}"><span class="podio-emoji">${emj[i]}</span><div style="margin:0 auto .35rem;width:52px">${renderAvatar(u,52,u.total)}</div><div class="podio-nome">${u.nome}</div><div class="podio-pts">${u.total}<small>pontos</small></div></div>`:'<div></div>').join('');
 
-  // ── SETINHAS — salva posição+pontos, detecta mudança por pontos ──
+  // ── SETINHAS — salva {pos,pts}, mostra seta só quando pontos mudaram ──
   let snapAntigo={};
-  try{snapAntigo=JSON.parse(localStorage.getItem('copa_rank_posicoes')||'{}');}catch(e){}
-
-  // posicoesAntigas: posição salva anteriormente (antes dos pontos mudarem)
-  // Só usa a posição salva se os pontos forem DIFERENTES dos atuais (indicando que houve jogo novo)
+  try{
+    const raw=JSON.parse(localStorage.getItem('copa_rank_posicoes')||'{}');
+    const primeiro=Object.values(raw)[0];
+    if(primeiro!==undefined&&typeof primeiro==='object') snapAntigo=raw;
+  }catch(e){}
   const posicoesAntigas={};
   ranked.forEach(u=>{
-    const salvo=snapAntigo[u.id];
-    if(salvo&&salvo.pts!==undefined&&salvo.pts!==u.total){
-      // Pontos mudaram → mostra onde a pessoa ESTAVA antes
-      posicoesAntigas[u.id]=salvo.pos;
-    }
+    const s=snapAntigo[u.id];
+    if(s&&s.pts!==undefined&&s.pts!==u.total) posicoesAntigas[u.id]=s.pos;
   });
 
   // ── RIVAL: pessoa mais próxima em pontos do usuário logado ──
@@ -2916,7 +3093,7 @@ function renderRanking(){
     const meuIdx=ranked.findIndex(u=>u.id===usuarioAtual.id);
     const meusPts=ranked[meuIdx]?.total??-1;
     let menorDiff=Infinity;
-    ranked.forEach(u=>{
+    ranked.forEach((u,i)=>{
       if(u.id===usuarioAtual.id)return;
       const diff=Math.abs(u.total-meusPts);
       if(diff<menorDiff){menorDiff=diff;rivalId=u.id;}
@@ -2936,7 +3113,7 @@ function renderRanking(){
     const detalhes=[`🏆${u.exatos}`,`✅${u.resultados}`];
     if(u.acertosPrimeiroTempo>0)detalhes.push(`⏱️${u.acertosPrimeiroTempo}`);
     if(u.acertosClassificacao>0)detalhes.push(`🎯${u.acertosClassificacao}`);
-    // Setinha — compara com última posição salva
+    // Setinha
     let arrowHtml='';
     const posAnterior=posicoesAntigas[u.id];
     if(posAnterior&&posAnterior!==pos){
@@ -2944,28 +3121,23 @@ function renderRanking(){
       if(diff>0)arrowHtml=`<span class="rank-arrow up">▲${diff}</span>`;
       else arrowHtml=`<span class="rank-arrow down">▼${Math.abs(diff)}</span>`;
     }
+    // Badge rival
     const isRival=rivalId&&u.id===rivalId;
     const rivalBadge=isRival?`<span class="rival-badge">⚔️ Rival</span>`:'';
     const isRivalClass=isRival?' rival-highlight':'';
     return`<div class="rank-row${isRivalClass}" data-uid="${u.id}"><div class="rank-pos">${pos}º</div><span onclick="abrirPerfilUsuario('${u.id}')" class="rank-row-clicavel" style="display:inline-flex;align-items:center;border-radius:50%;flex-shrink:0" title="Ver perfil de ${u.nome}">${renderAvatar(u,44,u.total)}</span><div class="rank-info"><div class="rank-nome-txt">${u.nome}${arrowHtml}${rivalBadge}</div><div class="rank-detalhe">${detalhes.join(' · ')}</div></div><div class="rank-pts-val">${u.total}<small>pts</small></div></div>`;
   }).join('');
 
-  // Salva snapshot novo SOMENTE quando os pontos NÃO mudaram em relação ao salvo
-  // (ou seja: atualiza o "ponto de partida" só quando não tem jogo acontecendo)
+  // Salva snapshot: mantém antigo se pontos mudaram, atualiza se iguais
   const novoSnap={};
   ranked.forEach((u,i)=>{
-    const salvo=snapAntigo[u.id];
-    if(salvo&&salvo.pts!==undefined&&salvo.pts!==u.total){
-      // Pontos diferentes: mantém snapshot antigo (não sobrescreve — a setinha deve continuar)
-      novoSnap[u.id]=salvo;
-    } else {
-      // Pontos iguais ao salvo (ou sem dado): atualiza posição atual como nova referência
-      novoSnap[u.id]={pos:i+1,pts:u.total};
-    }
+    const s=snapAntigo[u.id];
+    if(s&&s.pts!==undefined&&s.pts!==u.total) novoSnap[u.id]=s; // mantém — setinha deve continuar
+    else novoSnap[u.id]={pos:i+1,pts:u.total}; // atualiza referência
   });
   try{localStorage.setItem('copa_rank_posicoes',JSON.stringify(novoSnap));}catch(e){}
 
-  // ── FLIP: anima as linhas que mudaram de posição ──
+  // ── FLIP: calcula diferença e anima ──
   if(Object.keys(posicoesAntes).length>0){
     lista.querySelectorAll('.rank-row[data-uid]').forEach(el=>{
       const uid=el.dataset.uid;
@@ -3154,6 +3326,163 @@ function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt
 // ═══════════════════════════════════════════
 // MATA-MATA CHAVEAMENTO ⚔️
 // ═══════════════════════════════════════════
+// ═══════════════════════════════════════════
+// NOTÍCIAS & CURIOSIDADES 📰
+// ═══════════════════════════════════════════
+let _noticiaCache=[];
+let _abaNoticiasAtiva='noticias';
+
+function trocarAbaNoticias(aba,btn){
+  _abaNoticiasAtiva=aba;
+  document.querySelectorAll('#noticias-tabs .filtro-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderNoticias();
+}
+
+async function renderNoticias(){
+  const c=document.getElementById('noticias-container');
+  if(!c)return;
+  if(_noticiaCache.length){
+    _renderNoticiasLista(c);
+    return;
+  }
+  c.innerHTML='<div class="loading-spinner"><div class="spinner"></div><span>Buscando notícias…</span></div>';
+  await carregarNoticias();
+  _renderNoticiasLista(c);
+}
+
+async function carregarNoticias(){
+  try{
+    const [noticias,curiosidades]=await Promise.allSettled([
+      sbGet('copa_noticias','select=*&order=publicado_em.desc&limit=30'),
+      sbGet('copa_curiosidades','select=*&order=criado_em.desc&limit=20'),
+    ]);
+    const ns=(noticias.status==='fulfilled'?noticias.value:[])||[];
+    const cs=(curiosidades.status==='fulfilled'?curiosidades.value:[])||[];
+    // Mescla e ordena por data
+    _noticiaCache=[
+      ...ns.map(n=>({...n,tipo:'noticia'})),
+      ...cs.map(c=>({...c,tipo:'curiosidade',titulo:c.fato?.substring(0,80)+'…',publicado_em:c.criado_em})),
+    ].sort((a,b)=>new Date(b.publicado_em)-new Date(a.publicado_em));
+  }catch(e){
+    console.warn('Notícias:',e.message);
+    _noticiaCache=[];
+  }
+}
+
+function _renderNoticiasLista(c){
+  let lista=_noticiaCache;
+  if(_abaNoticiasAtiva==='noticias') lista=lista.filter(n=>n.tipo==='noticia');
+  else if(_abaNoticiasAtiva==='curiosidades') lista=lista.filter(n=>n.tipo==='curiosidade');
+
+  if(!lista.length){
+    c.innerHTML=`<div class="empty-state"><span class="ei">📰</span><p>Nenhum conteúdo ainda.<br>Volte em breve!</p></div>`;
+    return;
+  }
+
+  c.innerHTML=lista.map(item=>{
+    if(item.tipo==='curiosidade') return _curiosidadeHTML(item);
+    return _noticiaHTML(item);
+  }).join('');
+}
+
+function _noticiaHTML(n){
+  const uid=usuarioAtual?.id||'';
+  const reacoes=n.reacoes||{};
+  const EMOJIS=['❤️','😂','🔥','😮','👏'];
+  const reacoesHtml=EMOJIS.map(em=>{
+    const quem=reacoes[em]||[];
+    const ativa=quem.includes(uid);
+    const count=quem.length;
+    return`<button onclick="reagirNoticia('${n.id}','${em}')" class="reacao-noticia${ativa?' ativa':''}">${em}${count>0?' '+count:''}</button>`;
+  }).join('');
+  const tempo=_tempoRelativo(n.publicado_em);
+  const imgHtml=n.imagem_url
+    ?`<img class="noticia-img" src="${n.imagem_url}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='<div class=noticia-img-placeholder>📰</div>'">`
+    :`<div class="noticia-img-placeholder">⚽</div>`;
+  return`<div class="noticia-card" id="noticia-${n.id}">
+    ${imgHtml}
+    <div class="noticia-body">
+      <div class="noticia-fonte">
+        <span class="noticia-badge badge-noticia">📰 Notícia</span>
+        <span>${n.fonte||'Copa 2026'}</span>
+        <span style="margin-left:auto;color:var(--muted)">${tempo}</span>
+      </div>
+      <div class="noticia-titulo">${n.titulo||''}</div>
+      ${n.descricao?`<div class="noticia-desc">${n.descricao}</div>`:''}
+      <div class="noticia-footer">
+        <div class="noticia-reacoes">${reacoesHtml}</div>
+        ${n.url?`<a href="${n.url}" target="_blank" rel="noopener" class="noticia-link">Ler mais ↗</a>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function _curiosidadeHTML(n){
+  const uid=usuarioAtual?.id||'';
+  const reacoes=n.reacoes||{};
+  const EMOJIS=['❤️','😮','🔥','👏','😂'];
+  const reacoesHtml=EMOJIS.map(em=>{
+    const quem=reacoes[em]||[];
+    const ativa=quem.includes(uid);
+    const count=quem.length;
+    return`<button onclick="reagirCuriosidade('${n.id}','${em}')" class="reacao-noticia${ativa?' ativa':''}">${em}${count>0?' '+count:''}</button>`;
+  }).join('');
+  const tempo=_tempoRelativo(n.criado_em);
+  const icones=['⚽','🌟','🏆','🌎','📊','🎯','🔥','💡'];
+  const icon=icones[Math.abs(n.id?.charCodeAt(0)||0)%icones.length]||'💡';
+  return`<div class="curiosidade-card" id="curiosidade-${n.id}">
+    <div class="noticia-fonte">
+      <span class="noticia-badge badge-curiosidade">💡 Curiosidade</span>
+      <span style="margin-left:auto;color:var(--muted)">${tempo}</span>
+    </div>
+    <div style="font-size:1.6rem;margin:.4rem 0">${icon}</div>
+    ${n.titulo?`<div class="curiosidade-titulo">${n.titulo}</div>`:''}
+    <div class="curiosidade-texto">${n.fato||''}</div>
+    <div class="noticia-reacoes" style="margin-top:.65rem">${reacoesHtml}</div>
+  </div>`;
+}
+
+async function reagirNoticia(id,emoji){
+  if(!usuarioAtual)return;
+  const item=_noticiaCache.find(n=>n.id===id&&n.tipo==='noticia');
+  if(!item)return;
+  if(!item.reacoes)item.reacoes={};
+  if(!item.reacoes[emoji])item.reacoes[emoji]=[];
+  const idx=item.reacoes[emoji].indexOf(usuarioAtual.id);
+  if(idx>=0)item.reacoes[emoji].splice(idx,1);
+  else item.reacoes[emoji].push(usuarioAtual.id);
+  try{if(navigator.vibrate)navigator.vibrate(30);}catch(e){}
+  // Re-renderiza o card
+  const c=document.getElementById('noticias-container');
+  if(c)_renderNoticiasLista(c);
+  try{await sbPatch('copa_noticias',`id=eq.${id}`,{reacoes:item.reacoes});}catch(e){}
+}
+
+async function reagirCuriosidade(id,emoji){
+  if(!usuarioAtual)return;
+  const item=_noticiaCache.find(n=>n.id===id&&n.tipo==='curiosidade');
+  if(!item)return;
+  if(!item.reacoes)item.reacoes={};
+  if(!item.reacoes[emoji])item.reacoes[emoji]=[];
+  const idx=item.reacoes[emoji].indexOf(usuarioAtual.id);
+  if(idx>=0)item.reacoes[emoji].splice(idx,1);
+  else item.reacoes[emoji].push(usuarioAtual.id);
+  try{if(navigator.vibrate)navigator.vibrate(30);}catch(e){}
+  const c=document.getElementById('noticias-container');
+  if(c)_renderNoticiasLista(c);
+  try{await sbPatch('copa_curiosidades',`id=eq.${id}`,{reacoes:item.reacoes});}catch(e){}
+}
+
+function _tempoRelativo(iso){
+  if(!iso)return'';
+  const diff=(Date.now()-new Date(iso))/1000;
+  if(diff<60)return'agora';
+  if(diff<3600)return Math.floor(diff/60)+'min atrás';
+  if(diff<86400)return Math.floor(diff/3600)+'h atrás';
+  return Math.floor(diff/86400)+'d atrás';
+}
+
 function renderMata(){
   const c=document.getElementById('bracket-container');
   const fases=['Round of 32','Round of 16','Quarter-final','Semi-final','Final'];
@@ -3216,20 +3545,17 @@ function checarStoriesDoDia(){
 function mostrarStoriesDoDia(automatico){
   const hoje=new Date().toISOString().split('T')[0];
 
-  // Jogos encerrados de hoje
+  // Jogos encerrados hoje
   let jogosHoje=todosJogos.filter(j=>j.data===hoje&&j.status==='encerrado');
 
-  // Se não tem jogos hoje (clique manual), pega a rodada mais recente com jogos encerrados
+  // Se não tem hoje (clique manual), pega rodada mais recente com jogos encerrados
   let labelData='RESUMO DO DIA';
   let labelDia=fmtData(hoje);
   if(!jogosHoje.length){
-    const datasComJogos=[...new Set(
-      todosJogos.filter(j=>j.status==='encerrado').map(j=>j.data)
-    )].sort().reverse();
-    if(datasComJogos.length){
-      const dataMaisRecente=datasComJogos[0];
-      jogosHoje=todosJogos.filter(j=>j.data===dataMaisRecente&&j.status==='encerrado');
-      labelDia=fmtData(dataMaisRecente);
+    const datas=[...new Set(todosJogos.filter(j=>j.status==='encerrado').map(j=>j.data))].sort().reverse();
+    if(datas.length){
+      jogosHoje=todosJogos.filter(j=>j.data===datas[0]&&j.status==='encerrado');
+      labelDia=fmtData(datas[0]);
       labelData='RESUMO DA RODADA';
     }
   }
@@ -3239,35 +3565,35 @@ function mostrarStoriesDoDia(automatico){
   // Se ainda não tem nada
   if(!jogosHoje.length){
     const overlay=document.createElement('div');
-    overlay.className='modal-overlay show';
-    overlay.style.alignItems='center';
+    overlay.className='modal-overlay show';overlay.style.alignItems='center';
     overlay.id='modal-stories-dia';
     overlay.onclick=(e)=>{if(e.target===overlay)fecharStoriesDoDia()};
-    overlay.innerHTML=`
-      <div class="stories-card" style="text-align:center">
-        <button class="stories-close" onclick="fecharStoriesDoDia()">✕</button>
-        <div style="font-size:3rem;margin:1rem 0">⚽</div>
-        <div class="stories-titulo">Sem jogos encerrados ainda</div>
-        <p style="font-size:.82rem;color:rgba(255,255,255,.5);margin:.75rem 0 1.25rem">Os stories aparecem após o encerramento dos jogos.</p>
-        <button class="btn-primary" onclick="fecharStoriesDoDia()">Fechar</button>
-      </div>`;
+    overlay.innerHTML=`<div class="stories-card" style="text-align:center">
+      <button class="stories-close" onclick="fecharStoriesDoDia()">✕</button>
+      <div style="font-size:3rem;margin:1rem 0">⚽</div>
+      <div class="stories-titulo">Sem jogos encerrados ainda</div>
+      <p style="font-size:.82rem;color:rgba(255,255,255,.5);margin:.75rem 0 1.25rem">Os stories aparecem após o encerramento dos jogos.</p>
+      <button class="btn-primary" onclick="fecharStoriesDoDia()">Fechar</button>
+    </div>`;
     document.body.appendChild(overlay);
     return;
   }
+
+  if(automatico)localStorage.setItem('copa_stories_ultima_data',hoje);
 
   // Estatísticas
   const totalGols=jogosHoje.reduce((acc,j)=>acc+(j.gols1||0)+(j.gols2||0),0);
   const totalJogos=jogosHoje.length;
   const mediaGols=totalJogos?Math.round((totalGols/totalJogos)*10)/10:0;
 
-  // Maior goleada
+  // Maior goleada do dia
   let maiorGoleada=null,maiorDiff=-1;
   jogosHoje.forEach(j=>{
-    const diff=Math.abs((j.gols1||0)-(j.gols2||0));
+    const diff=Math.abs(j.gols1-j.gols2);
     if(diff>maiorDiff){maiorDiff=diff;maiorGoleada=j}
   });
 
-  // Craque da rodada
+  // Craque do dia: quem mais pontuou nos jogos de hoje
   const pontosPorPessoa={};
   jogosHoje.forEach(j=>{
     Object.entries(todosPalpites[j.id]||{}).forEach(([uid,pal])=>{
@@ -3280,7 +3606,7 @@ function mostrarStoriesDoDia(automatico){
     if(pts>craquePts){craquePts=pts;craqueDoDia=todosUsuarios.find(u=>u.id===uid)}
   });
 
-  // Exatos da rodada
+  // Quantos placares exatos saíram hoje (de qualquer pessoa)
   let totalExatosHoje=0;
   jogosHoje.forEach(j=>{
     Object.values(todosPalpites[j.id]||{}).forEach(pal=>{
@@ -3288,14 +3614,6 @@ function mostrarStoriesDoDia(automatico){
       if(txt.includes('Exato'))totalExatosHoje++;
     });
   });
-
-  // Lista dos jogos (máximo 4)
-  const listaJogosHtml=jogosHoje.slice(0,4).map(j=>`
-    <div style="display:flex;align-items:center;justify-content:center;gap:.5rem;font-size:.8rem;padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.07)">
-      ${getFlagSmall(j.time1)} <span style="color:rgba(255,255,255,.7)">${nomePT(j.time1)}</span>
-      <span style="font-family:'Bebas Neue',sans-serif;font-size:1rem;color:#fff;letter-spacing:2px">${j.gols1} × ${j.gols2}</span>
-      <span style="color:rgba(255,255,255,.7)">${nomePT(j.time2)}</span> ${getFlagSmall(j.time2)}
-    </div>`).join('');
 
   const overlay=document.createElement('div');
   overlay.className='modal-overlay show';
@@ -3310,12 +3628,20 @@ function mostrarStoriesDoDia(automatico){
         <div class="stories-titulo">⚽ ${labelData}</div>
       </div>
       <div class="stories-stats-grid">
-        <div class="stories-stat"><div class="stories-stat-num">${totalJogos}</div><div class="stories-stat-label">Jogo${totalJogos!==1?'s':''}</div></div>
-        <div class="stories-stat"><div class="stories-stat-num">${totalGols}</div><div class="stories-stat-label">Gols</div></div>
-        <div class="stories-stat"><div class="stories-stat-num">${mediaGols}</div><div class="stories-stat-label">Média/jogo</div></div>
+        <div class="stories-stat">
+          <div class="stories-stat-num">${totalJogos}</div>
+          <div class="stories-stat-label">Jogo${totalJogos!==1?'s':''}</div>
+        </div>
+        <div class="stories-stat">
+          <div class="stories-stat-num">${totalGols}</div>
+          <div class="stories-stat-label">Gols</div>
+        </div>
+        <div class="stories-stat">
+          <div class="stories-stat-num">${mediaGols}</div>
+          <div class="stories-stat-label">Média/jogo</div>
+        </div>
       </div>
-      <div class="stories-destaque" style="padding:.6rem .9rem">${listaJogosHtml}</div>
-      ${maiorGoleada&&maiorDiff>0?`
+      ${maiorGoleada?`
       <div class="stories-destaque">
         <div class="stories-destaque-label">⚡ MAIOR GOLEADA</div>
         <div class="stories-destaque-jogo">
@@ -3324,18 +3650,18 @@ function mostrarStoriesDoDia(automatico){
       </div>`:''}
       ${craqueDoDia?`
       <div class="stories-destaque" style="border-color:rgba(255,223,0,.4);background:rgba(255,223,0,.06)">
-        <div class="stories-destaque-label" style="color:var(--amarelo)">🏆 CRAQUE DA RODADA</div>
+        <div class="stories-destaque-label" style="color:var(--amarelo)">🏆 CRAQUE DO DIA</div>
         <div class="stories-craque">
           ${renderAvatar(craqueDoDia,40,calcPtsTotal(craqueDoDia.id).total)}
           <div>
             <div style="font-weight:700">${craqueDoDia.nome}</div>
-            <div style="font-size:.72rem;color:var(--amarelo)">+${craquePts} pts</div>
+            <div style="font-size:.72rem;color:var(--amarelo)">+${craquePts} pts hoje</div>
           </div>
         </div>
       </div>`:''}
       ${totalExatosHoje>0?`
       <div class="stories-destaque" style="border-color:rgba(0,156,59,.4);background:rgba(0,156,59,.06)">
-        <div class="stories-destaque-label" style="color:var(--verde-light)">🎯 PLACARES EXATOS</div>
+        <div class="stories-destaque-label" style="color:var(--verde-light)">🎯 PLACARES EXATOS HOJE</div>
         <div style="font-size:1.4rem;font-weight:700;color:var(--verde-light);text-align:center;padding:.3rem 0">${totalExatosHoje}</div>
       </div>`:''}
       <button class="btn-primary" style="margin-top:1rem" onclick="fecharStoriesDoDia()">Show de bola! ⚽</button>
@@ -4019,6 +4345,67 @@ function renderPerfil(){
 // ═══════════════════════════════════════════
 // ADMIN PANEL ⚙️
 // ═══════════════════════════════════════════
+// ═══════════════════════════════════════════
+// MODO HACKEADO 💀 — controlado pelo admin via Supabase
+// ═══════════════════════════════════════════
+const HACKER_KEY='copa_hacker_mode';
+
+async function checarModoHacker(){
+  // Admin nunca vê a tela hacker
+  if(isAdmin())return;
+  try{
+    const rows=await sbGet('configuracoes',`chave=eq.${HACKER_KEY}&select=valor`);
+    const ativo=rows?.[0]?.valor==='true';
+    if(ativo) ativarTelaHacker();
+  }catch(e){
+    // Tabela pode não existir — sem problema, ignora
+  }
+}
+
+function ativarTelaHacker(){
+  const el=document.getElementById('hacker-screen');
+  if(!el)return;
+  el.style.display='flex';
+  // Garante que não some sozinho — fica travado até admin desativar
+  el.dataset.travado='1';
+}
+
+async function toggleModoHacker(){
+  try{
+    const rows=await sbGet('configuracoes',`chave=eq.${HACKER_KEY}&select=valor`);
+    const atual=rows?.[0]?.valor==='true';
+    const novo=!atual;
+    await sbUpsert('configuracoes',{chave:HACKER_KEY,valor:String(novo)},'chave');
+    atualizarBotaoHacker(novo);
+    showToast(novo?'💀 Modo Hackeado ATIVADO — todo mundo tá travado!':'✅ Modo Hackeado DESATIVADO — acesso liberado!');
+  }catch(e){
+    // Tenta criar a tabela não existe — guia o admin
+    showToast('⚠️ Crie a tabela "configuracoes" no Supabase! (chave TEXT, valor TEXT)');
+  }
+}
+
+async function atualizarBotaoHacker(estadoForcado){
+  const statusEl=document.getElementById('adm-hacker-status');
+  const btnEl=document.getElementById('adm-hacker-btn');
+  if(!statusEl||!btnEl)return;
+  let ativo=estadoForcado;
+  if(ativo===undefined){
+    try{
+      const rows=await sbGet('configuracoes',`chave=eq.${HACKER_KEY}&select=valor`);
+      ativo=rows?.[0]?.valor==='true';
+    }catch(e){ativo=false;}
+  }
+  if(ativo){
+    statusEl.innerHTML='<span style="color:#ff4444">💀 ATIVADO — todo mundo vê a tela hacker</span>';
+    btnEl.textContent='✅ DESATIVAR';
+    btnEl.style.cssText='padding:.55rem 1.25rem;border:none;border-radius:8px;font-family:Inter,sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;background:rgba(0,156,59,.2);color:#00d44f;border:1px solid rgba(0,156,59,.4)';
+  }else{
+    statusEl.innerHTML='<span style="color:var(--muted)">⬜ Desativado — app funcionando normal</span>';
+    btnEl.textContent='💀 ATIVAR MODO HACKEADO';
+    btnEl.style.cssText='padding:.55rem 1.25rem;border:none;border-radius:8px;font-family:Inter,sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;background:rgba(255,0,0,.2);color:#ff4444;border:1px solid rgba(255,0,0,.4)';
+  }
+}
+
 function isAdmin(){
   return usuarioAtual && CFG.admin_users.includes((usuarioAtual.usuario||'').toLowerCase().trim());
 }
@@ -4031,6 +4418,17 @@ function renderAdmin(){
 
   const opcoesUsuarios=todosUsuarios.map(u=>`<option value="${u.id}">${u.nome} (@${u.usuario})</option>`).join('');
   let html=`
+    <div class="admin-card" style="border-color:rgba(255,0,0,.5);background:rgba(255,0,0,.06);margin-bottom:1rem">
+      <div style="font-weight:700;font-size:.95rem;color:#ff4444;margin-bottom:.5rem">💀 MODO HACKEADO — Zoeira</div>
+      <div style="font-size:.78rem;color:var(--muted);margin-bottom:.75rem">Quando ativado: <strong style="color:#fff">todo mundo vê a tela hacker e não consegue entrar</strong>. Só você (admin) acessa normalmente.</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem">
+        <div id="adm-hacker-status" style="font-size:.85rem;font-weight:700"></div>
+        <button id="adm-hacker-btn" onclick="toggleModoHacker()" style="padding:.55rem 1.25rem;border:none;border-radius:8px;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer"></button>
+      </div>
+    </div>
+`;
+
+  html+=`
     <div class="admin-card" style="border-color:rgba(0,156,59,.3);background:rgba(0,156,59,.06)">
       <div style="font-weight:700;margin-bottom:.6rem;font-size:.85rem;color:var(--verde-light)">🔑 Resetar senha de alguém</div>
       <div style="display:flex;flex-direction:column;gap:.5rem">
@@ -4111,6 +4509,7 @@ function renderAdmin(){
 
   c.innerHTML=html;
   adminCarregarFusoes();
+  atualizarBotaoHacker();
 
   // Bolão artilheiro — botão só aparece no dia do jogo
   const hojeAdmin=new Date().toISOString().split('T')[0];
