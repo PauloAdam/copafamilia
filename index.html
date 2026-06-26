@@ -701,6 +701,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // Isso força o recarregamento automático em todos os celulares conectados.
 const APP_VERSION = '78';
 
+// Migração: limpa snapshot de posições no formato antigo (sem pts) para forçar recriação
+(function(){
+  try{
+    const snap=JSON.parse(localStorage.getItem('copa_rank_posicoes')||'{}');
+    const primeiroValor=Object.values(snap)[0];
+    // Formato antigo era número puro (ex: {uid: 3}), novo é objeto (ex: {uid: {pos:3,pts:610}})
+    if(primeiroValor!==undefined&&typeof primeiroValor!=='object'){
+      localStorage.removeItem('copa_rank_posicoes');
+    }
+  }catch(e){}
+})();
+
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
   supabase_key: 'sb_publishable_p5ZeJJA-pyT5kjKF-lm9MA_wYX7qIZD',
@@ -2882,9 +2894,20 @@ function renderRanking(){
   const emj=['🥈','🥇','🥉'];
   podio.innerHTML=ord.map((u,i)=>u?`<div class="rank-podio-card ${cls[i]}"><span class="podio-emoji">${emj[i]}</span><div style="margin:0 auto .35rem;width:52px">${renderAvatar(u,52,u.total)}</div><div class="podio-nome">${u.nome}</div><div class="podio-pts">${u.total}<small>pontos</small></div></div>`:'<div></div>').join('');
 
-  // ── SETINHAS — lê última posição salva, só atualiza se mudou ──
-  let posicoesAntigas={};
-  try{posicoesAntigas=JSON.parse(localStorage.getItem('copa_rank_posicoes')||'{}');}catch(e){}
+  // ── SETINHAS — salva posição+pontos, detecta mudança por pontos ──
+  let snapAntigo={};
+  try{snapAntigo=JSON.parse(localStorage.getItem('copa_rank_posicoes')||'{}');}catch(e){}
+
+  // posicoesAntigas: posição salva anteriormente (antes dos pontos mudarem)
+  // Só usa a posição salva se os pontos forem DIFERENTES dos atuais (indicando que houve jogo novo)
+  const posicoesAntigas={};
+  ranked.forEach(u=>{
+    const salvo=snapAntigo[u.id];
+    if(salvo&&salvo.pts!==undefined&&salvo.pts!==u.total){
+      // Pontos mudaram → mostra onde a pessoa ESTAVA antes
+      posicoesAntigas[u.id]=salvo.pos;
+    }
+  });
 
   // ── RIVAL: pessoa mais próxima em pontos do usuário logado ──
   let rivalId=null;
@@ -2926,12 +2949,20 @@ function renderRanking(){
     return`<div class="rank-row${isRivalClass}" data-uid="${u.id}"><div class="rank-pos">${pos}º</div><span onclick="abrirPerfilUsuario('${u.id}')" class="rank-row-clicavel" style="display:inline-flex;align-items:center;border-radius:50%;flex-shrink:0" title="Ver perfil de ${u.nome}">${renderAvatar(u,44,u.total)}</span><div class="rank-info"><div class="rank-nome-txt">${u.nome}${arrowHtml}${rivalBadge}</div><div class="rank-detalhe">${detalhes.join(' · ')}</div></div><div class="rank-pts-val">${u.total}<small>pts</small></div></div>`;
   }).join('');
 
-  // Salva posições SOMENTE se alguma posição mudou — mantém o snapshot anterior enquanto nada muda
-  const algumaMudanca=ranked.some((u,i)=>posicoesAntigas[u.id]&&posicoesAntigas[u.id]!==(i+1));
-  const temNovos=ranked.some(u=>!posicoesAntigas[u.id]);
-  if(algumaMudanca||temNovos){
-    try{localStorage.setItem('copa_rank_posicoes',JSON.stringify(novasPosicoes));}catch(e){}
-  }
+  // Salva snapshot novo SOMENTE quando os pontos NÃO mudaram em relação ao salvo
+  // (ou seja: atualiza o "ponto de partida" só quando não tem jogo acontecendo)
+  const novoSnap={};
+  ranked.forEach((u,i)=>{
+    const salvo=snapAntigo[u.id];
+    if(salvo&&salvo.pts!==undefined&&salvo.pts!==u.total){
+      // Pontos diferentes: mantém snapshot antigo (não sobrescreve — a setinha deve continuar)
+      novoSnap[u.id]=salvo;
+    } else {
+      // Pontos iguais ao salvo (ou sem dado): atualiza posição atual como nova referência
+      novoSnap[u.id]={pos:i+1,pts:u.total};
+    }
+  });
+  try{localStorage.setItem('copa_rank_posicoes',JSON.stringify(novoSnap));}catch(e){}
 
   // ── FLIP: anima as linhas que mudaram de posição ──
   if(Object.keys(posicoesAntes).length>0){
