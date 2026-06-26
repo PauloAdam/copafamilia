@@ -2,7 +2,7 @@
 <html lang="pt-BR" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<script>var t=localStorage.getItem("copa_theme");if(t==="light")document.documentElement.setAttribute("data-theme","light");else{document.documentElement.setAttribute("data-theme","dark");}</script>
+<script>try{var t=localStorage.getItem("copa_theme");if(t==="light")document.documentElement.setAttribute("data-theme","light");else document.documentElement.setAttribute("data-theme","dark");}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#009c3b">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -34,6 +34,8 @@
   --text: #0a1f0d; --muted: #4a7a55;
   --border: rgba(0,156,59,0.22); --border2: rgba(0,156,59,0.4);
   --shadow: 0 2px 16px rgba(0,0,0,.08);
+  /* No tema claro, "verde-light" e "amarelo" passam a ser tons mais escuros/saturados
+     para manter contraste legível em fundo branco — no dark eles continuam vivos. */
   --verde-light: #00913f;
   --amarelo: #c9a000;
   --azul-claro: #1a4fb8;
@@ -43,7 +45,7 @@
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;-webkit-font-smoothing:antialiased;
 ::-webkit-scrollbar{width:3px;height:3px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--verde-dark);border-radius:2px}
@@ -61,18 +63,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 }
 .gol-banner.show{transform:translateY(0)}
 
+/* ── AUTH ── */
 /* SPLASH SCREEN */
-#splash-screen{position:fixed;inset:0;z-index:10000;background:linear-gradient(135deg,#001a0d 0%,#002310 100%);display:flex;align-items:center;justify-content:center;animation:splashFadeOut .4s ease 1.8s forwards}
+#splash-screen{position:fixed;inset:0;z-index:10000;background:linear-gradient(135deg,#001a0d 0%,#002310 100%);display:flex;align-items:center;justify-content:center;animation:splashFadeOut .4s ease 1.1s forwards}
 .splash-content{text-align:center}
 .splash-ball{font-size:4.5rem;line-height:1;animation:splashBounce .55s cubic-bezier(.5,0,.5,1) infinite alternate}
 .splash-titulo{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--amarelo);letter-spacing:3px;margin-top:1rem;opacity:0;animation:splashTextIn .3s ease .3s forwards}
 .splash-titulo span{color:var(--verde-light)}
-.splash-sub{font-size:.8rem;color:#7aab85;margin-top:.3rem;opacity:0;animation:splashTextIn .3s ease .5s forwards}
+.splash-sub{font-size:.8rem;color:var(--muted);margin-top:.3rem;opacity:0;animation:splashTextIn .3s ease .5s forwards}
 @keyframes splashBounce{from{transform:translateY(0) scaleY(1)}to{transform:translateY(-30px) scaleY(1.05)}}
 @keyframes splashTextIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes splashFadeOut{to{opacity:0;visibility:hidden;pointer-events:none}}
 
-/* ── AUTH ── */
 #auth-screen{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:1rem;background:var(--bg)}
 .auth-box{width:100%;max-width:380px;background:var(--card);border:1px solid var(--border2);border-radius:18px;padding:2rem 1.75rem;position:relative;overflow:hidden}
 .auth-box::before{content:'';position:absolute;top:-60px;left:-60px;width:180px;height:180px;background:radial-gradient(circle,rgba(255,223,0,.06) 0%,transparent 70%);pointer-events:none}
@@ -101,7 +103,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 /* TOPBAR */
 .topbar{position:sticky;top:0;z-index:100;background:rgba(8,15,10,.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.6rem 1rem;display:flex;align-items:center;gap:.75rem}
 [data-theme="light"] .topbar{background:rgba(240,247,242,.95)}
-.topbar-logo{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--amarelo);letter-spacing:1px;flex:1;white-space:nowrap}
+.topbar-logo{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--amarelo);letter-spacing:1px;flex:1}
 .topbar-logo span{color:var(--verde-light);font-size:1rem}
 .logo-ball{display:inline-block;animation:logoSpin 6s linear infinite}
 @keyframes logoSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
@@ -184,6 +186,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .btn-salvar-pal:disabled{background:#2a4a30;color:#5a8a60;cursor:default}
 .palpite-ok{font-size:.72rem;color:var(--verde-light);font-weight:600}
 .palpite-pts{font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--amarelo)}
+
+/* APOSTA EXTRA — botões grandes, fáceis de clicar (acessível p/ idosos) */
 .extra-aposta-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
 .extra-aposta-btn{background:rgba(255,255,255,.05);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'Inter',sans-serif;font-size:.75rem;font-weight:700;padding:.7rem .3rem;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem;text-align:center;line-height:1.2}
 .extra-aposta-btn:active{transform:scale(.97)}
@@ -191,11 +195,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .palpite-resultado{font-size:.7rem;color:var(--muted)}
 
 /* FILTROS */
+/* STATUS TABS (Próximos/Ao Vivo/Encerrados) */
 .status-tabs{display:flex;gap:.4rem;margin-bottom:.75rem}
 .status-tab{flex:1;background:var(--card2);border:1px solid var(--border);color:var(--muted);font-size:.78rem;font-weight:700;font-family:'Inter',sans-serif;padding:.55rem .4rem;border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;text-align:center}
 .status-tab.active{background:var(--verde);border-color:var(--verde);color:#fff}
 .status-tab[data-status="ao-vivo"].active{background:#cc3333;border-color:#cc3333}
 .status-tab .count{display:inline-block;background:rgba(255,255,255,.2);font-size:.65rem;padding:1px 6px;border-radius:10px;margin-left:4px}
+
+/* MODAL PALPITES DE TODOS */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;align-items:flex-end;justify-content:center}
 .modal-overlay.show{display:flex}
 .modal-sheet{background:var(--card);border-radius:18px 18px 0 0;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;padding:1.25rem 1.1rem calc(1.25rem + env(safe-area-inset-bottom,0));animation:slideUp .25s ease}
@@ -203,7 +210,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 1rem}
 .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
 
-/* STORIES */
+/* STORIES DO DIA — card vertical estilo Instagram */
 .stories-card{background:linear-gradient(165deg,#002776 0%,#001a4d 50%,#000d26 100%);border-radius:24px;width:100%;max-width:340px;max-height:90vh;overflow-y:auto;padding:1.5rem 1.25rem;position:relative;animation:storiesPopIn .35s cubic-bezier(.34,1.56,.64,1);box-shadow:0 20px 60px rgba(0,0,0,.6);border:1px solid rgba(255,223,0,.2)}
 @keyframes storiesPopIn{from{opacity:0;transform:scale(.85) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
 .stories-close{position:absolute;top:.9rem;right:.9rem;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:.85rem;cursor:pointer;z-index:2}
@@ -218,6 +225,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .stories-destaque-label{font-size:.62rem;font-weight:700;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.8px;margin-bottom:.4rem}
 .stories-destaque-jogo{font-size:.85rem;color:#fff;font-weight:600;text-align:center}
 .stories-craque{display:flex;align-items:center;gap:.6rem;color:#fff}
+
+/* STORIES PÓS-JOGO — melhor/mediano/pior palpite, com navegação */
 .stories-posjogo{text-align:center;border-width:1.5px}
 .stories-progress-row{display:flex;gap:4px;margin-bottom:1.1rem;padding-top:.2rem}
 .stories-progress-bar{flex:1;height:3px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden}
@@ -238,6 +247,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .stories-nav-btn.principal{background:var(--verde);border-color:var(--verde);flex:1}
 
 .modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--amarelo);letter-spacing:1px}
+/* MODAL PERFIL USUÁRIO */
 .perfil-modal-hero{text-align:center;padding:1.25rem 0 .75rem;border-bottom:1px solid var(--border);margin-bottom:1rem}
 .perfil-modal-nome{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:1px;margin:.5rem 0 .1rem}
 .perfil-modal-usuario{font-size:.75rem;color:var(--muted);margin-bottom:.3rem}
@@ -254,9 +264,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .perfil-modal-grafico{width:100%;border-radius:10px;margin:.5rem 0;display:block}
 .rank-row-clicavel{cursor:pointer;transition:background .15s}
 .rank-row-clicavel:active{background:rgba(0,156,59,.08)}
+/* SETINHAS RANKING v75 */
 .rank-arrow{font-size:.65rem;font-weight:700;padding:1px 5px;border-radius:8px;margin-left:.3rem;white-space:nowrap}
 .rank-arrow.up{color:#00d44f;background:rgba(0,212,79,.12)}
 .rank-arrow.down{color:#f87171;background:rgba(248,113,113,.12)}
+/* RIVAL v75 */
 .rival-highlight{box-shadow:0 0 0 1px rgba(255,223,0,.35)!important;background:rgba(255,223,0,.04)!important}
 .rival-badge{font-size:.58rem;font-weight:700;color:var(--amarelo);background:rgba(255,223,0,.15);border:1px solid rgba(255,223,0,.3);padding:1px 6px;border-radius:8px;margin-left:.3rem;white-space:nowrap}
 .modal-close{background:var(--card2);border:none;color:var(--muted);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:1rem}
@@ -276,6 +288,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .btn-ver-palpites{width:100%;background:rgba(0,39,118,.12);border:1px solid rgba(0,39,118,.35);color:#3a6fd8;font-size:.75rem;font-weight:600;padding:.5rem;border-radius:8px;cursor:pointer;margin-top:.25rem;font-family:'Inter',sans-serif}
 [data-theme="light"] .btn-ver-palpites{background:rgba(0,39,118,.08);color:#1a4fb8}
 .btn-ver-palpites:hover{background:rgba(0,39,118,.4)}
+
 .filtro-bar{display:flex;gap:.4rem;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-bottom:1rem}
 .filtro-bar::-webkit-scrollbar{display:none}
 .filtro-btn{flex-shrink:0;background:var(--card2);border:1px solid var(--border);color:var(--muted);font-size:.75rem;font-weight:600;font-family:'Inter',sans-serif;padding:.35rem .9rem;border-radius:20px;cursor:pointer;transition:all .15s;white-space:nowrap}
@@ -296,6 +309,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .rank-lista .rank-row:last-child{border-bottom:none}
 .rank-lista .rank-row.rank-subiu{background:rgba(0,156,59,.12);box-shadow:0 0 0 1px rgba(0,156,59,.3)}
 .rank-lista .rank-row.rank-desceu{background:rgba(255,80,80,.08);box-shadow:0 0 0 1px rgba(255,80,80,.2)}
+.rank-lista .rank-row.rank-subiu,.rank-lista .rank-row.rank-desceu{transition:background 1.2s ease,box-shadow 1.2s ease}
 .rank-pos{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--muted);min-width:28px;text-align:center}
 .rank-avatar-sm{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0}
 .rank-info{flex:1;min-width:0}
@@ -332,7 +346,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .chat-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0;color:#fff}
 .chat-bubble{max-width:75%;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:.45rem .7rem;font-size:.82rem}
 .chat-msg.minha .chat-bubble{background:rgba(0,156,59,.15);border-color:rgba(0,156,59,.3)}
-.chat-meta{font-size:.62rem;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:.2rem}
+.chat-meta{font-size:.62rem;color:var(--muted);margin-top:2px}
 .chat-reacoes-row{display:flex;align-items:center;flex-wrap:wrap;gap:.3rem;margin-top:.3rem}
 .reacao-pill{background:rgba(0,156,59,.12);border:1px solid rgba(0,156,59,.3);border-radius:12px;padding:1px 7px;font-size:.7rem;cursor:pointer;user-select:none}
 .reacao-pill.minha-reacao{background:rgba(0,156,59,.3);border-color:var(--verde-light)}
@@ -371,7 +385,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .hist-palpite{font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--muted)}
 .hist-pts{font-family:'Bebas Neue',sans-serif;font-size:1rem;min-width:36px;text-align:right}
 
-/* ADMIN */
+/* ADMIN PANEL */
 .admin-card{background:rgba(200,50,50,.08);border:1px solid rgba(200,50,50,.3);border-radius:var(--radius);padding:1rem;margin-bottom:.75rem}
 .admin-jogo-row{display:flex;align-items:center;gap:.5rem;padding:.5rem 0;border-bottom:1px solid var(--border);flex-wrap:wrap;font-size:.8rem}
 .admin-jogo-row:last-child{border-bottom:none}
@@ -379,7 +393,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .admin-score-input::-webkit-outer-spin-button,.admin-score-input::-webkit-inner-spin-button{-webkit-appearance:none}
 .btn-admin-save{background:#cc3333;border:none;color:#fff;font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:5px;cursor:pointer;font-family:'Inter',sans-serif}
 
-/* BOLÃO */
+/* BOLÃO CAMPEÃO */
 .bolao-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.6rem;margin-bottom:1rem}
 .bolao-time-btn{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.65rem .5rem;text-align:center;cursor:pointer;transition:all .2s;font-size:.75rem;font-weight:600}
 .bolao-time-btn:hover{border-color:var(--verde)}
@@ -405,6 +419,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:.75rem}
 .card-title{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;color:var(--amarelo);margin-bottom:.75rem}
+/* CONTAGEM REGRESSIVA */
 .countdown-card{background:linear-gradient(135deg,#002776 0%,#001a4d 100%);border:1px solid rgba(255,223,0,.3);border-radius:var(--radius);padding:1.2rem 1rem;margin-bottom:1rem;text-align:center;position:relative;overflow:hidden}
 .countdown-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(255,223,0,.1) 0%,transparent 70%);pointer-events:none}
 .countdown-label{font-size:.7rem;font-weight:700;color:#ffdf00;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:.5rem}
@@ -415,6 +430,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .countdown-time span{font-size:.72rem;font-weight:600;color:#fff}
 .countdown-vs{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:rgba(255,255,255,.4)}
 .countdown-info{font-size:.7rem;color:rgba(255,255,255,.6)}
+
 .hoje-hero{background:linear-gradient(135deg,rgba(0,156,59,.12) 0%,rgba(0,39,118,.1) 100%);border:1px solid rgba(255,223,0,.2);border-radius:var(--radius);padding:.9rem 1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.75rem}
 .hoje-hero .icon{font-size:2rem;flex-shrink:0}
 .hoje-hero h3{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1px;color:var(--amarelo)}
@@ -422,12 +438,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .update-bar{background:rgba(0,156,59,.08);border:1px solid rgba(0,156,59,.2);border-radius:var(--radius-sm);padding:.45rem .9rem;font-size:.72rem;color:var(--muted);display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem}
 
 @media(max-width:380px){
+  .time-flag{font-size:2.1rem;width:46px}
   .time-flag img{width:46px}
   .time-nome{font-size:.76rem;max-width:78px}
   .placar{font-size:1.7rem}
   .centro{min-width:75px}
   .meu-resumo{grid-template-columns:repeat(2,1fr)}
 }
+</style>
 </head>
 <body>
 
@@ -445,7 +463,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <canvas id="confete-canvas"></canvas>
 
 <!-- AUTH -->
-<div id="auth-screen" style="display:none">
+<div id="auth-screen">
   <div class="auth-box">
     <div class="auth-logo">
       <span class="ball">⚽</span>
@@ -676,21 +694,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
 <div id="toast"></div>
 
-
-
 <script>
 // ═══════════════════════════════════════════
 // CONFIG
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '80';
-
-// ═══════════════════════════════════════════
-// SPLASH CINEMATOGRÁFICO — gera torcida e descarta
-// ═══════════════════════════════════════════
-
-
+const APP_VERSION = '81';
 
 // Migração: limpa snapshot de posições no formato antigo (sem pts) para forçar recriação
 (function(){
@@ -5213,31 +5223,9 @@ function showToast(msg){
 // ═══════════════════════════════════════════
 // AUTO-LOGIN
 // ═══════════════════════════════════════════
-// AUTO-LOGIN
-// ═══════════════════════════════════════════
 (function(){
   const s=localStorage.getItem('copa_user');
-  if(s){
-    try{
-      usuarioAtual=JSON.parse(s);
-      // Timeout de segurança: se iniciarApp travar, mostra auth
-      const timeout=setTimeout(()=>{
-        document.getElementById('auth-screen').style.display='flex';
-        document.getElementById('app').style.display='none';
-        usuarioAtual=null;
-        localStorage.removeItem('copa_user');
-      }, 8000);
-      iniciarApp().then(()=>clearTimeout(timeout)).catch(()=>{
-        clearTimeout(timeout);
-        document.getElementById('auth-screen').style.display='flex';
-      });
-    }catch{
-      localStorage.removeItem('copa_user');
-      document.getElementById('auth-screen').style.display='flex';
-    }
-  } else {
-    document.getElementById('auth-screen').style.display='flex';
-  }
+  if(s){try{usuarioAtual=JSON.parse(s);iniciarApp()}catch{localStorage.removeItem('copa_user')}}
 })();
 
 document.getElementById('login-senha').addEventListener('keydown',e=>{if(e.key==='Enter')fazerLogin()});
