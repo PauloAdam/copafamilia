@@ -445,7 +445,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <canvas id="confete-canvas"></canvas>
 
 <!-- AUTH -->
-<div id="auth-screen">
+<div id="auth-screen" style="display:none">
   <div class="auth-box">
     <div class="auth-logo">
       <span class="ball">⚽</span>
@@ -5213,9 +5213,31 @@ function showToast(msg){
 // ═══════════════════════════════════════════
 // AUTO-LOGIN
 // ═══════════════════════════════════════════
+// AUTO-LOGIN
+// ═══════════════════════════════════════════
 (function(){
   const s=localStorage.getItem('copa_user');
-  if(s){try{usuarioAtual=JSON.parse(s);iniciarApp()}catch{localStorage.removeItem('copa_user')}}
+  if(s){
+    try{
+      usuarioAtual=JSON.parse(s);
+      // Timeout de segurança: se iniciarApp travar, mostra auth
+      const timeout=setTimeout(()=>{
+        document.getElementById('auth-screen').style.display='flex';
+        document.getElementById('app').style.display='none';
+        usuarioAtual=null;
+        localStorage.removeItem('copa_user');
+      }, 8000);
+      iniciarApp().then(()=>clearTimeout(timeout)).catch(()=>{
+        clearTimeout(timeout);
+        document.getElementById('auth-screen').style.display='flex';
+      });
+    }catch{
+      localStorage.removeItem('copa_user');
+      document.getElementById('auth-screen').style.display='flex';
+    }
+  } else {
+    document.getElementById('auth-screen').style.display='flex';
+  }
 })();
 
 document.getElementById('login-senha').addEventListener('keydown',e=>{if(e.key==='Enter')fazerLogin()});
