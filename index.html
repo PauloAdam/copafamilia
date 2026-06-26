@@ -3167,23 +3167,59 @@ function checarStoriesDoDia(){
 
 function mostrarStoriesDoDia(automatico){
   const hoje=new Date().toISOString().split('T')[0];
-  const jogosHoje=todosJogos.filter(j=>j.data===hoje&&j.status==='encerrado');
+
+  // Jogos encerrados de hoje
+  let jogosHoje=todosJogos.filter(j=>j.data===hoje&&j.status==='encerrado');
+
+  // Se não tem jogos hoje (clique manual), pega a rodada mais recente com jogos encerrados
+  let labelData='RESUMO DO DIA';
+  let labelDia=fmtData(hoje);
+  if(!jogosHoje.length){
+    const datasComJogos=[...new Set(
+      todosJogos.filter(j=>j.status==='encerrado').map(j=>j.data)
+    )].sort().reverse();
+    if(datasComJogos.length){
+      const dataMaisRecente=datasComJogos[0];
+      jogosHoje=todosJogos.filter(j=>j.data===dataMaisRecente&&j.status==='encerrado');
+      labelDia=fmtData(dataMaisRecente);
+      labelData='RESUMO DA RODADA';
+    }
+  }
 
   if(automatico)localStorage.setItem('copa_stories_ultima_data',hoje);
 
-  // Estatísticas do dia
+  // Se ainda não tem nada
+  if(!jogosHoje.length){
+    const overlay=document.createElement('div');
+    overlay.className='modal-overlay show';
+    overlay.style.alignItems='center';
+    overlay.id='modal-stories-dia';
+    overlay.onclick=(e)=>{if(e.target===overlay)fecharStoriesDoDia()};
+    overlay.innerHTML=`
+      <div class="stories-card" style="text-align:center">
+        <button class="stories-close" onclick="fecharStoriesDoDia()">✕</button>
+        <div style="font-size:3rem;margin:1rem 0">⚽</div>
+        <div class="stories-titulo">Sem jogos encerrados ainda</div>
+        <p style="font-size:.82rem;color:rgba(255,255,255,.5);margin:.75rem 0 1.25rem">Os stories aparecem após o encerramento dos jogos.</p>
+        <button class="btn-primary" onclick="fecharStoriesDoDia()">Fechar</button>
+      </div>`;
+    document.body.appendChild(overlay);
+    return;
+  }
+
+  // Estatísticas
   const totalGols=jogosHoje.reduce((acc,j)=>acc+(j.gols1||0)+(j.gols2||0),0);
   const totalJogos=jogosHoje.length;
   const mediaGols=totalJogos?Math.round((totalGols/totalJogos)*10)/10:0;
 
-  // Maior goleada do dia
+  // Maior goleada
   let maiorGoleada=null,maiorDiff=-1;
   jogosHoje.forEach(j=>{
-    const diff=Math.abs(j.gols1-j.gols2);
+    const diff=Math.abs((j.gols1||0)-(j.gols2||0));
     if(diff>maiorDiff){maiorDiff=diff;maiorGoleada=j}
   });
 
-  // Craque do dia: quem mais pontuou nos jogos de hoje
+  // Craque da rodada
   const pontosPorPessoa={};
   jogosHoje.forEach(j=>{
     Object.entries(todosPalpites[j.id]||{}).forEach(([uid,pal])=>{
@@ -3196,7 +3232,7 @@ function mostrarStoriesDoDia(automatico){
     if(pts>craquePts){craquePts=pts;craqueDoDia=todosUsuarios.find(u=>u.id===uid)}
   });
 
-  // Quantos placares exatos saíram hoje (de qualquer pessoa)
+  // Exatos da rodada
   let totalExatosHoje=0;
   jogosHoje.forEach(j=>{
     Object.values(todosPalpites[j.id]||{}).forEach(pal=>{
@@ -3204,6 +3240,14 @@ function mostrarStoriesDoDia(automatico){
       if(txt.includes('Exato'))totalExatosHoje++;
     });
   });
+
+  // Lista dos jogos (máximo 4)
+  const listaJogosHtml=jogosHoje.slice(0,4).map(j=>`
+    <div style="display:flex;align-items:center;justify-content:center;gap:.5rem;font-size:.8rem;padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.07)">
+      ${getFlagSmall(j.time1)} <span style="color:rgba(255,255,255,.7)">${nomePT(j.time1)}</span>
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:1rem;color:#fff;letter-spacing:2px">${j.gols1} × ${j.gols2}</span>
+      <span style="color:rgba(255,255,255,.7)">${nomePT(j.time2)}</span> ${getFlagSmall(j.time2)}
+    </div>`).join('');
 
   const overlay=document.createElement('div');
   overlay.className='modal-overlay show';
@@ -3214,24 +3258,16 @@ function mostrarStoriesDoDia(automatico){
     <div class="stories-card">
       <button class="stories-close" onclick="fecharStoriesDoDia()">✕</button>
       <div class="stories-header">
-        <div class="stories-data">${fmtData(hoje)}</div>
-        <div class="stories-titulo">⚽ RESUMO DO DIA</div>
+        <div class="stories-data">${labelDia}</div>
+        <div class="stories-titulo">⚽ ${labelData}</div>
       </div>
       <div class="stories-stats-grid">
-        <div class="stories-stat">
-          <div class="stories-stat-num">${totalJogos}</div>
-          <div class="stories-stat-label">Jogo${totalJogos!==1?'s':''}</div>
-        </div>
-        <div class="stories-stat">
-          <div class="stories-stat-num">${totalGols}</div>
-          <div class="stories-stat-label">Gols</div>
-        </div>
-        <div class="stories-stat">
-          <div class="stories-stat-num">${mediaGols}</div>
-          <div class="stories-stat-label">Média/jogo</div>
-        </div>
+        <div class="stories-stat"><div class="stories-stat-num">${totalJogos}</div><div class="stories-stat-label">Jogo${totalJogos!==1?'s':''}</div></div>
+        <div class="stories-stat"><div class="stories-stat-num">${totalGols}</div><div class="stories-stat-label">Gols</div></div>
+        <div class="stories-stat"><div class="stories-stat-num">${mediaGols}</div><div class="stories-stat-label">Média/jogo</div></div>
       </div>
-      ${maiorGoleada?`
+      <div class="stories-destaque" style="padding:.6rem .9rem">${listaJogosHtml}</div>
+      ${maiorGoleada&&maiorDiff>0?`
       <div class="stories-destaque">
         <div class="stories-destaque-label">⚡ MAIOR GOLEADA</div>
         <div class="stories-destaque-jogo">
@@ -3240,18 +3276,18 @@ function mostrarStoriesDoDia(automatico){
       </div>`:''}
       ${craqueDoDia?`
       <div class="stories-destaque" style="border-color:rgba(255,223,0,.4);background:rgba(255,223,0,.06)">
-        <div class="stories-destaque-label" style="color:var(--amarelo)">🏆 CRAQUE DO DIA</div>
+        <div class="stories-destaque-label" style="color:var(--amarelo)">🏆 CRAQUE DA RODADA</div>
         <div class="stories-craque">
           ${renderAvatar(craqueDoDia,40,calcPtsTotal(craqueDoDia.id).total)}
           <div>
             <div style="font-weight:700">${craqueDoDia.nome}</div>
-            <div style="font-size:.72rem;color:var(--amarelo)">+${craquePts} pts hoje</div>
+            <div style="font-size:.72rem;color:var(--amarelo)">+${craquePts} pts</div>
           </div>
         </div>
       </div>`:''}
       ${totalExatosHoje>0?`
       <div class="stories-destaque" style="border-color:rgba(0,156,59,.4);background:rgba(0,156,59,.06)">
-        <div class="stories-destaque-label" style="color:var(--verde-light)">🎯 PLACARES EXATOS HOJE</div>
+        <div class="stories-destaque-label" style="color:var(--verde-light)">🎯 PLACARES EXATOS</div>
         <div style="font-size:1.4rem;font-weight:700;color:var(--verde-light);text-align:center;padding:.3rem 0">${totalExatosHoje}</div>
       </div>`:''}
       <button class="btn-primary" style="margin-top:1rem" onclick="fecharStoriesDoDia()">Show de bola! ⚽</button>
