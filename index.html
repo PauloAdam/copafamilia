@@ -536,7 +536,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <!-- Aviso de IP -->
     <div style="margin-top:1rem;padding:.5rem;border:1px solid #ff000044;background:#ff000011;border-radius:4px">
       <div style="color:#ff4444;font-size:.7rem;letter-spacing:1px">⚠ DADOS EXPOSTOS ⚠</div>
-      <div style="color:#ff0000;font-size:.65rem;margin-top:.25rem;opacity:.8">IP: 189.xxx.xxx.xxx | Localização: São Paulo, BR</div>
+      <div style="color:#ff0000;font-size:.65rem;margin-top:.25rem;opacity:.8">IP: 189.xxx.xxx.072 | Localização: Araraquara, São Paulo</div>
     </div>
   </div>
 
@@ -5622,10 +5622,47 @@ function showToast(msg){
 // ═══════════════════════════════════════════
 // AUTO-LOGIN
 // ═══════════════════════════════════════════
-(function(){
-  const s=localStorage.getItem('copa_user');
+(async function(){
+  // Checa modo hacker PRIMEIRO — antes de qualquer login
+  // Admin (paulo) nunca é bloqueado
+  const usuarioSalvo = localStorage.getItem('copa_user');
+  let nomeUsuario = '';
+  try{ nomeUsuario = JSON.parse(usuarioSalvo||'{}').usuario||''; }catch(e){}
+  const ehAdmin = CFG.admin_users.includes(nomeUsuario.toLowerCase().trim());
+
+  if(!ehAdmin){
+    try{
+      const rows = await sbGet('configuracoes',`chave=eq.${HACKER_KEY}&select=valor`);
+      const hackerAtivo = rows?.[0]?.valor === 'true';
+      if(hackerAtivo){
+        // Trava na tela hacker — não deixa entrar
+        const el = document.getElementById('hacker-screen');
+        if(el){ el.style.display='flex'; el.dataset.travado='1'; }
+        return; // para tudo — não faz auto-login nem mostra tela de login
+      }
+    }catch(e){ /* tabela não existe ainda — ignora */ }
+  }
+
+  // Modo hacker inativo — fluxo normal
+  const s = localStorage.getItem('copa_user');
   if(s){try{usuarioAtual=JSON.parse(s);iniciarApp()}catch{localStorage.removeItem('copa_user')}}
 })();
+
+// Também bloqueia o botão de entrar se modo hacker ativo
+const _fazerLoginOriginal = fazerLogin;
+fazerLogin = async function(){
+  if(!isAdmin()){
+    try{
+      const rows = await sbGet('configuracoes',`chave=eq.${HACKER_KEY}&select=valor`);
+      if(rows?.[0]?.valor === 'true'){
+        const el = document.getElementById('hacker-screen');
+        if(el){ el.style.display='flex'; el.dataset.travado='1'; }
+        return;
+      }
+    }catch(e){}
+  }
+  return _fazerLoginOriginal();
+};
 
 document.getElementById('login-senha').addEventListener('keydown',e=>{if(e.key==='Enter')fazerLogin()});
 document.getElementById('cad-senha').addEventListener('keydown',e=>{if(e.key==='Enter')fazerCadastro()});
