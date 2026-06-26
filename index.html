@@ -999,13 +999,19 @@ if (!jaInstalado && ehAndroidChrome && !localStorage.getItem('copa_install_dispe
 const ALIASES_TIME = {
   'turkiye':'turkey', 'türkiye':'turkey',
   'usa':'united states', 'united states':'usa',
+  'u.s.a':'united states', 'u.s.':'united states',
+  'us':'united states',
   'south korea':'korea republic', 'korea republic':'south korea',
   'ivory coast':"cote d'ivoire", "cote d'ivoire":'ivory coast',
+  'dr congo':'congo', 'democratic republic of congo':'congo',
+  'ir iran':'iran',
+  'bosnia and herzegovina':'bosnia',
 };
 function normalizarNomeTime(nome){
   if(!nome)return'';
   let n=nome.toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,''); // remove acentos
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // remove acentos
+    .replace(/\./g,'').trim(); // remove pontos (U.S.A → USA)
   return ALIASES_TIME[n]||n;
 }
 
@@ -1428,10 +1434,17 @@ async function tentarESPN(){
 
     const candidatos=todosJogos.filter(j=>{
       const n1=normalizarNomeTime(j.time1),n2=normalizarNomeTime(j.time2);
-      const w1=n1.split(' '),w2=n2.split(' ');
-      const m1=n1===t1||w1.some(w=>w.length>2&&t1.includes(w))||t1.split(' ').some(w=>w.length>2&&n1.includes(w));
-      const m2=n2===t2||w2.some(w=>w.length>2&&t2.includes(w))||t2.split(' ').some(w=>w.length>2&&n2.includes(w));
-      return m1&&m2;
+      // Compara usando alias dos dois lados — resolve USA↔United States, Türkiye↔Turkey, etc
+      const matchTime=(nJogo,tEspn)=>{
+        if(nJogo===tEspn)return true;
+        // alias inverso: converte o time ESPN para o mesmo padrão
+        const tAlias=ALIASES_TIME[tEspn]||tEspn;
+        if(nJogo===tAlias)return true;
+        // fallback: matching por palavra (mínimo 3 chars)
+        const wJ=nJogo.split(' '),wE=tEspn.split(' ');
+        return wJ.some(w=>w.length>2&&tEspn.includes(w))||wE.some(w=>w.length>2&&nJogo.includes(w));
+      };
+      return matchTime(n1,t1)&&matchTime(n2,t2);
     });
     if(!candidatos.length)return;
     let jogo=candidatos[0];
