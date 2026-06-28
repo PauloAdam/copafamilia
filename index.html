@@ -798,7 +798,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '82';
+const APP_VERSION = '83';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -3815,20 +3815,20 @@ function fecharStoriesPosJogo(){
 // BOLÃO ARTILHEIRO 🇧🇷 — Brasil x Escócia 24/06/2026
 // ═══════════════════════════════════════════
 const BOLAO_ARTILHEIRO_CONFIG = {
-  jogoId: 'jogo_2026-06-24_Scotland_Brazil', // ID gerado pelo processarJogos
-  dataJogo: '2026-06-24',
-  time1: 'Scotland',
-  time2: 'Brazil',
+  jogoId: 'jogo_2026-06-29_Brazil_Japan', // ID gerado pelo processarJogos
+  dataJogo: '2026-06-29',
+  time1: 'Brazil',
+  time2: 'Japan',
   pontos: 20,
   jogadores: [
-    { id: 'paqueta',    nome: 'Lucas Paquetá',    emoji: '🎩', num: 10 },
-    { id: 'rayan',      nome: 'Rayan',             emoji: '⚡', num: 11 },
-    { id: 'cunha',      nome: 'Matheus Cunha',     emoji: '🎯', num: 9  },
     { id: 'vini',       nome: 'Vini Jr.',           emoji: '🌟', num: 7  },
-    { id: 'neymar',     nome: 'Neymar',            emoji: '👑', num: 10 },
-    { id: 'endrick',    nome: 'Endrick',           emoji: '🔥', num: 9  },
-    { id: 'martinelli', nome: 'Gabriel Martinelli', emoji: '💨', num: 11 },
-    { id: 'luizh',      nome: 'Luiz Henrique',     emoji: '🦅', num: 8  },
+    { id: 'endrick',    nome: 'Endrick',             emoji: '🔥', num: 9  },
+    { id: 'paqueta',    nome: 'Lucas Paquetá',       emoji: '🎩', num: 10 },
+    { id: 'cunha',      nome: 'Matheus Cunha',       emoji: '🎯', num: 9  },
+    { id: 'martinelli', nome: 'Gabriel Martinelli',  emoji: '💨', num: 11 },
+    { id: 'rayan',      nome: 'Rayan',               emoji: '⚡', num: 26 },
+    { id: 'luizh',      nome: 'Luiz Henrique',       emoji: '🦅', num: 21 },
+    { id: 'savinho',    nome: 'Savinho',             emoji: '🚀', num: 20 },
   ],
 };
 
@@ -4497,11 +4497,11 @@ function renderAdmin(){
     artBox.className='admin-card';
     artBox.style.cssText='border-color:rgba(255,223,0,.4);background:rgba(255,223,0,.05);margin-bottom:.75rem';
     artBox.innerHTML=`
-      <div style="font-weight:700;font-size:.85rem;color:var(--amarelo);margin-bottom:.5rem">🇧🇷 Bolão Artilheiro — Brasil × Escócia</div>
+      <div style="font-weight:700;font-size:.85rem;color:var(--amarelo);margin-bottom:.5rem">🇧🇷 Bolão Artilheiro — Brasil × Japão</div>
       <div id="artilheiro-admin-lista" style="font-size:.75rem;color:var(--muted);margin-bottom:.75rem">Carregando apostas…</div>
       <div style="font-size:.7rem;color:var(--muted);margin-bottom:.4rem">IDs de quem marcou gol (separados por vírgula):</div>
       <div style="font-size:.65rem;color:var(--muted);margin-bottom:.5rem;line-height:1.6">
-        paqueta · rayan · cunha · vini · neymar · endrick · martinelli · luizh
+        vini · endrick · paqueta · cunha · martinelli · rayan · luizh · savinho
       </div>
       <input type="text" id="artilheiro-input-gols" placeholder="Ex: vini,endrick" 
         style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.5rem;font-size:.82rem;margin-bottom:.5rem;font-family:'Inter',sans-serif">
