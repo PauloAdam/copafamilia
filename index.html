@@ -3834,16 +3834,22 @@ const BOLAO_ARTILHEIRO_CONFIG = {
 
 async function checarBolaoArtilheiro(){
   if(!usuarioAtual)return;
-  if(isAdmin())return; // admin não vê o popup — usa o painel para gerir
-  const hoje=new Date().toISOString().split('T')[0];
-  if(hoje!==BOLAO_ARTILHEIRO_CONFIG.dataJogo)return; // só aparece hoje
-  // Usa versão do app como chave — garante que TODOS vejam mesmo que já abriram hoje
-  const chave=`copa_artilheiro_visto_${usuarioAtual.id}_v${APP_VERSION}`;
-  if(localStorage.getItem(chave))return; // já viu nessa versão
-  // Busca se já apostou
+  if(isAdmin())return;
+  // Aparece sempre que abrir — até a pessoa apostar
   try{
+    const hoje=BOLAO_ARTILHEIRO_CONFIG.dataJogo;
+    const jogo=todosJogos.find(j=>
+      j.data===hoje&&(
+        normalizarNomeTime(j.time1).includes('brazil')||
+        normalizarNomeTime(j.time2).includes('brazil')
+      )
+    );
+    // Não aparece se jogo já começou
+    if(jogo&&jogo.status!=='futuro')return;
     const res=await sbGet('bolao_artilheiro',`usuario_id=eq.${usuarioAtual.id}&data_jogo=eq.${hoje}&select=jogador_id`);
-    mostrarPopupArtilheiro(res?.[0]?.jogador_id||null);
+    const jaApostou=res?.[0]?.jogador_id;
+    if(jaApostou)return; // já apostou — não mostra mais
+    mostrarPopupArtilheiro(null);
   }catch(e){
     mostrarPopupArtilheiro(null);
   }
@@ -4511,9 +4517,22 @@ function renderAdmin(){
       .then(lista=>{
         const el=document.getElementById('artilheiro-admin-lista');
         if(!el)return;
-        if(!lista.length){el.textContent='Nenhuma aposta ainda.';return;}
-        el.innerHTML=lista.map(a=>`<div style="display:flex;justify-content:space-between;padding:.25rem 0;border-bottom:1px solid var(--border)"><span>${a.usuario_nome}</span><span style="color:${a.acertou?'var(--verde-light)':'var(--muted)'}">${a.jogador_nome}${a.acertou?' ✅ +'+a.pontos_ganhos+'pts':''}</span></div>`).join('')
-          +`<div style="margin-top:.4rem;font-size:.7rem">${lista.length} aposta(s) no total</div>`;
+        const votaram=lista.map(a=>a.usuario_nome);
+        const naoVotaram=todosUsuarios.filter(u=>!votaram.includes(u.nome)).map(u=>u.nome);
+        let html='';
+        if(lista.length){
+          html+=lista.map(a=>`<div style="display:flex;justify-content:space-between;padding:.25rem 0;border-bottom:1px solid var(--border)">
+            <span>✅ ${a.usuario_nome}</span>
+            <span style="color:${a.acertou?'var(--verde-light)':'var(--muted)'}">${a.jogador_nome}${a.acertou?' ✅ +'+a.pontos_ganhos+'pts':''}</span>
+          </div>`).join('');
+        }
+        if(naoVotaram.length){
+          html+=`<div style="margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border)">`;
+          html+=naoVotaram.map(n=>`<div style="color:var(--vermelho-claro);font-size:.7rem;padding:.15rem 0">⏳ ${n} — ainda não votou</div>`).join('');
+          html+=`</div>`;
+        }
+        html+=`<div style="margin-top:.4rem;font-size:.7rem;color:var(--muted)">${lista.length} de ${todosUsuarios.length} pessoa(s) votaram</div>`;
+        el.innerHTML=html||'Nenhuma aposta ainda.';
       }).catch(()=>{});
   }
 }
