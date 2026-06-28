@@ -3815,20 +3815,35 @@ function fecharStoriesPosJogo(){
 // BOLÃO ARTILHEIRO 🇧🇷 — Brasil x Escócia 24/06/2026
 // ═══════════════════════════════════════════
 const BOLAO_ARTILHEIRO_CONFIG = {
-  jogoId: 'jogo_2026-06-29_Brazil_Japan', // ID gerado pelo processarJogos
+  jogoId: 'jogo_2026-06-29_Brazil_Japan',
   dataJogo: '2026-06-29',
   time1: 'Brazil',
   time2: 'Japan',
   pontos: 20,
   jogadores: [
-    { id: 'vini',       nome: 'Vini Jr.',           emoji: '🌟', num: 7  },
-    { id: 'endrick',    nome: 'Endrick',             emoji: '🔥', num: 9  },
-    { id: 'paqueta',    nome: 'Lucas Paquetá',       emoji: '🎩', num: 10 },
-    { id: 'cunha',      nome: 'Matheus Cunha',       emoji: '🎯', num: 9  },
-    { id: 'martinelli', nome: 'Gabriel Martinelli',  emoji: '💨', num: 11 },
-    { id: 'rayan',      nome: 'Rayan',               emoji: '⚡', num: 26 },
-    { id: 'luizh',      nome: 'Luiz Henrique',       emoji: '🦅', num: 21 },
-    { id: 'savinho',    nome: 'Savinho',             emoji: '🚀', num: 20 },
+    { id: 'alex_sandro',    nome: 'Alex Sandro',       emoji: '⚽', num: 6  },
+    { id: 'bremer',         nome: 'Bremer',             emoji: '⚽', num: 3  },
+    { id: 'danilo',         nome: 'Danilo',             emoji: '⚽', num: 2  },
+    { id: 'douglas_santos', nome: 'Douglas Santos',     emoji: '⚽', num: 12 },
+    { id: 'gabriel_mag',    nome: 'Gabriel Magalhães',  emoji: '⚽', num: 4  },
+    { id: 'ibanez',         nome: 'Ibañez',             emoji: '⚽', num: 13 },
+    { id: 'leo_pereira',    nome: 'Léo Pereira',        emoji: '⚽', num: 14 },
+    { id: 'marquinhos',     nome: 'Marquinhos',         emoji: '⚽', num: 5  },
+    { id: 'wesley',         nome: 'Wesley',             emoji: '⚽', num: 22 },
+    { id: 'bruno_g',        nome: 'Bruno Guimarães',    emoji: '⚽', num: 8  },
+    { id: 'casemiro',       nome: 'Casemiro',           emoji: '⚽', num: 5  },
+    { id: 'danilo_santos',  nome: 'Danilo Santos',      emoji: '⚽', num: 16 },
+    { id: 'fabinho',        nome: 'Fabinho',            emoji: '⚽', num: 15 },
+    { id: 'paqueta',        nome: 'Lucas Paquetá',      emoji: '⚽', num: 10 },
+    { id: 'endrick',        nome: 'Endrick',            emoji: '⚽', num: 9  },
+    { id: 'martinelli',     nome: 'Gabriel Martinelli', emoji: '⚽', num: 11 },
+    { id: 'igor_thiago',    nome: 'Igor Thiago',        emoji: '⚽', num: 23 },
+    { id: 'luizh',          nome: 'Luiz Henrique',      emoji: '⚽', num: 21 },
+    { id: 'cunha',          nome: 'Matheus Cunha',      emoji: '⚽', num: 19 },
+    { id: 'neymar',         nome: 'Neymar',             emoji: '⚽', num: 10 },
+    { id: 'raphinha',       nome: 'Raphinha',           emoji: '⚽', num: 11 },
+    { id: 'rayan',          nome: 'Rayan',              emoji: '⚽', num: 26 },
+    { id: 'vini',           nome: 'Vinicius Jr.',       emoji: '⚽', num: 7  },
   ],
 };
 
@@ -3867,13 +3882,12 @@ function mostrarPopupArtilheiro(escolhaAtual){
       id="art-btn-${j.id}"
       style="background:${escolhaAtual===j.id?'rgba(0,156,59,.3)':'rgba(255,255,255,.06)'};
              border:${escolhaAtual===j.id?'2px solid #00d44f':'1px solid rgba(255,255,255,.15)'};
-             border-radius:12px;padding:.7rem .5rem;cursor:${jaApostou?'default':'pointer'};
-             display:flex;flex-direction:column;align-items:center;gap:.3rem;
-             transition:all .2s;font-family:'Inter',sans-serif;
+             border-radius:10px;padding:.5rem .3rem;cursor:${jaApostou?'default':'pointer'};
+             display:flex;align-items:center;justify-content:center;
+             transition:all .2s;font-family:'Inter',sans-serif;min-height:42px;
              ${jaApostou&&escolhaAtual!==j.id?'opacity:.45;':''}"
       ${jaApostou?'disabled':''}>
-      <span style="font-size:1.6rem">${j.emoji}</span>
-      <span style="font-size:.72rem;font-weight:700;color:#fff;text-align:center;line-height:1.2">${j.nome}</span>
+      <span style="font-size:.7rem;font-weight:700;color:#fff;text-align:center;line-height:1.2">${j.nome}</span>
     </button>`).join('');
 
   overlay.innerHTML=`
@@ -4504,7 +4518,7 @@ function renderAdmin(){
       <div id="artilheiro-admin-lista" style="font-size:.75rem;color:var(--muted);margin-bottom:.75rem">Carregando apostas…</div>
       <div style="font-size:.7rem;color:var(--muted);margin-bottom:.4rem">IDs de quem marcou gol (separados por vírgula):</div>
       <div style="font-size:.65rem;color:var(--muted);margin-bottom:.5rem;line-height:1.6">
-        vini · endrick · paqueta · cunha · martinelli · rayan · luizh · savinho
+        vini · endrick · paqueta · cunha · martinelli · rayan · luizh · neymar · raphinha · igor_thiago · bruno_g · casemiro · danilo_santos · fabinho · alex_sandro · bremer · danilo · douglas_santos · gabriel_mag · ibanez · leo_pereira · marquinhos · wesley
       </div>
       <input type="text" id="artilheiro-input-gols" placeholder="Ex: vini,endrick" 
         style="width:100%;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.5rem;font-size:.82rem;margin-bottom:.5rem;font-family:'Inter',sans-serif">
