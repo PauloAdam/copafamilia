@@ -3834,22 +3834,19 @@ const BOLAO_ARTILHEIRO_CONFIG = {
 
 async function checarBolaoArtilheiro(){
   if(!usuarioAtual)return;
-  if(isAdmin())return;
-  // Aparece sempre que abrir — até a pessoa apostar
+  // Admin também vê o popup para votar — só não vê o painel de gestão dentro dele
+  // Não aparece se jogo já começou
+  const jogo=todosJogos.find(j=>
+    j.data===BOLAO_ARTILHEIRO_CONFIG.dataJogo&&(
+      normalizarNomeTime(j.time1).includes('brazil')||
+      normalizarNomeTime(j.time2).includes('brazil')
+    )
+  );
+  if(jogo&&jogo.status!=='futuro')return;
+  // Busca aposta atual
   try{
-    const hoje=BOLAO_ARTILHEIRO_CONFIG.dataJogo;
-    const jogo=todosJogos.find(j=>
-      j.data===hoje&&(
-        normalizarNomeTime(j.time1).includes('brazil')||
-        normalizarNomeTime(j.time2).includes('brazil')
-      )
-    );
-    // Não aparece se jogo já começou
-    if(jogo&&jogo.status!=='futuro')return;
-    const res=await sbGet('bolao_artilheiro',`usuario_id=eq.${usuarioAtual.id}&data_jogo=eq.${hoje}&select=jogador_id`);
-    const jaApostou=res?.[0]?.jogador_id;
-    if(jaApostou)return; // já apostou — não mostra mais
-    mostrarPopupArtilheiro(null);
+    const res=await sbGet('bolao_artilheiro',`usuario_id=eq.${usuarioAtual.id}&data_jogo=eq.${BOLAO_ARTILHEIRO_CONFIG.dataJogo}&select=jogador_id`);
+    mostrarPopupArtilheiro(res?.[0]?.jogador_id||null);
   }catch(e){
     mostrarPopupArtilheiro(null);
   }
@@ -3934,14 +3931,14 @@ function mostrarPopupArtilheiro(escolhaAtual){
       </div>
 
       ${!jaApostou?`<div style="font-size:.68rem;color:rgba(255,255,255,.3);text-align:center;margin-bottom:.75rem">
-        Escolha 1 jogador — não pode mudar depois!
+        Escolha 1 jogador — pode trocar até antes do jogo começar!
       </div>`:''}
 
       <button onclick="fecharPopupArtilheiro()" style="width:100%;padding:.7rem;
               background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
               border-radius:10px;color:rgba(255,255,255,.6);font-size:.82rem;
               font-family:'Inter',sans-serif;cursor:pointer">
-        ${jaApostou?'✅ Fechado! Boa sorte 🇧🇷':'⏭️ Pular por agora'}
+        ${jaApostou?'✅ Fechado! Boa sorte 🇧🇷':'⏭️ Votar depois'}
       </button>
 
       <div id="artilheiro-status" style="text-align:center;margin-top:.6rem;font-size:.75rem;min-height:1rem"></div>
