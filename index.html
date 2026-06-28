@@ -110,6 +110,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 @keyframes logoSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .trofeu-balanca{display:inline-block;animation:trofeuBalanca 2.2s ease-in-out infinite;transform-origin:50% 85%}
 @keyframes trofeuBalanca{0%,100%{transform:rotate(0deg)}25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+@keyframes mataMataFire{
+  0%{color:#ff6a00;text-shadow:0 0 8px #ff6a00,0 0 16px #ff4400}
+  25%{color:#ff9500;text-shadow:0 0 12px #ff9500,0 0 24px #ff6a00}
+  50%{color:#ffcc00;text-shadow:0 0 16px #ffcc00,0 0 32px #ff9500}
+  75%{color:#ff9500;text-shadow:0 0 12px #ff9500,0 0 24px #ff6a00}
+  100%{color:#ff6a00;text-shadow:0 0 8px #ff6a00,0 0 16px #ff4400}
+}
+.mata-mata-badge{font-family:'Bebas Neue',sans-serif;font-size:.8rem;letter-spacing:2px;animation:mataMataFire 1.2s ease-in-out infinite;display:inline-block;vertical-align:middle;margin-left:.3rem}
 .avatar-sparkle{position:absolute;pointer-events:none;animation:sparkleTwinkle 1.8s ease-in-out infinite;filter:drop-shadow(0 0 3px currentColor)}
 .avatar-sparkle.s1{top:-6%;left:-8%;animation-delay:0s}
 .avatar-sparkle.s2{top:5%;right:-10%;animation-delay:.6s}
@@ -544,7 +552,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <!-- APP -->
 <div id="app">
   <div class="topbar">
-    <div class="topbar-logo"><span class="logo-ball">⚽</span> COPA <span>2026</span></div>
+    <div class="topbar-logo"><span class="logo-ball">⚽</span> COPA <span>2026</span><span class="mata-mata-badge">🔥 MATA-MATA</span></div>
     <div class="topbar-actions">
       <button class="btn-icon" id="btn-musica-toggle" onclick="toggleMusicaAmbiente()" title="Música ambiente">🔇</button>
       <button class="btn-icon" id="btn-torcida" onclick="toggleModoTorcida()" title="Modo Torcida — alerta de gols">📣</button>
@@ -603,7 +611,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
     <!-- RANKING -->
     <div id="page-ranking" class="page">
-      <div class="section-title">🏅 Ranking</div>
+      <div class="section-title">🏅 Ranking <span class="mata-mata-badge">🔥 MATA-MATA</span></div>
       <div style="display:flex;gap:.5rem;margin-bottom:.75rem">
         <button onclick="compartilharRanking()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.6rem .5rem;background:rgba(0,156,59,.15);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--verde-light);font-size:.8rem;font-weight:600;cursor:pointer">📸 Ranking Completo</button>
         <button onclick="compartilharMinhaPos()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.6rem .5rem;background:rgba(255,223,0,.1);border:1px solid rgba(255,223,0,.35);border-radius:var(--radius-sm);color:var(--amarelo);font-size:.8rem;font-weight:600;cursor:pointer">⭐ Minha Posição</button>
@@ -612,13 +620,23 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       <div class="rank-lista" id="ranking-lista"></div>
       <div class="card" style="margin-top:.75rem">
         <div class="card-title">📋 Pontuação</div>
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;font-size:.78rem">
+        <div style="font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.4rem">Fase de Grupos</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;font-size:.78rem;margin-bottom:.75rem">
           <div>🏆 Placar exato <strong style="color:var(--amarelo)">40 pts</strong></div>
           <div>✅ Resultado certo <strong style="color:var(--amarelo)">15 pts</strong></div>
           <div>⏱️ Vence 1º tempo <strong style="color:var(--amarelo)">+5 pts</strong></div>
           <div>🎯 Time classificado <strong style="color:var(--amarelo)">+10 pts</strong></div>
           <div>🇧🇷 Bônus Brasil <strong style="color:var(--amarelo)">+5 pts</strong></div>
           <div>👑 Campeão certo <strong style="color:var(--amarelo)">50 pts</strong></div>
+        </div>
+        <div style="font-size:.68rem;font-weight:700;color:var(--amarelo);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.4rem">⚔️ Mata-mata</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;font-size:.78rem">
+          <div>🏆 Placar exato <strong style="color:var(--amarelo)">50 pts</strong></div>
+          <div>✅ Resultado certo <strong style="color:var(--amarelo)">20 pts</strong></div>
+          <div>🏅 Quem passa <strong style="color:var(--amarelo)">15 pts</strong></div>
+          <div>🇧🇷 Bônus Brasil <strong style="color:var(--amarelo)">+5 pts</strong></div>
+          <div>⏱️ Prorrogação <strong style="color:var(--amarelo)">+10 pts</strong></div>
+          <div>🥅 Pênaltis <strong style="color:var(--amarelo)">+15 pts</strong></div>
         </div>
       </div>
     </div>
@@ -1190,6 +1208,7 @@ const NIVEIS_MOLDURA = [
   { min: 350,  nome: 'Platina',     cor: '#00e5ff', emoji: '💎' },
   { min: 500,  nome: 'Diamante',    cor: '#b388ff', emoji: '👑' },
   { min: 1000, nome: 'Lenda',       cor: '#ff6b35', emoji: '🌟' },
+  { min: 2000, nome: 'Imortal',     cor: '#ff0044', emoji: '🔥' },
 ];
 function getNivelMoldura(pts){
   let nivel = NIVEIS_MOLDURA[0];
@@ -1674,6 +1693,20 @@ async function carregarDadosSupabase(){
       const arts=await sbGet('bolao_artilheiro',`data_jogo=eq.${BOLAO_ARTILHEIRO_CONFIG.dataJogo}&select=*`);
       window._artilheiroApostas=arts||[];
     }catch(e){window._artilheiroApostas=[];}
+    // Dados mata-mata (prorrogação, pênaltis, vencedor) — persistidos pelo admin
+    try{
+      const cfgs=await sbGet('configuracoes','select=chave,valor');
+      cfgs.filter(c=>c.chave.startsWith('mata_')).forEach(c=>{
+        const jogoId=c.chave.replace('mata_','');
+        const dados=JSON.parse(c.valor||'{}');
+        const j=todosJogos.find(x=>x.id===jogoId);
+        if(j){
+          if(dados.vencedorFinal)j.vencedorFinal=dados.vencedorFinal;
+          if(dados.foiProrrogacao!==null&&dados.foiProrrogacao!==undefined)j.foiProrrogacao=dados.foiProrrogacao;
+          if(dados.foiPenaltis!==null&&dados.foiPenaltis!==undefined)j.foiPenaltis=dados.foiPenaltis;
+        }
+      });
+    }catch(e){/* tabela configuracoes pode não existir */}
   }catch(e){console.warn('Supabase:',e)}
 }
 
@@ -2565,16 +2598,85 @@ function vincularPalpites(c){
 function extraApostaHTML(j){
   const uid=usuarioAtual?.id;
   if(!uid)return'';
+
+  // MATA-MATA: apostas especiais
+  if(j.isMata){
+    const extras=(apostasExtras[j.id]||{})[uid];
+    let ap={};
+    try{ap=typeof extras==='object'&&extras!==null?extras:(extras?JSON.parse(extras):{});}catch(e){}
+    const passaEscolha=ap.passa||'';
+    const prorr=ap.prorrogacao||'';
+    const penal=ap.penaltis||'';
+    return`<div class="palpite-row" style="flex-direction:column;align-items:stretch;gap:.6rem">
+      <span class="palpite-label" style="font-weight:700;color:var(--amarelo)">⚔️ Apostas do mata-mata</span>
+
+      <div>
+        <div class="palpite-label" style="margin-bottom:.3rem">🏆 Quem passa? <span style="color:var(--amarelo);font-size:.65rem">+15pts (se errar o placar)</span></div>
+        <div class="extra-aposta-grid" style="grid-template-columns:1fr 1fr">
+          <button class="extra-aposta-btn${passaEscolha===j.time1?' selected':''}" onclick="salvarApostaMataMata('${j.id}','passa','${j.time1.replace(/'/g,"\\'")}')">
+            ${getFlagSmall(j.time1)} ${nomePT(j.time1)}
+          </button>
+          <button class="extra-aposta-btn${passaEscolha===j.time2?' selected':''}" onclick="salvarApostaMataMata('${j.id}','passa','${j.time2.replace(/'/g,"\\'")}')">
+            ${getFlagSmall(j.time2)} ${nomePT(j.time2)}
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <div class="palpite-label" style="margin-bottom:.3rem">⏱️ Vai a prorrogação? <span style="color:var(--amarelo);font-size:.65rem">+10pts</span></div>
+        <div class="extra-aposta-grid" style="grid-template-columns:1fr 1fr">
+          <button class="extra-aposta-btn${prorr==='sim'?' selected':''}" onclick="salvarApostaMataMata('${j.id}','prorrogacao','sim')">✅ Sim</button>
+          <button class="extra-aposta-btn${prorr==='nao'?' selected':''}" onclick="salvarApostaMataMata('${j.id}','prorrogacao','nao')">❌ Não</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="palpite-label" style="margin-bottom:.3rem">🥅 Vai a pênaltis? <span style="color:var(--amarelo);font-size:.65rem">+15pts</span></div>
+        <div class="extra-aposta-grid" style="grid-template-columns:1fr 1fr">
+          <button class="extra-aposta-btn${penal==='sim'?' selected':''}" onclick="salvarApostaMataMata('${j.id}','penaltis','sim')">✅ Sim</button>
+          <button class="extra-aposta-btn${penal==='nao'?' selected':''}" onclick="salvarApostaMataMata('${j.id}','penaltis','nao')">❌ Não</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // GRUPOS: aposta 1º tempo (original)
   const escolha=(apostasExtras[j.id]||{})[uid];
+  const escolhaStr=typeof escolha==='string'?escolha:'';
   return`<div class="palpite-row" style="flex-direction:column;align-items:stretch;gap:.5rem">
     <span class="palpite-label">⏱️ Quem vence o 1º tempo?</span>
     <div class="extra-aposta-grid" style="grid-template-columns:1fr 1fr 1fr">
-      <button class="extra-aposta-btn${escolha===j.time1?' selected':''}" onclick="salvarApostaExtra('${j.id}','${j.time1.replace(/'/g,"\\'")}')">${getFlagSmall(j.time1)} ${nomePT(j.time1)}</button>
-      <button class="extra-aposta-btn${escolha==='empate'?' selected':''}" onclick="salvarApostaExtra('${j.id}','empate')">🤝 Empate</button>
-      <button class="extra-aposta-btn${escolha===j.time2?' selected':''}" onclick="salvarApostaExtra('${j.id}','${j.time2.replace(/'/g,"\\'")}')">${getFlagSmall(j.time2)} ${nomePT(j.time2)}</button>
+      <button class="extra-aposta-btn${escolhaStr===j.time1?' selected':''}" onclick="salvarApostaExtra('${j.id}','${j.time1.replace(/'/g,"\\'")}')">
+        ${getFlagSmall(j.time1)} ${nomePT(j.time1)}
+      </button>
+      <button class="extra-aposta-btn${escolhaStr==='empate'?' selected':''}" onclick="salvarApostaExtra('${j.id}','empate')">🤝 Empate</button>
+      <button class="extra-aposta-btn${escolhaStr===j.time2?' selected':''}" onclick="salvarApostaExtra('${j.id}','${j.time2.replace(/'/g,"\\'")}')">
+        ${getFlagSmall(j.time2)} ${nomePT(j.time2)}
+      </button>
     </div>
   </div>`;
 }
+
+async function salvarApostaMataMata(jogoId, tipo, valor){
+  if(!usuarioAtual)return;
+  const uid=usuarioAtual.id;
+  if(!apostasExtras[jogoId])apostasExtras[jogoId]={};
+  let ap={};
+  const atual=apostasExtras[jogoId][uid];
+  try{ap=typeof atual==='object'&&atual!==null?{...atual}:(atual?JSON.parse(atual):{});}catch(e){}
+  ap[tipo]=valor;
+  apostasExtras[jogoId][uid]=ap;
+  try{
+    await sbUpsert('apostas_extras',{usuario_id:uid,jogo_id:jogoId,jogador:JSON.stringify(ap)},'usuario_id,jogo_id');
+    const msgs={passa:`🏆 Quem passa: ${nomePT(valor)}!`,prorrogacao:`⏱️ Prorrogação: ${valor==='sim'?'Sim':'Não'}!`,penaltis:`🥅 Pênaltis: ${valor==='sim'?'Sim':'Não'}!`};
+    showToast(msgs[tipo]||'✅ Salvo!');
+    const j=todosJogos.find(x=>x.id===jogoId);
+    const card=document.getElementById('card_'+jogoId);
+    if(card&&j){card.outerHTML=jogoCardHTML(j,true);const n=document.getElementById('card_'+jogoId);if(n)vincularPalpites(n);}
+  }catch(e){showToast('❌ Erro ao salvar');console.warn(e);}
+}
+
+
 
 async function salvarApostaExtra(jogoId, escolha){
   if(!usuarioAtual)return;
@@ -2858,11 +2960,21 @@ function calcPts(j,pal){
   if(!j||j.gols1===null||!pal)return{pts:0,txt:''};
   const r1=pal.p1,r2=pal.p2,a1=j.gols1,a2=j.gols2;
   const bonus=j.isBrasil?5:0;
-  if(r1===a1&&r2===a2)return{pts:40+bonus,txt:'🏆 Exato!'};
   const res=n=>n>0?'V':n===0?'E':'D';
+
+  if(j.isMata){
+    // MATA-MATA: exato=50, resultado/quem passa=20
+    if(r1===a1&&r2===a2)return{pts:50+bonus,txt:'🏆 Exato! (mata-mata)'};
+    if(res(r1-r2)===res(a1-a2))return{pts:20+bonus,txt:'✅ Resultado (mata-mata)'};
+    return{pts:0,txt:'❌ Errou'};
+  }
+
+  // GRUPOS: exato=40, resultado=15
+  if(r1===a1&&r2===a2)return{pts:40+bonus,txt:'🏆 Exato!'};
   if(res(r1-r2)===res(a1-a2))return{pts:15+bonus,txt:'✅ Resultado'};
   return{pts:0,txt:'❌ Errou'};
 }
+
 function calcPtsTotal(uid){
   let total=0,exatos=0,resultados=0,erros=0,acertosPrimeiroTempo=0;
   todosJogos.forEach(j=>{
@@ -2873,17 +2985,48 @@ function calcPtsTotal(uid){
     else if(txt.includes('Resultado'))resultados++;
     else if(txt.includes('Errou'))erros++;
   });
-  // Apostas extras: "quem vence o 1º tempo?" — +5 pts se acertar
-  // Calculado automaticamente a partir do placar do intervalo (golsHT), sem precisar de admin
-  todosJogos.forEach(j=>{
+  // Apostas extras grupos: "quem vence o 1º tempo?" — +5pts
+  todosJogos.filter(j=>!j.isMata).forEach(j=>{
     if(j.status!=='encerrado'||j.golsHT1===null||j.golsHT2===null)return;
-    const escolha=(apostasExtras[j.id]||{})[uid];
+    const raw=(apostasExtras[j.id]||{})[uid];
+    if(!raw)return;
+    const escolha=typeof raw==='string'?raw:'';
     if(!escolha)return;
     let resultadoReal;
     if(j.golsHT1>j.golsHT2)resultadoReal=j.time1;
     else if(j.golsHT2>j.golsHT1)resultadoReal=j.time2;
     else resultadoReal='empate';
     if(escolha===resultadoReal){total+=5;acertosPrimeiroTempo++}
+  });
+  // Apostas extras mata-mata: quem passa (+15), prorrogação (+10), pênaltis (+15)
+  todosJogos.filter(j=>j.isMata).forEach(j=>{
+    if(j.status!=='encerrado'||j.gols1===null)return;
+    const raw=(apostasExtras[j.id]||{})[uid];
+    if(!raw)return;
+    let ap={};
+    try{ap=typeof raw==='object'&&raw!==null?raw:JSON.parse(raw);}catch(e){return;}
+
+    // Quem passa: +15pts se errou o placar mas acertou quem avança
+    // (só dá pontos se calcPts não deu — evita dupla contagem)
+    const pal=(todosPalpites[j.id]||{})[uid];
+    const ptsPlacar=pal?calcPts(j,pal).pts:0;
+    if(ap.passa&&ptsPlacar===0){
+      // Usa vencedorFinal setado pelo admin (necessário em casos de prorr/pênaltis)
+      // Se não setado, infere pelo placar (só funciona quando não foi empate no 90min)
+      const vencedorReal=j.vencedorFinal||(j.gols1>j.gols2?j.time1:j.gols2>j.gols1?j.time2:null);
+      if(vencedorReal&&ap.passa===vencedorReal){total+=15;acertosPrimeiroTempo++;}
+    }
+
+    // Prorrogação: +10pts — precisa do campo j.foiProrrogacao (setado pelo admin)
+    if(ap.prorrogacao&&j.foiProrrogacao!==undefined){
+      const foiP=j.foiProrrogacao?'sim':'nao';
+      if(ap.prorrogacao===foiP)total+=10;
+    }
+    // Pênaltis: +15pts — precisa do campo j.foiPenaltis (setado pelo admin)
+    if(ap.penaltis&&j.foiPenaltis!==undefined){
+      const foiP=j.foiPenaltis?'sim':'nao';
+      if(ap.penaltis===foiP)total+=15;
+    }
   });
   // Bônus campeão
   const camp=bolaoAtual[uid];
@@ -4304,8 +4447,11 @@ function renderAdmin(){
 
   const jogosEdit=todosJogos.filter(j=>j.status==='ao-vivo'||j.status==='encerrado').slice(-20);
   html+=jogosEdit.map(j=>`
-    <div class="admin-card">
-      <div style="font-size:.8rem;font-weight:600;margin-bottom:.5rem">${nomePT(j.time1)} × ${nomePT(j.time2)} · ${fmtData(j.data)}</div>
+    <div class="admin-card"${j.isMata?' style="border-color:rgba(255,223,0,.35)"':''}>
+      <div style="font-size:.8rem;font-weight:600;margin-bottom:.5rem">
+        ${j.isMata?'⚔️ ':''}${nomePT(j.time1)} × ${nomePT(j.time2)} · ${fmtData(j.data)}
+        ${j.isMata?'<span style="font-size:.65rem;color:var(--amarelo);margin-left:.5rem">MATA-MATA</span>':''}
+      </div>
       <div class="admin-jogo-row">
         <span style="font-size:.75rem;color:var(--muted)">Placar:</span>
         <input type="number" min="0" max="20" class="admin-score-input" id="adm1_${j.id}" value="${j.gols1??''}">
@@ -4318,6 +4464,27 @@ function renderAdmin(){
         </select>
         <button class="btn-admin-save" onclick="adminSalvar('${j.id}')">Salvar</button>
       </div>
+      ${j.isMata?`
+      <div class="admin-jogo-row" style="margin-top:.35rem;flex-wrap:wrap;gap:.4rem">
+        <span style="font-size:.72rem;color:var(--amarelo)">🏆 Quem passou:</span>
+        <select id="adm_venc_${j.id}" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:3px 6px;font-size:.72rem">
+          <option value="">— (pelo placar)</option>
+          <option value="${j.time1}"${j.vencedorFinal===j.time1?' selected':''}>${nomePT(j.time1)}</option>
+          <option value="${j.time2}"${j.vencedorFinal===j.time2?' selected':''}>${nomePT(j.time2)}</option>
+        </select>
+        <span style="font-size:.72rem;color:var(--amarelo)">⏱️ Prorrogação:</span>
+        <select id="adm_prorr_${j.id}" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:3px 6px;font-size:.72rem">
+          <option value="">—</option>
+          <option value="sim"${j.foiProrrogacao===true?' selected':''}>✅ Sim</option>
+          <option value="nao"${j.foiProrrogacao===false?' selected':''}>❌ Não</option>
+        </select>
+        <span style="font-size:.72rem;color:var(--amarelo)">🥅 Pênaltis:</span>
+        <select id="adm_penal_${j.id}" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:3px 6px;font-size:.72rem">
+          <option value="">—</option>
+          <option value="sim"${j.foiPenaltis===true?' selected':''}>✅ Sim</option>
+          <option value="nao"${j.foiPenaltis===false?' selected':''}>❌ Não</option>
+        </select>
+      </div>`:''}
     </div>`).join('');
 
   c.innerHTML=html;
@@ -4520,11 +4687,29 @@ function adminSalvar(id){
   const st=document.getElementById('adm_st_'+id)?.value;
   if(!isNaN(g1)&&!isNaN(g2)){j.gols1=g1;j.gols2=g2}
   if(st)j.status=st;
-  showToast(`✅ Jogo atualizado manualmente!`);
+  // Mata-mata: vencedor, prorrogação e pênaltis — salva no banco para persistir
+  if(j.isMata){
+    const venc=document.getElementById('adm_venc_'+id)?.value;
+    const prorr=document.getElementById('adm_prorr_'+id)?.value;
+    const penal=document.getElementById('adm_penal_'+id)?.value;
+    if(venc) j.vencedorFinal=venc; else delete j.vencedorFinal;
+    if(prorr==='sim')j.foiProrrogacao=true;
+    else if(prorr==='nao')j.foiProrrogacao=false;
+    if(penal==='sim')j.foiPenaltis=true;
+    else if(penal==='nao')j.foiPenaltis=false;
+    // Persiste no Supabase para não perder ao recarregar
+    const dadosMata={
+      vencedorFinal:venc||null,
+      foiProrrogacao:prorr==='sim'?true:prorr==='nao'?false:null,
+      foiPenaltis:penal==='sim'?true:penal==='nao'?false:null
+    };
+    sbUpsert('configuracoes',{chave:`mata_${id}`,valor:JSON.stringify(dadosMata)},'chave')
+      .catch(e=>console.warn('Erro ao salvar dados mata-mata:',e.message));
+  }
+  showToast('✅ Jogo atualizado!');
   renderAdmin();
-  registrarLogAuditoria('placar_editado', `${nomePT(j.time1)} ${g1}x${g2} ${nomePT(j.time2)}`);
+  registrarLogAuditoria('placar_editado',`${nomePT(j.time1)} ${g1}x${g2} ${nomePT(j.time2)}`);
 }
-
 
 // ═══════════════════════════════════════════
 // AUDITORIA 🔍 — restrita ao admin
