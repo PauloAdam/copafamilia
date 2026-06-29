@@ -3970,7 +3970,7 @@ function mostrarPopupArtilheiro(escolhaAtual){
 
 async function selecionarArtilheiro(jogadorId, jogadorNome){
   if(!usuarioAtual)return;
-  const hoje=new Date().toISOString().split('T')[0];
+  const dataJogo=BOLAO_ARTILHEIRO_CONFIG.dataJogo; // sempre usa a data do config, não "hoje"
   const status=document.getElementById('artilheiro-status');
 
   // Verifica se jogo já começou
@@ -3999,7 +3999,7 @@ async function selecionarArtilheiro(jogadorId, jogadorNome){
     await sbUpsert('bolao_artilheiro',{
       usuario_id:usuarioAtual.id,
       usuario_nome:usuarioAtual.nome,
-      data_jogo:hoje,
+      data_jogo:dataJogo,
       jogo_id:BOLAO_ARTILHEIRO_CONFIG.jogoId,
       jogador_id:jogadorId,
       jogador_nome:jogadorNome,
