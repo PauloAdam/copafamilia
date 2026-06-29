@@ -3849,7 +3849,6 @@ const BOLAO_ARTILHEIRO_CONFIG = {
 
 async function checarBolaoArtilheiro(){
   if(!usuarioAtual)return;
-  // Admin também vê o popup para votar — só não vê o painel de gestão dentro dele
   // Não aparece se jogo já começou
   const jogo=todosJogos.find(j=>
     j.data===BOLAO_ARTILHEIRO_CONFIG.dataJogo&&(
@@ -3858,10 +3857,17 @@ async function checarBolaoArtilheiro(){
     )
   );
   if(jogo&&jogo.status!=='futuro')return;
-  // Busca aposta atual
+  // Checa localStorage primeiro — evita query no banco a cada 10s
+  const chaveVoto=`copa_artilheiro_votou_${usuarioAtual.id}_${BOLAO_ARTILHEIRO_CONFIG.dataJogo}`;
+  if(localStorage.getItem(chaveVoto))return; // já votou — não mostra
+  // Confirma no banco
   try{
     const res=await sbGet('bolao_artilheiro',`usuario_id=eq.${usuarioAtual.id}&data_jogo=eq.${BOLAO_ARTILHEIRO_CONFIG.dataJogo}&select=jogador_id`);
-    mostrarPopupArtilheiro(res?.[0]?.jogador_id||null);
+    if(res?.[0]?.jogador_id){
+      localStorage.setItem(chaveVoto,'1'); // salva cache
+      return;
+    }
+    mostrarPopupArtilheiro(null);
   }catch(e){
     mostrarPopupArtilheiro(null);
   }
@@ -4002,7 +4008,9 @@ async function selecionarArtilheiro(jogadorId, jogadorNome){
     },'usuario_id,data_jogo');
 
     if(status)status.innerHTML=`<span style="color:#00d44f">✅ Apostou em <strong>${jogadorNome}</strong>! Boa sorte! 🇧🇷</span>`;
-    try{if(navigator.vibrate)navigator.vibrate([40,30,80]);}catch(e){}
+    // Salva cache — não vai mostrar o popup de novo
+    const chaveVoto=`copa_artilheiro_votou_${usuarioAtual.id}_${BOLAO_ARTILHEIRO_CONFIG.dataJogo}`;
+    localStorage.setItem(chaveVoto,'1');
     showToast(`🎯 Aposta feita: ${jogadorNome}! +${BOLAO_ARTILHEIRO_CONFIG.pontos}pts se acertar!`);
 
     // Atualiza botão de fechar
