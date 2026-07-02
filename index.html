@@ -16,7 +16,6 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap');
 
-/* ── LIGHT / DARK MODE ── */
 :root {
   --verde: #009c3b; --amarelo: #ffdf00; --azul: #002776;
   --verde-dark: #007a2e; --verde-light: #00d44f;
@@ -34,8 +33,6 @@
   --text: #0a1f0d; --muted: #4a7a55;
   --border: rgba(0,156,59,0.22); --border2: rgba(0,156,59,0.4);
   --shadow: 0 2px 16px rgba(0,0,0,.08);
-  /* No tema claro, "verde-light" e "amarelo" passam a ser tons mais escuros/saturados
-     para manter contraste legível em fundo branco — no dark eles continuam vivos. */
   --verde-light: #00913f;
   --amarelo: #c9a000;
   --azul-claro: #1a4fb8;
@@ -50,7 +47,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--verde-dark);border-radius:2px}
 
-/* ── GOL CONFETE ── */
 #confete-canvas{position:fixed;inset:0;pointer-events:none;z-index:9999;display:none}
 .gol-banner{
   position:fixed;top:0;left:0;right:0;z-index:9998;
@@ -63,8 +59,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 }
 .gol-banner.show{transform:translateY(0)}
 
-/* ── AUTH ── */
-/* SPLASH SCREEN */
 #splash-screen{position:fixed;inset:0;z-index:10000;background:linear-gradient(135deg,#001a0d 0%,#002310 100%);display:flex;align-items:center;justify-content:center;animation:splashFadeOut .4s ease 1.1s forwards}
 .splash-content{text-align:center}
 .splash-ball{font-size:4.5rem;line-height:1;animation:splashBounce .55s cubic-bezier(.5,0,.5,1) infinite alternate}
@@ -98,10 +92,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .auth-error{background:rgba(200,50,50,.15);border:1px solid rgba(200,50,50,.4);border-radius:var(--radius-sm);color:var(--vermelho-claro);font-size:.8rem;padding:.6rem .9rem;margin-bottom:1rem;display:none}
 .auth-error.show{display:block}
 
-/* ── APP ── */
 #app{display:none}
 
-/* TOPBAR */
 .topbar{position:sticky;top:0;z-index:100;background:rgba(8,15,10,.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.6rem 1rem;display:flex;align-items:center;gap:.75rem}
 [data-theme="light"] .topbar{background:rgba(240,247,242,.95)}
 .topbar-logo{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--amarelo);letter-spacing:1px;flex:1}
@@ -130,7 +122,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .btn-logout{background:none;border:1px solid var(--border);color:var(--muted);font-size:.7rem;padding:4px 10px;border-radius:20px;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif}
 .btn-logout:hover{border-color:var(--verde);color:var(--verde-light)}
 
-/* BOTTOM NAV */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(8,15,10,.97);backdrop-filter:blur(12px);border-top:1px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom,0)}
 [data-theme="light"] .bottom-nav{background:rgba(240,247,242,.97)}
 .nav-btn{flex:1;background:none;border:none;color:var(--muted);font-family:'Inter',sans-serif;font-size:.58rem;font-weight:600;padding:.55rem .25rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;transition:color .2s;text-transform:uppercase;letter-spacing:.3px;position:relative}
@@ -140,22 +131,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .nav-badge{position:absolute;top:4px;right:calc(50% - 14px);background:#ff4444;color:#fff;font-size:.5rem;font-weight:700;padding:1px 4px;border-radius:8px;min-width:14px;text-align:center;display:none}
 .nav-badge.show{display:block}
 
-/* CONTENT */
 .page-content{padding:1rem 1rem calc(70px + env(safe-area-inset-bottom,8px));max-width:700px;margin:0 auto}
 .page{display:none}
 .page.active{display:block}
 
-/* SEÇÃO */
 .section-title{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:1.5px;color:var(--amarelo);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
 
-/* DATE DIVIDER */
 .date-divider{display:flex;align-items:center;gap:.75rem;margin:1.2rem 0 .6rem}
 .date-divider span{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;white-space:nowrap}
 .date-divider::before,.date-divider::after{content:'';flex:1;height:1px;background:var(--border)}
 .date-divider.hoje span{color:var(--amarelo)}
 .date-divider.hoje::before,.date-divider.hoje::after{background:rgba(255,223,0,.25)}
 
-/* JOGO CARD */
 .jogo-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:.6rem;overflow:hidden;transition:border-color .2s,transform .15s;-webkit-tap-highlight-color:transparent}
 .jogo-card:active{transform:scale(.99)}
 .jogo-card:hover{border-color:var(--border2)}
@@ -183,7 +170,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .live-dot{width:6px;height:6px;background:#ff4444;border-radius:50%;flex-shrink:0}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
 
-/* PALPITE */
 .palpite-row{padding:.55rem .9rem;background:rgba(0,0,0,.2);border-top:1px solid var(--border);display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
 .palpite-label{font-size:.72rem;color:var(--muted);flex-shrink:0}
 .palpite-inputs{display:flex;align-items:center;gap:.3rem}
@@ -196,22 +182,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .palpite-ok{font-size:.72rem;color:var(--verde-light);font-weight:600}
 .palpite-pts{font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--amarelo)}
 
-/* APOSTA EXTRA — botões grandes, fáceis de clicar (acessível p/ idosos) */
 .extra-aposta-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
 .extra-aposta-btn{background:rgba(255,255,255,.05);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'Inter',sans-serif;font-size:.75rem;font-weight:700;padding:.7rem .3rem;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem;text-align:center;line-height:1.2}
 .extra-aposta-btn:active{transform:scale(.97)}
 .extra-aposta-btn.selected{background:rgba(0,156,59,.18);border-color:var(--verde);color:var(--verde-light);font-weight:700}
 .palpite-resultado{font-size:.7rem;color:var(--muted)}
 
-/* FILTROS */
-/* STATUS TABS (Próximos/Ao Vivo/Encerrados) */
 .status-tabs{display:flex;gap:.4rem;margin-bottom:.75rem}
 .status-tab{flex:1;background:var(--card2);border:1px solid var(--border);color:var(--muted);font-size:.78rem;font-weight:700;font-family:'Inter',sans-serif;padding:.55rem .4rem;border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;text-align:center}
 .status-tab.active{background:var(--verde);border-color:var(--verde);color:#fff}
 .status-tab[data-status="ao-vivo"].active{background:#cc3333;border-color:#cc3333}
 .status-tab .count{display:inline-block;background:rgba(255,255,255,.2);font-size:.65rem;padding:1px 6px;border-radius:10px;margin-left:4px}
 
-/* MODAL PALPITES DE TODOS */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;align-items:flex-end;justify-content:center}
 .modal-overlay.show{display:flex}
 .modal-sheet{background:var(--card);border-radius:18px 18px 0 0;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;padding:1.25rem 1.1rem calc(1.25rem + env(safe-area-inset-bottom,0));animation:slideUp .25s ease}
@@ -219,7 +201,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 1rem}
 .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
 
-/* STORIES DO DIA — card vertical estilo Instagram */
 .stories-card{background:linear-gradient(165deg,#002776 0%,#001a4d 50%,#000d26 100%);border-radius:24px;width:100%;max-width:340px;max-height:90vh;overflow-y:auto;padding:1.5rem 1.25rem;position:relative;animation:storiesPopIn .35s cubic-bezier(.34,1.56,.64,1);box-shadow:0 20px 60px rgba(0,0,0,.6);border:1px solid rgba(255,223,0,.2)}
 @keyframes storiesPopIn{from{opacity:0;transform:scale(.85) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
 .stories-close{position:absolute;top:.9rem;right:.9rem;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:.85rem;cursor:pointer;z-index:2}
@@ -235,7 +216,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .stories-destaque-jogo{font-size:.85rem;color:#fff;font-weight:600;text-align:center}
 .stories-craque{display:flex;align-items:center;gap:.6rem;color:#fff}
 
-/* STORIES PÓS-JOGO — melhor/mediano/pior palpite, com navegação */
 .stories-posjogo{text-align:center;border-width:1.5px}
 .stories-progress-row{display:flex;gap:4px;margin-bottom:1.1rem;padding-top:.2rem}
 .stories-progress-bar{flex:1;height:3px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden}
@@ -256,7 +236,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .stories-nav-btn.principal{background:var(--verde);border-color:var(--verde);flex:1}
 
 .modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--amarelo);letter-spacing:1px}
-/* MODAL PERFIL USUÁRIO */
 .perfil-modal-hero{text-align:center;padding:1.25rem 0 .75rem;border-bottom:1px solid var(--border);margin-bottom:1rem}
 .perfil-modal-nome{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:1px;margin:.5rem 0 .1rem}
 .perfil-modal-usuario{font-size:.75rem;color:var(--muted);margin-bottom:.3rem}
@@ -273,11 +252,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .perfil-modal-grafico{width:100%;border-radius:10px;margin:.5rem 0;display:block}
 .rank-row-clicavel{cursor:pointer;transition:background .15s}
 .rank-row-clicavel:active{background:rgba(0,156,59,.08)}
-/* SETINHAS RANKING v75 */
 .rank-arrow{font-size:.65rem;font-weight:700;padding:1px 5px;border-radius:8px;margin-left:.3rem;white-space:nowrap}
 .rank-arrow.up{color:#00d44f;background:rgba(0,212,79,.12)}
 .rank-arrow.down{color:#f87171;background:rgba(248,113,113,.12)}
-/* RIVAL v75 */
 .rival-highlight{box-shadow:0 0 0 1px rgba(255,223,0,.35)!important;background:rgba(255,223,0,.04)!important}
 .rival-badge{font-size:.58rem;font-weight:700;color:var(--amarelo);background:rgba(255,223,0,.15);border:1px solid rgba(255,223,0,.3);padding:1px 6px;border-radius:8px;margin-left:.3rem;white-space:nowrap}
 .modal-close{background:var(--card2);border:none;color:var(--muted);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:1rem}
@@ -303,7 +280,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .filtro-btn{flex-shrink:0;background:var(--card2);border:1px solid var(--border);color:var(--muted);font-size:.75rem;font-weight:600;font-family:'Inter',sans-serif;padding:.35rem .9rem;border-radius:20px;cursor:pointer;transition:all .15s;white-space:nowrap}
 .filtro-btn.active,.filtro-btn:hover{background:var(--verde);border-color:var(--verde);color:#fff}
 
-/* RANKING */
 .rank-podio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:1.25rem}
 .rank-podio-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:.75rem .5rem;text-align:center;position:relative}
 .rank-podio-card.primeiro{border-color:rgba(255,223,0,.5);background:rgba(255,223,0,.04);transform:translateY(-4px)}
@@ -327,13 +303,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .rank-pts-val{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--verde-light);text-align:right}
 .rank-pts-val small{font-size:.6rem;font-family:'Inter',sans-serif;color:var(--muted);display:block;line-height:1}
 
-/* MEUS PALPITES */
 .meu-resumo{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:1.25rem}
 .resumo-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.65rem .4rem;text-align:center}
 .resumo-num{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--amarelo);line-height:1}
 .resumo-label{font-size:.62rem;color:var(--muted);margin-top:2px}
 
-/* GRUPOS */
 .grupos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.75rem}
 .grupo-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
 .grupo-header{background:rgba(0,39,118,.3);padding:.5rem .9rem;font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;color:var(--amarelo);border-bottom:1px solid var(--border)}
@@ -348,7 +322,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .grupo-table .g-pts{font-weight:700;color:var(--amarelo)}
 .g-q{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;vertical-align:middle}
 
-/* CHAT */
 .chat-wrap{display:flex;flex-direction:column;gap:.5rem;max-height:420px;overflow-y:auto;margin-bottom:.75rem;padding:.25rem 0}
 .chat-msg{display:flex;gap:.5rem;align-items:flex-start}
 .chat-msg.minha{flex-direction:row-reverse}
@@ -368,7 +341,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .btn-enviar{background:var(--verde);border:none;color:#fff;font-size:1rem;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s}
 .btn-enviar:hover{background:var(--verde-dark)}
 
-/* MATA-MATA */
 .bracket-wrap{overflow-x:auto;padding-bottom:1rem}
 .bracket{display:flex;gap:1.5rem;min-width:600px}
 .bracket-fase{display:flex;flex-direction:column;gap:.5rem;min-width:140px}
@@ -380,7 +352,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .bracket-score{font-family:'Bebas Neue',sans-serif;font-size:.95rem;margin-left:auto;color:var(--amarelo)}
 .bracket-divider{height:1px;background:var(--border)}
 
-/* PERFIL */
 .perfil-hero{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;text-align:center;margin-bottom:1rem}
 .perfil-avatar-big{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.6rem;margin:0 auto .75rem;border:3px solid transparent}
 .perfil-nome{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:1px}
@@ -394,7 +365,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .hist-palpite{font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--muted)}
 .hist-pts{font-family:'Bebas Neue',sans-serif;font-size:1rem;min-width:36px;text-align:right}
 
-/* ADMIN PANEL */
 .admin-card{background:rgba(200,50,50,.08);border:1px solid rgba(200,50,50,.3);border-radius:var(--radius);padding:1rem;margin-bottom:.75rem}
 .admin-jogo-row{display:flex;align-items:center;gap:.5rem;padding:.5rem 0;border-bottom:1px solid var(--border);flex-wrap:wrap;font-size:.8rem}
 .admin-jogo-row:last-child{border-bottom:none}
@@ -402,14 +372,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .admin-score-input::-webkit-outer-spin-button,.admin-score-input::-webkit-inner-spin-button{-webkit-appearance:none}
 .btn-admin-save{background:#cc3333;border:none;color:#fff;font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:5px;cursor:pointer;font-family:'Inter',sans-serif}
 
-/* BOLÃO CAMPEÃO */
 .bolao-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.6rem;margin-bottom:1rem}
 .bolao-time-btn{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.65rem .5rem;text-align:center;cursor:pointer;transition:all .2s;font-size:.75rem;font-weight:600}
 .bolao-time-btn:hover{border-color:var(--verde)}
 .bolao-time-btn.selected{border-color:var(--amarelo);background:rgba(255,223,0,.08);color:var(--amarelo)}
 .bolao-time-btn img{width:36px;height:auto;border-radius:3px;display:block;margin:0 auto .35rem}
 
-/* PUSH NOTIF */
 .notif-banner{background:var(--card);border:1px solid var(--border2);border-radius:var(--radius);padding:.9rem 1rem;display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem}
 .notif-icon{font-size:1.6rem;flex-shrink:0}
 .notif-text{flex:1;font-size:.8rem}
@@ -417,7 +385,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .notif-text span{color:var(--muted);font-size:.73rem}
 .btn-notif{background:var(--verde);border:none;color:#fff;font-size:.75rem;font-weight:700;padding:.45rem .9rem;border-radius:20px;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif}
 
-/* NOTÍCIAS */
 .noticia-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:.75rem;overflow:hidden;transition:border-color .2s}
 .noticia-card:hover{border-color:var(--border2)}
 .noticia-img{width:100%;height:160px;object-fit:cover;display:block;background:var(--card2)}
@@ -445,7 +412,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .curiosidade-txt{font-size:.85rem;color:var(--text);line-height:1.6;font-style:italic}
 .curiosidade-acoes{display:flex;gap:.4rem;margin-top:.65rem}
 
-/* NOTÍCIAS */
 .noticia-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:.75rem;transition:border-color .2s}
 .noticia-card:hover{border-color:var(--border2)}
 .noticia-img{width:100%;height:160px;object-fit:cover;display:block;background:var(--card2)}
@@ -468,7 +434,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .curiosidade-titulo{font-size:.85rem;font-weight:700;color:var(--amarelo);margin-bottom:.35rem}
 .curiosidade-texto{font-size:.82rem;color:var(--text);line-height:1.55}
 
-/* MISC */
 .loading-spinner{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.75rem;padding:3rem 1rem;color:var(--muted);font-size:.85rem}
 .spinner{width:32px;height:32px;border:3px solid var(--border2);border-top-color:var(--verde);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -479,7 +444,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:.75rem}
 .card-title{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;color:var(--amarelo);margin-bottom:.75rem}
-/* CONTAGEM REGRESSIVA */
 .countdown-card{background:linear-gradient(135deg,#002776 0%,#001a4d 100%);border:1px solid rgba(255,223,0,.3);border-radius:var(--radius);padding:1.2rem 1rem;margin-bottom:1rem;text-align:center;position:relative;overflow:hidden}
 .countdown-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(255,223,0,.1) 0%,transparent 70%);pointer-events:none}
 .countdown-label{font-size:.7rem;font-weight:700;color:#ffdf00;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:.5rem}
@@ -798,7 +762,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '83';
+const APP_VERSION = '84';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -855,7 +819,6 @@ function mostrarBannerInstalar() {
   const ehIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
   if (ehIOS) {
-    // iOS não tem prompt automático — mostra instruções visuais detalhadas
     banner.innerHTML = `
       <div style="background:var(--card);border:1px solid rgba(0,156,59,.4);border-radius:var(--radius);padding:1rem;margin-bottom:.75rem">
         <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.85rem">
@@ -930,7 +893,6 @@ async function trocarFotoPerfil(input){
   try {
     console.info('[Foto] Arquivo selecionado:', file.name, file.type, Math.round(file.size/1024)+'KB');
 
-    // Tenta comprimir com qualidade decrescente até caber num tamanho seguro
     let dataUrl;
     try {
       dataUrl = await comprimirImagem(file, 300, 300, 0.8);
@@ -949,7 +911,6 @@ async function trocarFotoPerfil(input){
       console.info('[Foto] Recomprimida (180px):', Math.round(dataUrl.length/1024)+'KB base64');
     }
 
-    // Tenta salvar no banco — aqui é onde mais provavelmente falha
     try {
       const resultado = await sbPatch('usuarios', `id=eq.${usuarioAtual.id}`, { foto_url: dataUrl });
       console.info('[Foto] Salvo no Supabase:', resultado);
@@ -980,7 +941,6 @@ async function trocarFotoPerfil(input){
   }
 }
 
-// Redimensiona e comprime a imagem para caber bem no banco (retorna data URL base64)
 function comprimirImagem(file, larguraMax, alturaMax, qualidade){
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -990,7 +950,6 @@ function comprimirImagem(file, larguraMax, alturaMax, qualidade){
         try {
           let { width, height } = img;
           if (!width || !height) { reject(new Error('Imagem inválida ou corrompida (sem dimensões)')); return; }
-          // Recorte quadrado central
           const lado = Math.min(width, height);
           const sx = (width - lado) / 2, sy = (height - lado) / 2;
           const canvas = document.createElement('canvas');
@@ -1011,7 +970,6 @@ function comprimirImagem(file, larguraMax, alturaMax, qualidade){
   });
 }
 
-// Card permanente no Perfil — sempre disponível, mesmo se o banner foi dispensado
 function renderBotaoInstalarPermanente() {
   const c = document.getElementById('botao-instalar-permanente');
   if (!c) return;
@@ -1060,15 +1018,10 @@ function renderBotaoInstalarPermanente() {
   }
 }
 
-// Para iOS, como não existe beforeinstallprompt, mostra direto (se aplicável)
 if (!jaInstalado && /iPad|iPhone|iPod/.test(navigator.userAgent) && !localStorage.getItem('copa_install_dispensado')) {
   setTimeout(mostrarBannerInstalar, 2000);
 }
 
-// FALLBACK: se depois de 4 segundos o Chrome Android não disparou o evento
-// automático (beforeinstallprompt), mostra instruções manuais via menu do Chrome.
-// Isso garante que sempre existe uma forma de instalar, mesmo se o Chrome
-// decidir não oferecer o prompt automático (acontece em alguns casos).
 const ehAndroidChrome = /Android/.test(navigator.userAgent) && /Chrome/.test(navigator.userAgent);
 if (!jaInstalado && ehAndroidChrome && !localStorage.getItem('copa_install_dispensado')) {
   setTimeout(() => {
@@ -1092,9 +1045,6 @@ if (!jaInstalado && ehAndroidChrome && !localStorage.getItem('copa_install_dispe
 // ═══════════════════════════════════════════
 // FLAGS & NOMES
 // ═══════════════════════════════════════════
-// Normaliza nomes de times para comparação: remove acentos e aplica aliases
-// conhecidos (ex: "Türkiye" é o nome oficial atual da Turquia usado pela FIFA/ESPN,
-// mas o openfootball ainda usa "Turkey" — sem isso, o matching falha silenciosamente)
 const ALIASES_TIME = {
   'turkiye':'turkey', 'türkiye':'turkey',
   'usa':'united states', 'united states':'usa',
@@ -1107,8 +1057,8 @@ const ALIASES_TIME = {
 function normalizarNomeTime(nome){
   if(!nome)return'';
   let n=nome.toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // remove acentos
-    .replace(/\./g,'').trim(); // remove pontos: U.S.A → USA
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/\./g,'').trim();
   return ALIASES_TIME[n]||n;
 }
 
@@ -1144,7 +1094,7 @@ const NOMES_PT = {
 
 function getFlag(nome) {
   if (!nome) return '<span style="font-size:1.8rem">🏳️</span>';
-  const nomeNorm = normalizarNomeTime(nome); // remove acentos (ex: "Curaçao" → "curacao")
+  const nomeNorm = normalizarNomeTime(nome);
   for (const [k,code] of Object.entries(FLAG_CODES)) {
     if (nomeNorm.includes(normalizarNomeTime(k))) {
       const img = document.createElement('img');
@@ -1196,10 +1146,6 @@ function nomePT(n) {
 const CORES=['#009c3b','#002776','#c8191a','#e07000','#7b2d8b','#0088cc','#884400','#228866','#c05000','#506000'];
 function corU(id){let n=0;String(id).split('').forEach(c=>n=(n*31+c.charCodeAt(0))&0xffff);return CORES[n%CORES.length]}
 
-// Renderiza avatar (foto se tiver, senão letra inicial colorida)
-// ═══════════════════════════════════════════
-// SISTEMA DE MOLDURAS 🏅 — desbloqueadas por pontuação
-// ═══════════════════════════════════════════
 const NIVEIS_MOLDURA = [
   { min: 0,    nome: 'Sem moldura', cor: null,      emoji: '' },
   { min: 50,   nome: 'Bronze',      cor: '#cd7f32', emoji: '🥉' },
@@ -1236,7 +1182,6 @@ function renderAvatar(usuario, tamanho, pontosParaMoldura){
       glowStyle = `box-shadow:0 0 ${Math.round(tamanho*0.25)}px ${nivel.cor}80;`;
       const tamanhoBadge = Math.max(12, Math.round(tamanho*0.4));
       badgeHtml = `<span style="position:absolute;bottom:-2px;right:-2px;font-size:${tamanhoBadge}px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))">${nivel.emoji}</span>`;
-      // Estrelinhas só para Ouro, Platina e Diamante (200+ pts)
       if (pontosParaMoldura >= 200) {
         const tamanhoEstrela = Math.max(8, Math.round(tamanho * 0.22));
         sparklesHtml = `
@@ -1267,7 +1212,8 @@ function fmtHora(s){return s?s+' (Brasília)':'';}
 let usuarioAtual=null, todosJogos=[], todosUsuarios=[], todosPalpites={};
 let filtroGrupoAtivo='todos', filtroStatusAtivo='proximos', ultimaAtualizacao=null;
 let placaresPrev={}, chatMsgs=[], ultimoChat=0, bolaoAtual={}, apostasExtras={}, classificacaoBolao={};
-let bloqueandoAutoRefresh=false; // true enquanto uma ação (salvar palpite, etc) está em andamento
+let bloqueandoAutoRefresh=false;
+let ajustesPontosPorUsuario={};
 
 // ═══════════════════════════════════════════
 // SUPABASE
@@ -1357,17 +1303,14 @@ async function iniciarApp(){
   document.getElementById('app').style.display='block';
   const avWrap=document.getElementById('topbar-avatar');
   if(avWrap) avWrap.outerHTML=renderAvatar(usuarioAtual,32,calcPtsTotal(usuarioAtual.id).total).replace('<img ','<img id="topbar-avatar" ').replace('<div ','<div id="topbar-avatar" ');
-  // Admin?
   if(isAdmin()){
     document.getElementById('btn-admin-menu').style.display='flex';
     document.getElementById('btn-auditoria-menu').style.display='flex';
   }
-  // Theme
   const t=localStorage.getItem('copa_theme')||'dark';
   if(t==='light')document.documentElement.setAttribute('data-theme','light');
   document.querySelector('.btn-icon[onclick*="toggleTheme"]').textContent=t==='light'?'🌙':'☀️';
 
-  // Música ambiente — toca automaticamente (padrão ligada), exceto se a pessoa mutou antes
   const musicaPref = localStorage.getItem('copa_musica_ativa');
   if (musicaPref !== '0') {
     iniciarMusicaAmbiente();
@@ -1375,32 +1318,28 @@ async function iniciarApp(){
     atualizarBotaoMusica();
   }
 
-  // Modo Torcida — sempre ativo, não respeita localStorage
   modoTorcidaAtivo = true;
   atualizarBotaoTorcida();
 
   await carregarTudo();
   todosJogos.forEach(j=>{statusJogosAnteriores[j.id]=j.status});
   renderHoje();
-  registrarSW(); // registra SW + inscreve push se torcida ativa
+  registrarSW();
   pedirNotificacao();
   checarResumoSemanal();
   checarStoriesDoDia();
   checarMudancaRanking();
   registrarAcessoDispositivo();
   setTimeout(checarBolaoArtilheiro, 2000);
-  // Atualiza avatar topbar com moldura correta (dados já carregados)
   atualizarAvatarTopbar();
   setInterval(async()=>{
-    if(bloqueandoAutoRefresh)return; // alguma ação está em andamento (salvando palpite, etc) — espera a próxima rodada
+    if(bloqueandoAutoRefresh)return;
     const prevPlacares={...placaresPrev};
     await carregarTudo();
-    if(bloqueandoAutoRefresh)return; // checagem dupla: pode ter começado uma ação durante o carregamento
+    if(bloqueandoAutoRefresh)return;
     verificarGols(prevPlacares);
-    // Se a pessoa estiver digitando um palpite agora, não re-renderiza a tela
     const elementoAtivo=document.activeElement;
     const digitandoPalpite=elementoAtivo&&elementoAtivo.classList&&elementoAtivo.classList.contains('palpite-n');
-    // Páginas onde a pessoa pode estar navegando/lendo (não recarrega para não "puxar" a tela)
     const paginaAtual=document.querySelector('.page.active')?.id?.replace('page-','');
     const paginaSensivel=paginaAtual==='auditoria'||paginaAtual==='admin';
     if(!digitandoPalpite&&!paginaSensivel){
@@ -1409,7 +1348,7 @@ async function iniciarApp(){
     carregarChat();
     checarZoadasNoChat();
     atualizarAvatarTopbar();
-  },10000); // atualiza a cada 10s (mais rápido para placares ao vivo)
+  },10000);
 }
 
 // ═══════════════════════════════════════════
@@ -1420,7 +1359,6 @@ async function carregarTudo(){
   ultimaAtualizacao=new Date();
   const el=document.getElementById('update-txt');
   if(el)el.textContent=`Atualizado às ${ultimaAtualizacao.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · dados reais`;
-  // Salvar placares antes de atualizar (para detectar gols)
   todosJogos.forEach(j=>{ if(j.gols1!==null)placaresPrev[j.id]={g1:j.gols1,g2:j.gols2}; });
 }
 
@@ -1431,26 +1369,22 @@ async function carregarJogos(){
     const data=await res.json();
     todosJogos=processarJogos(data.matches||[]);
     await sobreporScoresAoVivo();
-    validarStatusFinal(); // rede de segurança final contra dados incoerentes
+    validarStatusFinal();
   }catch(e){console.warn('Jogos:',e.message)}
 }
 
-// Última checagem: corrige qualquer jogo que ficou com status impossível
-// (ex: marcado "ao-vivo" mas a data/hora local mostra que ainda não começou ou já passou muito)
 function validarStatusFinal(){
   const agora=new Date();
   todosJogos.forEach(j=>{
     const dtJogo=new Date(j.data+'T'+(j.hora||'00:00')+':00-03:00');
     const minutosDesde=(agora-dtJogo)/60000;
     if(j.status==='ao-vivo'){
-      // Se o jogo ainda não chegou no horário (margem de 15min antes) OU já passou muito (>130min), corrige
       if(minutosDesde<-15){ j.status='futuro'; j.gols1=null; j.gols2=null; j.minuto=''; }
       else if(minutosDesde>130){ j.status= (j.gols1!==null) ? 'encerrado' : 'encerrado'; }
     }
   });
 }
 
-// Rastreamento de saúde das APIs externas (mantido em memória, últimas 50 tentativas)
 let saudeAPIs={espn:[],sportsdb:[],proxy:[],tempoResposta:[]};
 function registrarTentativaAPI(fonte,sucesso,ms){
   if(!saudeAPIs[fonte])saudeAPIs[fonte]=[];
@@ -1459,10 +1393,6 @@ function registrarTentativaAPI(fonte,sucesso,ms){
 }
 
 async function sobreporScoresAoVivo(){
-  // Roda as 3 fontes EM PARALELO (não mais sequencial) — usa a primeira que responder
-  // com sucesso. Antes, se a ESPN demorasse/falhasse, o app esperava o timeout dela
-  // (5s) e SÓ DEPOIS tentava a próxima (mais 6s), e a próxima (mais 7s) — até 18s
-  // perdidos só em timeouts antes de qualquer dado chegar. Agora todas começam juntas.
   const t0=performance.now();
   const resultados=await Promise.allSettled([
     tentarESPN().then(ok=>({fonte:'espn',ok})),
@@ -1489,7 +1419,6 @@ async function tentarESPN(){
   const amanha=new Date(hoje.getTime()+86400000);
   const datesParam=`${fmtYYYYMMDD(ontem)}-${fmtYYYYMMDD(amanha)}`;
 
-  // Tenta os slugs EM PARALELO (não sequencial) para reduzir latência total
   const resultados=await Promise.allSettled(slugs.map(slug=>
     fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${slug}/scoreboard?dates=${datesParam}&limit=100`,{signal:AbortSignal.timeout(4000)})
       .then(r=>r.ok?r.json():null)
@@ -1501,7 +1430,6 @@ async function tentarESPN(){
   });
   if(!eventosTotais.length) return false;
 
-  // Remove duplicatas (mesmo jogo pode vir dos 2 slugs)
   const vistos=new Set();
   const events=eventosTotais.filter(ev=>{
     if(vistos.has(ev.id))return false;
@@ -1557,11 +1485,6 @@ async function tentarESPN(){
     jogo.hora=horaReal;
     jogo.horaTxt=`${horaReal} (Brasília)`;
     matched++;
-    // Quando o status é EXATAMENTE "intervalo" (STATUS_HALFTIME), o placar atual
-    // É o placar do 1º tempo — não precisa de campo separado, já que o jogo ainda
-    // não fez nenhum gol no 2º tempo (ele nem começou). Essa abordagem é mais
-    // confiável que depender de "linescores", que nem sempre vem preenchido
-    // pela ESPN nesse endpoint específico de soccer.
     if(ehHalftimeAgora&&s1>=0&&s2>=0){
       jogo.golsHT1=s1;
       jogo.golsHT2=s2;
@@ -1570,7 +1493,7 @@ async function tentarESPN(){
       jogo.status='ao-vivo';
       if(s1>=0){jogo.gols1=s1;jogo.gols2=s2}
       jogo.minuto=clock;
-      jogo.statusEspn=st; // guarda o status exato (ex: STATUS_HALFTIME) para diferenciar intervalo de jogo rolando
+      jogo.statusEspn=st;
     }
     else if(isDone){jogo.status='encerrado';if(s1>=0){jogo.gols1=s1;jogo.gols2=s2}}
     else{
@@ -1605,12 +1528,10 @@ async function tentarSportsDB(){
         const m1=t1.includes(n1)||n1.includes(t1.split(' ')[0]);
         const m2=t2.includes(n2)||n2.includes(t2.split(' ')[0]);
         if(!m1||!m2)return false;
-        // Data EXATA — sem tolerância (evita pegar jogo de outro dia)
         return j.data === evDateSdb;
       });
       if(!jogo)return;
       const ehAoVivo=st==='ht'||st.includes('1h')||st.includes('2h')||st.includes('live');
-      // Proteção: se diz ao vivo mas o jogo só começa daqui a mais de 20min, ignora
       if(ehAoVivo){
         const agora=new Date();
         const dtJogo=new Date(jogo.data+'T'+(jogo.hora||'00:00')+':00-03:00');
@@ -1639,14 +1560,14 @@ async function tentarWC26viaProxy(){
     games.forEach(g=>{
       const t1=(g.home_team?.name_en||'').toLowerCase();
       const t2=(g.away_team?.name_en||'').toLowerCase();
-      if(!t1||!t2)return; // exige os dois times, não só o primeiro
+      if(!t1||!t2)return;
       const gDate=g.date||g.match_date||hoje;
       const jogo=todosJogos.find(j=>{
         const n1=j.time1.toLowerCase(),n2=j.time2.toLowerCase();
         const m1=n1.includes(t1.split(' ')[0])||t1.includes(n1.split(' ')[0]);
         const m2=n2.includes(t2.split(' ')[0])||t2.includes(n2.split(' ')[0]);
         if(!m1||!m2)return false;
-        return j.data===gDate; // data exata, sem tolerância
+        return j.data===gDate;
       });
       if(!jogo)return;
       const st=(g.status||'').toLowerCase();
@@ -1654,7 +1575,7 @@ async function tentarWC26viaProxy(){
       if(ehAoVivo){
         const agora=new Date();
         const dtJogo=new Date(jogo.data+'T'+(jogo.hora||'00:00')+':00-03:00');
-        if((dtJogo-agora)/60000>20)return; // proteção: jogo ainda não começou
+        if((dtJogo-agora)/60000>20)return;
       }
       matched++;
       if(ehAoVivo){jogo.status='ao-vivo';jogo.gols1=g.home_score??jogo.gols1;jogo.gols2=g.away_score??jogo.gols2;jogo.minuto=g.minute||''}
@@ -1670,16 +1591,13 @@ async function carregarDadosSupabase(){
     const pals=await sbGet('palpites','select=*');
     todosPalpites={};
     pals.forEach(p=>{if(!todosPalpites[p.jogo_id])todosPalpites[p.jogo_id]={};todosPalpites[p.jogo_id][p.usuario_id]={p1:p.gols1,p2:p.gols2}});
-    // Bolão campeão
     const b=await sbGet('bolao','select=*');
     bolaoAtual={};b.forEach(r=>bolaoAtual[r.usuario_id]=r.campeao);
-    // Apostas extras (quem vence o 1º tempo)
     try{
       const ex=await sbGet('apostas_extras','select=*');
       apostasExtras={};
       ex.forEach(a=>{if(!apostasExtras[a.jogo_id])apostasExtras[a.jogo_id]={};apostasExtras[a.jogo_id][a.usuario_id]=a.jogador});
-    }catch(e){/* tabela pode não existir ainda */}
-    // Bolão de classificação (quem vai se classificar de cada grupo)
+    }catch(e){}
     try{
       const cb=await sbGet('classificacao_bolao','select=*');
       classificacaoBolao={};
@@ -1687,13 +1605,19 @@ async function carregarDadosSupabase(){
         if(!classificacaoBolao[r.grupo])classificacaoBolao[r.grupo]={};
         classificacaoBolao[r.grupo][r.usuario_id]=r.times||[];
       });
-    }catch(e){/* tabela pode não existir ainda */}
-    // Bolão artilheiro
+    }catch(e){}
     try{
       const arts=await sbGet('bolao_artilheiro',`data_jogo=eq.${BOLAO_ARTILHEIRO_CONFIG.dataJogo}&select=*`);
       window._artilheiroApostas=arts||[];
     }catch(e){window._artilheiroApostas=[];}
-    // Dados mata-mata (prorrogação, pênaltis, vencedor) — persistidos pelo admin
+    try{
+      const ajustes=await sbGet('ajustes_pontos','select=*&order=criado_em.desc');
+      ajustesPontosPorUsuario={};
+      ajustes.forEach(a=>{
+        if(!ajustesPontosPorUsuario[a.usuario_id])ajustesPontosPorUsuario[a.usuario_id]=[];
+        ajustesPontosPorUsuario[a.usuario_id].push(a);
+      });
+    }catch(e){/* tabela ajustes_pontos pode não existir ainda */}
     try{
       const cfgs=await sbGet('configuracoes','select=chave,valor');
       cfgs.filter(c=>c.chave.startsWith('mata_')).forEach(c=>{
@@ -1706,7 +1630,7 @@ async function carregarDadosSupabase(){
           if(dados.foiPenaltis!==null&&dados.foiPenaltis!==undefined)j.foiPenaltis=dados.foiPenaltis;
         }
       });
-    }catch(e){/* tabela configuracoes pode não existir */}
+    }catch(e){}
   }catch(e){console.warn('Supabase:',e)}
 }
 
@@ -1717,13 +1641,12 @@ function processarJogos(matches){
   return matches.map(m=>{
     const hb=converterHoraBrasilia(m.date,m.time);
     const agora=new Date();
-    // Usa a data JÁ AJUSTADA (pode ter virado o dia seguinte por causa do fuso)
     const dtJ=new Date(hb.data+'T'+(hb.hora||'00:00')+':00-03:00');
     let status='futuro';
     const minutosDesde=(agora-dtJ)/60000;
     if(m.score&&m.score.ft)status='encerrado';
     else if(minutosDesde>0&&minutosDesde<130)status='ao-vivo';
-    else if(minutosDesde>=130)status='encerrado'; // jogo já passou da duração máxima, mas openfootball não atualizou ainda — trata como encerrado sem placar
+    else if(minutosDesde>=130)status='encerrado';
     const isBrasil=m.team1==='Brazil'||m.team2==='Brazil';
     const round=m.round||'';
     const isMata=round.includes('Round')||round.includes('Quarter')||round.includes('Semi')||round.includes('Final')||round.includes('third');
@@ -1746,14 +1669,12 @@ function converterHoraBrasilia(date,timeStr){
   let dataAjustada=date;
   if(hora>=24){
     hora-=24;
-    // Vira o dia seguinte em Brasília
     const d=new Date(date+'T00:00:00');
     d.setDate(d.getDate()+1);
     dataAjustada=d.toISOString().split('T')[0];
   }
   if(hora<0){
     hora+=24;
-    // Volta um dia em Brasília
     const d=new Date(date+'T00:00:00');
     d.setDate(d.getDate()-1);
     dataAjustada=d.toISOString().split('T')[0];
@@ -1767,11 +1688,6 @@ function converterHoraBrasilia(date,timeStr){
 // ═══════════════════════════════════════════
 function verificarGols(prev){
   todosJogos.forEach(j=>{
-    // CRÍTICO: só dispara notificação de gol para jogos REALMENTE ao vivo agora.
-    // Antes também aceitava 'encerrado', o que causava notificação de "gol" falsa
-    // quando um jogo pulava direto de "ao vivo" pra "encerrado" entre duas
-    // atualizações (a diferença de placar era lida como gol novo, mesmo o jogo
-    // já tendo terminado há tempo).
     if(j.status!=='ao-vivo')return;
     if(j.gols1===null)return;
     const ant=prev[j.id];
@@ -1787,13 +1703,8 @@ function verificarGols(prev){
   verificarJogosRecemEncerrados();
 }
 
-// Detecta jogos que ACABARAM DE terminar (transição futuro/ao-vivo → encerrado)
-// para disparar os Stories pós-jogo automaticamente
 let statusJogosAnteriores={};
 
-// Lê do localStorage quais jogos JÁ tiveram o Stories pós-jogo mostrado
-// (persiste entre sessões — evita repetir o mesmo story se a pessoa recarregar
-// a página ou abrir o app de novo depois de já ter visto)
 function getJogosComStoriesVistos(){
   try{
     return JSON.parse(localStorage.getItem('copa_stories_vistos')||'[]');
@@ -1803,7 +1714,6 @@ function marcarStoryComoVisto(jogoId){
   const vistos=getJogosComStoriesVistos();
   if(!vistos.includes(jogoId)){
     vistos.push(jogoId);
-    // Mantém só os últimos 200 IDs para não crescer infinitamente no localStorage
     const limitados=vistos.slice(-200);
     localStorage.setItem('copa_stories_vistos',JSON.stringify(limitados));
   }
@@ -1825,12 +1735,9 @@ function verificarJogosRecemEncerrados(){
       filaStoriesPosJogo.push(j.id);
     });
     if(!storiesPosJogoAtivo){
-      // Espera um ciclo extra de atualização (12s) antes de montar o story —
-      // garante que os palpites de todo mundo já estejam 100% sincronizados
-      // do Supabase, evitando calcular "melhor/pior" com dados incompletos
       storiesPosJogoAtivo=true;
       setTimeout(async()=>{
-        await carregarTudo(); // força uma busca fresca de jogos E palpites antes de montar
+        await carregarTudo();
         processarFilaStoriesPosJogo();
       },12000);
     }
@@ -1838,32 +1745,23 @@ function verificarJogosRecemEncerrados(){
 }
 
 function notificarGol(time,g1,g2,jogo){
-  // Som
   tocarSomGol(jogo.isBrasil);
-  // Banner na tela
   const banner=document.getElementById('gol-banner');
   const nm=nomePT(time);
   banner.innerHTML=`⚽ GOL! ${nm} marcou! · ${nomePT(jogo.time1)} ${g1}×${g2} ${nomePT(jogo.time2)}`;
   banner.classList.add('show');
   setTimeout(()=>banner.classList.remove('show'),5000);
-  // Confete se for Brasil
   if(jogo.isBrasil)lancarConfete();
-  // Push notification
   enviarNotifGol(nm,g1,g2,jogo);
 }
 function tocarSomGol(brasil){
   tocarNarradorGol();
-  // Vibra no celular junto com o gol
   try{if(navigator.vibrate)navigator.vibrate([100,50,100,50,200]);}catch(e){}
 }
 
-// ═══════════════════════════════════════════
-// MÚSICA DE FUNDO 🎵 — "É Uma Partida de Futebol" (Skank)
-// Arquivo de áudio real, fornecido pelo usuário, tocando em loop
-// ═══════════════════════════════════════════
 let elementoAudio = null;
 let audioGol = null;
-let modoTorcidaAtivo = true; // sempre ativo por padrão
+let modoTorcidaAtivo = true;
 
 function getAudioGol(){
   if(!audioGol){
@@ -1886,7 +1784,7 @@ function getElementoAudio() {
     elementoAudio = document.createElement('audio');
     elementoAudio.src = 'musica-fundo.mp3';
     elementoAudio.loop = true;
-    elementoAudio.volume = 0.35; // volume moderado, não atrapalha o uso do app
+    elementoAudio.volume = 0.35;
     elementoAudio.preload = 'auto';
   }
   return elementoAudio;
@@ -1903,7 +1801,6 @@ function iniciarMusicaAmbiente() {
         localStorage.setItem('copa_musica_ativa', '1');
         atualizarBotaoMusica();
       }).catch(e => {
-        // Navegador bloqueou autoplay (precisa de interação do usuário primeiro)
         console.info('Autoplay bloqueado, aguardando interação:', e.message);
         tocandoAmbiente = false;
         atualizarBotaoMusica();
@@ -1930,9 +1827,6 @@ function atualizarBotaoMusica() {
   if (btn) btn.textContent = tocandoAmbiente ? '🔊' : '🔇';
 }
 
-// ═══════════════════════════════════════════
-// MODO TORCIDA 📣 — alerta de gols mesmo com tela bloqueada
-// ═══════════════════════════════════════════
 function toggleModoTorcida(){
   modoTorcidaAtivo=!modoTorcidaAtivo;
 
@@ -1944,7 +1838,6 @@ function toggleModoTorcida(){
     if(navigator.wakeLock){
       navigator.wakeLock.request('screen').then(lock=>{window._wakeLock=lock;}).catch(()=>{});
     }
-    // Inscreve no push
     if(window._swReg) inscreverPush(window._swReg);
     else registrarSW();
   }else{
@@ -1974,7 +1867,6 @@ function atualizarAvatarTopbar(){
     .replace('<span style="position:relative','<span id="topbar-avatar" style="position:relative');
   const el=document.getElementById('topbar-avatar');
   if(el){
-    // Substitui o elemento pai se for o span wrapper
     const parent=el.closest('[id="topbar-avatar"]')||el;
     parent.outerHTML=novo;
   }
@@ -2028,16 +1920,8 @@ function lancarConfete(){
 // ═══════════════════════════════════════════
 // SERVICE WORKER + PUSH NOTIFICATIONS
 // ═══════════════════════════════════════════
-// NOTIFICAÇÕES — SEM Service Worker
-// ═══════════════════════════════════════════
-// Removemos completamente o Service Worker. Ele estava causando o site
-// ficar travado em versões antigas no cache, mesmo com várias tentativas
-// de correção de escopo. A API de notificação direta funciona sem SW
-// na grande maioria dos navegadores modernos (Chrome desktop e Android).
 const NOTIF_ICON = 'https://flagcdn.com/h40/br.png';
 
-// LIMPEZA TOTAL: remove QUALQUER Service Worker e cache de versões anteriores.
-// Isso roda sempre, em toda carga da página, sem exceção.
 async function limparSWAntigos() {
   try {
     if ('serviceWorker' in navigator) {
@@ -2058,14 +1942,12 @@ async function limparSWAntigos() {
 }
 limparSWAntigos();
 
-// Mantemos a função para compatibilidade com chamadas existentes — agora não faz nada
 async function registrarSW() {
   if (!('serviceWorker' in navigator)) return;
   try {
     const reg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
     console.info('SW registrado:', reg.scope);
     window._swReg = reg;
-    // Inscreve no push se modo torcida ativo
     if (modoTorcidaAtivo) await inscreverPush(reg);
   } catch(e) {
     console.warn('SW falhou:', e.message);
@@ -2082,7 +1964,6 @@ async function inscreverPush(reg) {
       const perm = await Notification.requestPermission();
       if (perm !== 'granted') return;
     }
-    // Verifica se já tem inscrição ativa
     let sub = await reg.pushManager.getSubscription();
     if (!sub) {
       sub = await reg.pushManager.subscribe({
@@ -2090,7 +1971,6 @@ async function inscreverPush(reg) {
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
       });
     }
-    // Salva no Supabase
     await sbUpsert('push_subscriptions', {
       usuario_id: usuarioAtual?.id,
       usuario_nome: usuarioAtual?.nome,
@@ -2124,7 +2004,6 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
-// Envia notificação direto pela API do navegador (sem depender de SW)
 async function enviarNotif(titulo, corpo, tag, requireInteraction) {
   if (Notification.permission !== 'granted') return;
   try {
@@ -2156,7 +2035,6 @@ async function pedirNotificacao() {
     if (banner) banner.innerHTML = '';
     agendarNotificacoesJogos();
   } else if (Notification.permission === 'denied') {
-    // Já bloqueado — mostra instruções imediatamente
     ativarNotificacoes();
   }
 }
@@ -2172,7 +2050,6 @@ async function ativarNotificacoes() {
     if (banner) banner.innerHTML = '';
     showToast('🔔 Notificações ativadas!');
     agendarNotificacoesJogos();
-    // Teste imediato pra confirmar que funciona
     setTimeout(() => {
       enviarNotif(
         '⚽ Copa 2026 – Notificações ativas!',
@@ -2220,7 +2097,6 @@ function notifJogo(j, tempo) {
   if (Notification.permission !== 'granted') return;
   const uid = usuarioAtual?.id;
   const pal = (todosPalpites[j.id] || {})[uid];
-  // Só notifica se a pessoa AINDA NÃO deu palpite nesse jogo
   if (pal) return;
   const t1 = nomePT(j.time1), t2 = nomePT(j.time2);
   enviarNotif(`⚠️ Falta pouco! ${t1} × ${t2} em ${tempo}!`, `Você ainda não palpitou nesse jogo. Corre! ⚽`, `jogo-${j.id}-${tempo}`, true);
@@ -2240,7 +2116,6 @@ async function enviarNotifGol(time, g1, g2, jogo) {
 // NAVEGAÇÃO
 // ═══════════════════════════════════════════
 function irPara(pag,btn){
-  // "grupos" na nav abre o menu
   if(pag==='grupos'){
     const m=document.getElementById('menu-mais');
     const o=document.getElementById('menu-overlay');
@@ -2293,7 +2168,6 @@ function renderHoje(){
   const amJs=todosJogos.filter(j=>j.data===amanha).sort(porHorario);
   let html='';
 
-  // CONTAGEM REGRESSIVA — próximo jogo (qualquer um), só se nada estiver ao vivo agora
   if(!aoVivo.length){
     const proximoJogo=todosJogos.filter(j=>j.status==='futuro').sort(porHorario)[0];
     if(proximoJogo) html+=contagemRegressivaHTML(proximoJogo);
@@ -2313,7 +2187,6 @@ function renderHoje(){
     html+=divider('','⏰ Amanhã');
     amJs.forEach(j=>{html+=jogoCardHTML(j,true)});
   }
-  // Próximos jogos do Brasil se não houver hoje
   if(!todosJogos.some(j=>j.isBrasil&&(j.data===hoje||j.data===amanha))){
     const proxBrasil=todosJogos.filter(j=>j.isBrasil&&j.status==='futuro').sort(porHorario).slice(0,2);
     if(proxBrasil.length){
@@ -2375,17 +2248,14 @@ function renderTodosJogos(){
   const c=document.getElementById('todos-jogos-container');
   let list=todosJogos;
 
-  // 1. Filtro por STATUS (aba principal)
   if(filtroStatusAtivo==='ao-vivo')list=list.filter(j=>j.status==='ao-vivo');
   else if(filtroStatusAtivo==='encerrados')list=list.filter(j=>j.status==='encerrado');
   else if(filtroStatusAtivo==='proximos')list=list.filter(j=>j.status==='futuro');
 
-  // 2. Filtro por GRUPO (secundário)
   if(filtroGrupoAtivo==='brasil')list=list.filter(j=>j.isBrasil);
   else if(filtroGrupoAtivo==='mata-mata')list=list.filter(j=>j.isMata);
   else if(filtroGrupoAtivo!=='todos')list=list.filter(j=>j.grupo===filtroGrupoAtivo);
 
-  // 3. Ordenação: próximos = mais cedo primeiro; encerrados = mais recente primeiro
   list=[...list].sort((a,b)=>{
     const da=new Date(a.data+'T'+(a.hora||'00:00'));
     const db=new Date(b.data+'T'+(b.hora||'00:00'));
@@ -2481,7 +2351,6 @@ function jogoCardHTML(j,comPalpite){
       palHtml+=extraApostaHTML(j);
     }
   }
-  // Botão "Ver palpites de todos" — aparece se alguém já palpitou nesse jogo
   const totalPalpites=Object.keys(todosPalpites[j.id]||{}).length;
   const btnVerTodos=totalPalpites>0
     ?`<button class="btn-ver-palpites" onclick="abrirModalPalpites('${j.id}')">👀 Ver palpites de todos (${totalPalpites})</button>`
@@ -2495,6 +2364,7 @@ function jogoCardHTML(j,comPalpite){
       <div class="time-lado"><div class="time-flag">${getFlag(j.time2)}</div><span class="time-nome">${nomePT(j.time2)}</span></div>
     </div>${extras}${palHtml}${btnVerTodos?`<div style="padding:0 .9rem .7rem">${btnVerTodos}</div>`:''}</div>`;
 }
+
 // ═══════════════════════════════════════════
 // COMPARTILHAR RESULTADO 📤 — gera imagem via Canvas
 // ═══════════════════════════════════════════
@@ -2512,16 +2382,13 @@ async function compartilharResultado(jogoId){
     canvas.width=800; canvas.height=800;
     const ctx=canvas.getContext('2d');
 
-    // Fundo gradiente verde/azul
     const grad=ctx.createLinearGradient(0,0,800,800);
     grad.addColorStop(0,'#002776'); grad.addColorStop(1,'#001a4d');
     ctx.fillStyle=grad; ctx.fillRect(0,0,800,800);
 
-    // Borda dourada
     ctx.strokeStyle='#ffdf00'; ctx.lineWidth=6;
     ctx.strokeRect(20,20,760,760);
 
-    // Título
     ctx.fillStyle='#ffdf00';
     ctx.font='bold 36px Arial';
     ctx.textAlign='center';
@@ -2530,22 +2397,18 @@ async function compartilharResultado(jogoId){
     ctx.fillStyle='#9ab6f0';
     ctx.fillText('Palpites da Família', 400, 120);
 
-    // Troféu/resultado
     ctx.font='bold 60px Arial';
     ctx.fillStyle='#fff';
     ctx.fillText(txt.includes('Exato')?'🏆':'✅', 400, 230);
 
-    // Times
     ctx.font='bold 32px Arial';
     ctx.fillStyle='#fff';
     ctx.fillText(`${nomePT(j.time1)}  ${j.gols1} × ${j.gols2}  ${nomePT(j.time2)}`, 400, 320);
 
-    // Palpite
     ctx.font='22px Arial';
     ctx.fillStyle='#9ab6f0';
     ctx.fillText(`Meu palpite: ${pal.p1} × ${pal.p2}`, 400, 380);
 
-    // Pontos ganhos — bem grande
     ctx.font='bold 100px Arial';
     ctx.fillStyle='#ffdf00';
     ctx.fillText(`+${pts}`, 400, 540);
@@ -2553,7 +2416,6 @@ async function compartilharResultado(jogoId){
     ctx.fillStyle='#fff';
     ctx.fillText('PONTOS', 400, 580);
 
-    // Nome da pessoa
     ctx.font='bold 26px Arial';
     ctx.fillStyle='#00d44f';
     ctx.fillText(usuarioAtual.nome, 400, 680);
@@ -2562,7 +2424,6 @@ async function compartilharResultado(jogoId){
     ctx.fillStyle='#7aab85';
     ctx.fillText(fmtData(j.data), 400, 715);
 
-    // Converte pra blob e compartilha
     canvas.toBlob(async(blob)=>{
       const file=new File([blob],'copa2026-resultado.png',{type:'image/png'});
       const textoCompartilha=`⚽ Acertei ${nomePT(j.time1)} ${j.gols1}×${j.gols2} ${nomePT(j.time2)}! +${pts} pontos na Copa 2026 da família! 🏆`;
@@ -2570,9 +2431,8 @@ async function compartilharResultado(jogoId){
       if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
         try{
           await navigator.share({files:[file],title:'Copa 2026',text:textoCompartilha});
-        }catch(e){/* usuário cancelou, sem problema */}
+        }catch(e){}
       }else{
-        // Fallback: baixa a imagem
         const url=URL.createObjectURL(blob);
         const a=document.createElement('a');
         a.href=url; a.download='copa2026-resultado.png';
@@ -2599,7 +2459,6 @@ function extraApostaHTML(j){
   const uid=usuarioAtual?.id;
   if(!uid)return'';
 
-  // MATA-MATA: apostas especiais
   if(j.isMata){
     const extras=(apostasExtras[j.id]||{})[uid];
     let ap={};
@@ -2640,7 +2499,6 @@ function extraApostaHTML(j){
     </div>`;
   }
 
-  // GRUPOS: aposta 1º tempo (original)
   const escolha=(apostasExtras[j.id]||{})[uid];
   const escolhaStr=typeof escolha==='string'?escolha:'';
   return`<div class="palpite-row" style="flex-direction:column;align-items:stretch;gap:.5rem">
@@ -2702,7 +2560,6 @@ function abrirModalPalpites(jogoId){
   const enc=j.status==='encerrado',live=j.status==='ao-vivo';
   const aindaNaoComecou=!enc&&!live;
 
-  // Info do jogo no topo do modal
   document.getElementById('modal-jogo-info').innerHTML=`
     <div class="modal-jogo-resumo">
       <div class="modal-time">${getFlag(j.time1)}<span>${nomePT(j.time1)}</span></div>
@@ -2712,7 +2569,6 @@ function abrirModalPalpites(jogoId){
     ${aindaNaoComecou?'<p style="font-size:.72rem;color:var(--muted);text-align:center;margin-bottom:.75rem">⏳ Jogo ainda não começou — palpites ficam visíveis assim mesmo, capricha! 😄</p>':''}
   `;
 
-  // Lista de palpites — ordenada: quem acertou mais primeiro (se encerrado), senão por nome
   let entradas=Object.entries(pals).map(([uid,pal])=>{
     const u=todosUsuarios.find(x=>x.id===uid);
     const nome=u?.nome||'?';
@@ -2727,7 +2583,6 @@ function abrirModalPalpites(jogoId){
   });
   entradas.sort((a,b)=>enc?b.pts-a.pts:a.nome.localeCompare(b.nome));
 
-  // Carrega reações salvas localmente para esse jogo
   let reacoesJogo={};
   try{reacoesJogo=JSON.parse(localStorage.getItem('copa_reacoes_'+jogoId)||'{}');}catch(e){}
 
@@ -2744,7 +2599,6 @@ function abrirModalPalpites(jogoId){
       const btnZoar=podeZoar
         ?`<button onclick="zoarPessoa('${e.uid}','${e.nome.replace(/'/g,"\\'")}','${jogoId}')" style="background:rgba(255,80,80,.12);border:1px solid rgba(255,80,80,.3);color:#f87171;font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;margin-left:.3rem" title="Zoar ${e.nome}">😂 Zoar</button>`
         :'';
-      // Reações deste palpite
       const reacoesUid=reacoesJogo[e.uid]||{};
       const reacoesHtml=EMOJIS_PAL.map(em=>{
         const quem=reacoesUid[em]||[];
@@ -2800,12 +2654,10 @@ async function zoarPessoa(uid,nome,jogoId){
     fecharModalPalpites();
     showToast('😂 Zoada enviada no chat!');
     await carregarChat();
-    // Notifica badge do chat como zoada
     _marcarZoadaNoChat(uid);
   }catch(e){showToast('❌ Erro ao enviar zoada');}
 }
 
-// Reações em palpites — salvo localmente (localStorage por jogo)
 function reagirPalpite(jogoId,uidAlvo,emoji){
   if(!usuarioAtual)return;
   let reacoesJogo={};
@@ -2814,24 +2666,20 @@ function reagirPalpite(jogoId,uidAlvo,emoji){
   if(!reacoesJogo[uidAlvo][emoji])reacoesJogo[uidAlvo][emoji]=[];
   const lista=reacoesJogo[uidAlvo][emoji];
   const idx=lista.indexOf(usuarioAtual.id);
-  if(idx>=0)lista.splice(idx,1); // toggle off
-  else lista.push(usuarioAtual.id); // toggle on
+  if(idx>=0)lista.splice(idx,1);
+  else lista.push(usuarioAtual.id);
   try{localStorage.setItem('copa_reacoes_'+jogoId,JSON.stringify(reacoesJogo));}catch(e){}
   try{if(navigator.vibrate)navigator.vibrate(30);}catch(e){}
-  // Re-renderiza só o modal sem fechar
   abrirModalPalpites(jogoId);
 }
 
-// Notificação de zoada — acende badge do chat com mensagem especial
 function _marcarZoadaNoChat(uidZoado){
   if(uidZoado===usuarioAtual?.id){
-    // Você foi zoado — destaca o badge
     const badge=document.getElementById('badge-chat');
     if(badge){badge.textContent='😂';badge.classList.add('show');}
   }
 }
 
-// Verifica se alguma mensagem recente no chat é uma zoada direcionada ao usuário logado
 function checarZoadasNoChat(){
   if(!usuarioAtual||!chatMsgs.length)return;
   const ZOADAS_CHECK=ZOADAS.map(z=>z.replace('${alvo}',usuarioAtual.nome).substring(0,20));
@@ -2870,9 +2718,6 @@ function abrirRankingAoVivo(jogoId){
     </p>
   `;
 
-  // Simula a pontuação de cada um com base no placar atual (a aposta extra de
-  // "vence o 1º tempo" não entra aqui — ela só conta na pontuação final, depois
-  // que o jogo encerra, para evitar dados incorretos durante o jogo ao vivo)
   let entradas=Object.entries(pals).map(([uid,pal])=>{
     const u=todosUsuarios.find(x=>x.id===uid);
     const nome=u?.nome||'?';
@@ -2931,10 +2776,10 @@ async function salvarPalpite(jogoId){
   if(isNaN(g1)||isNaN(g2)||g1<0||g2<0){showToast('⚠️ Placar inválido!');return}
   const btn=document.querySelector(`.btn-salvar-pal[data-jogo="${jogoId}"]`);
   if(btn){
-    if(btn.disabled)return; // já está salvando, evita clique duplo
+    if(btn.disabled)return;
     btn.disabled=true;btn.textContent='…';
   }
-  bloqueandoAutoRefresh=true; // trava qualquer atualização automática até terminar
+  bloqueandoAutoRefresh=true;
   try{
     await sbUpsert('palpites',{usuario_id:usuarioAtual.id,jogo_id:jogoId,gols1:g1,gols2:g2},'usuario_id,jogo_id');
     if(!todosPalpites[jogoId])todosPalpites[jogoId]={};
@@ -2949,7 +2794,7 @@ async function salvarPalpite(jogoId){
     showToast('❌ Erro ao salvar. Verifique internet.');
     if(btn){btn.disabled=false;btn.textContent='💾 Salvar'}
   }finally{
-    bloqueandoAutoRefresh=false; // libera o auto-refresh de novo
+    bloqueandoAutoRefresh=false;
   }
 }
 
@@ -2963,13 +2808,11 @@ function calcPts(j,pal){
   const res=n=>n>0?'V':n===0?'E':'D';
 
   if(j.isMata){
-    // MATA-MATA: exato=50, resultado/quem passa=20
     if(r1===a1&&r2===a2)return{pts:50+bonus,txt:'🏆 Exato! (mata-mata)'};
     if(res(r1-r2)===res(a1-a2))return{pts:20+bonus,txt:'✅ Resultado (mata-mata)'};
     return{pts:0,txt:'❌ Errou'};
   }
 
-  // GRUPOS: exato=40, resultado=15
   if(r1===a1&&r2===a2)return{pts:40+bonus,txt:'🏆 Exato!'};
   if(res(r1-r2)===res(a1-a2))return{pts:15+bonus,txt:'✅ Resultado'};
   return{pts:0,txt:'❌ Errou'};
@@ -2985,7 +2828,6 @@ function calcPtsTotal(uid){
     else if(txt.includes('Resultado'))resultados++;
     else if(txt.includes('Errou'))erros++;
   });
-  // Apostas extras grupos: "quem vence o 1º tempo?" — +5pts
   todosJogos.filter(j=>!j.isMata).forEach(j=>{
     if(j.status!=='encerrado'||j.golsHT1===null||j.golsHT2===null)return;
     const raw=(apostasExtras[j.id]||{})[uid];
@@ -2998,7 +2840,6 @@ function calcPtsTotal(uid){
     else resultadoReal='empate';
     if(escolha===resultadoReal){total+=5;acertosPrimeiroTempo++}
   });
-  // Apostas extras mata-mata: quem passa (+15), prorrogação (+10), pênaltis (+15)
   todosJogos.filter(j=>j.isMata).forEach(j=>{
     if(j.status!=='encerrado'||j.gols1===null)return;
     const raw=(apostasExtras[j.id]||{})[uid];
@@ -3006,36 +2847,27 @@ function calcPtsTotal(uid){
     let ap={};
     try{ap=typeof raw==='object'&&raw!==null?raw:JSON.parse(raw);}catch(e){return;}
 
-    // Quem passa: +15pts se errou o placar mas acertou quem avança
-    // (só dá pontos se calcPts não deu — evita dupla contagem)
     const pal=(todosPalpites[j.id]||{})[uid];
     const ptsPlacar=pal?calcPts(j,pal).pts:0;
     if(ap.passa&&ptsPlacar===0){
-      // Usa vencedorFinal setado pelo admin (necessário em casos de prorr/pênaltis)
-      // Se não setado, infere pelo placar (só funciona quando não foi empate no 90min)
       const vencedorReal=j.vencedorFinal||(j.gols1>j.gols2?j.time1:j.gols2>j.gols1?j.time2:null);
       if(vencedorReal&&ap.passa===vencedorReal){total+=15;acertosPrimeiroTempo++;}
     }
 
-    // Prorrogação: +10pts — precisa do campo j.foiProrrogacao (setado pelo admin)
     if(ap.prorrogacao&&j.foiProrrogacao!==undefined){
       const foiP=j.foiProrrogacao?'sim':'nao';
       if(ap.prorrogacao===foiP)total+=10;
     }
-    // Pênaltis: +15pts — precisa do campo j.foiPenaltis (setado pelo admin)
     if(ap.penaltis&&j.foiPenaltis!==undefined){
       const foiP=j.foiPenaltis?'sim':'nao';
       if(ap.penaltis===foiP)total+=15;
     }
   });
-  // Bônus campeão
   const camp=bolaoAtual[uid];
   if(camp){
     const finalJ=todosJogos.find(j=>j.round==='Final'&&j.status==='encerrado');
     if(finalJ){const venc=finalJ.gols1>finalJ.gols2?finalJ.time1:finalJ.time2;if(venc===camp)total+=50}
   }
-  // Bolão de classificação: +10 pts por time que a pessoa acertou que ia se classificar
-  // Só conta quando o grupo já terminou (todos os 3 jogos de todos os times do grupo)
   let acertosClassificacao=0;
   getGruposDisponiveis().forEach(g=>{
     const jogosGrupo=todosJogos.filter(j=>!j.isMata&&j.grupo===g);
@@ -3044,7 +2876,6 @@ function calcPtsTotal(uid){
     if(!todosEncerrados)return;
     const escolha=(classificacaoBolao[g]||{})[uid];
     if(!escolha||!escolha.length)return;
-    // Recalcula a tabela final do grupo para saber quem realmente se classificou
     const tabela={};
     jogosGrupo.forEach(j=>{
       [j.time1,j.time2].forEach(t=>{if(!tabela[t])tabela[t]={Pts:0,GP:0,GC:0}});
@@ -3057,14 +2888,15 @@ function calcPtsTotal(uid){
     const classificados=Object.entries(tabela).map(([n,s])=>({n,...s,SG:s.GP-s.GC})).sort((a,b)=>b.Pts-a.Pts||b.SG-a.SG||b.GP-a.GP).slice(0,2).map(t=>t.n);
     escolha.forEach(t=>{if(classificados.includes(t)){total+=10;acertosClassificacao++}});
   });
-  // Bolão artilheiro — pontos já calculados pelo admin e salvos no banco
-  // Lemos do cache local (carregado em carregarDadosSupabase)
   if(window._artilheiroApostas){
     const aposta=window._artilheiroApostas.find(a=>a.usuario_id===uid);
     if(aposta&&aposta.acertou)total+=aposta.pontos_ganhos||0;
   }
+  let totalAjustes=0;
+  (ajustesPontosPorUsuario[uid]||[]).forEach(a=>{totalAjustes+=a.pontos||0;});
+  total+=totalAjustes;
 
-  return{total,exatos,resultados,erros,acertosPrimeiroTempo,acertosClassificacao};
+  return{total,exatos,resultados,erros,acertosPrimeiroTempo,acertosClassificacao,totalAjustes};
 }
 
 // ═══════════════════════════════════════════
@@ -3102,7 +2934,6 @@ function renderRanking(){
   const emj=['🥈','🥇','🥉'];
   podio.innerHTML=ord.map((u,i)=>u?`<div class="rank-podio-card ${cls[i]}"><span class="podio-emoji">${emj[i]}</span><div style="margin:0 auto .35rem;width:52px">${renderAvatar(u,52,u.total)}</div><div class="podio-nome">${u.nome}</div><div class="podio-pts">${u.total}<small>pontos</small></div></div>`:'<div></div>').join('');
 
-  // ── SETINHAS — salva {pos,pts}, mostra seta só quando pontos mudaram ──
   let snapAntigo={};
   try{
     const raw=JSON.parse(localStorage.getItem('copa_rank_posicoes')||'{}');
@@ -3115,7 +2946,6 @@ function renderRanking(){
     if(s&&s.pts!==undefined&&s.pts!==u.total) posicoesAntigas[u.id]=s.pos;
   });
 
-  // ── RIVAL: pessoa mais próxima em pontos do usuário logado ──
   let rivalId=null;
   if(usuarioAtual){
     const meuIdx=ranked.findIndex(u=>u.id===usuarioAtual.id);
@@ -3128,7 +2958,6 @@ function renderRanking(){
     });
   }
 
-  // ── FLIP ANIMATION: captura posições ANTES de re-renderizar ──
   const posicoesAntes={};
   lista.querySelectorAll('.rank-row[data-uid]').forEach(el=>{
     posicoesAntes[el.dataset.uid]=el.getBoundingClientRect().top;
@@ -3141,7 +2970,7 @@ function renderRanking(){
     const detalhes=[`🏆${u.exatos}`,`✅${u.resultados}`];
     if(u.acertosPrimeiroTempo>0)detalhes.push(`⏱️${u.acertosPrimeiroTempo}`);
     if(u.acertosClassificacao>0)detalhes.push(`🎯${u.acertosClassificacao}`);
-    // Setinha
+    if(u.totalAjustes)detalhes.push(`🎁${u.totalAjustes>0?'+':''}${u.totalAjustes}`);
     let arrowHtml='';
     const posAnterior=posicoesAntigas[u.id];
     if(posAnterior&&posAnterior!==pos){
@@ -3149,23 +2978,20 @@ function renderRanking(){
       if(diff>0)arrowHtml=`<span class="rank-arrow up">▲${diff}</span>`;
       else arrowHtml=`<span class="rank-arrow down">▼${Math.abs(diff)}</span>`;
     }
-    // Badge rival
     const isRival=rivalId&&u.id===rivalId;
     const rivalBadge=isRival?`<span class="rival-badge">⚔️ Rival</span>`:'';
     const isRivalClass=isRival?' rival-highlight':'';
     return`<div class="rank-row${isRivalClass}" data-uid="${u.id}"><div class="rank-pos">${pos}º</div><span onclick="abrirPerfilUsuario('${u.id}')" class="rank-row-clicavel" style="display:inline-flex;align-items:center;border-radius:50%;flex-shrink:0" title="Ver perfil de ${u.nome}">${renderAvatar(u,44,u.total)}</span><div class="rank-info"><div class="rank-nome-txt">${u.nome}${arrowHtml}${rivalBadge}</div><div class="rank-detalhe">${detalhes.join(' · ')}</div></div><div class="rank-pts-val">${u.total}<small>pts</small></div></div>`;
   }).join('');
 
-  // Salva snapshot: mantém antigo se pontos mudaram, atualiza se iguais
   const novoSnap={};
   ranked.forEach((u,i)=>{
     const s=snapAntigo[u.id];
-    if(s&&s.pts!==undefined&&s.pts!==u.total) novoSnap[u.id]=s; // mantém — setinha deve continuar
-    else novoSnap[u.id]={pos:i+1,pts:u.total}; // atualiza referência
+    if(s&&s.pts!==undefined&&s.pts!==u.total) novoSnap[u.id]=s;
+    else novoSnap[u.id]={pos:i+1,pts:u.total};
   });
   try{localStorage.setItem('copa_rank_posicoes',JSON.stringify(novoSnap));}catch(e){}
 
-  // ── FLIP: calcula diferença e anima ──
   if(Object.keys(posicoesAntes).length>0){
     lista.querySelectorAll('.rank-row[data-uid]').forEach(el=>{
       const uid=el.dataset.uid;
@@ -3209,9 +3035,8 @@ function renderGrupos(){
   if(!keys.length){c.innerHTML='<div class="empty-state"><span class="ei">📊</span><p>Carregando…</p></div>';return}
   c.innerHTML=keys.map(g=>{
     const ts=Object.entries(grupos[g]).map(([n,s])=>({n,...s,SG:s.GP-s.GC})).sort((a,b)=>b.Pts-a.Pts||b.SG-a.SG||b.GP-a.GP);
-    const totalJogosGrupo=3; // fase de grupos = 3 jogos por time
+    const totalJogosGrupo=3;
     const todosJogaramTudo=ts.every(t=>t.J>=totalJogosGrupo);
-    // Pontuação máxima que o 3º colocado ainda pode alcançar (se vencer todos os jogos restantes)
     const pts3=ts[2]?ts[2].Pts:0;
     const maxPossivel3=ts[2]?ts[2].Pts+(totalJogosGrupo-ts[2].J)*3:0;
 
@@ -3219,8 +3044,6 @@ function renderGrupos(){
       const naZona=i<2;
       const jogosRestantes=totalJogosGrupo-t.J;
       const jogouTudo=jogosRestantes===0;
-      // Matematicamente classificado: está na zona E nem o 3º colocado pode mais alcançar
-      // (considerando o cenário mais favorável possível pro time de fora)
       const maxPossivelTime=t.Pts+jogosRestantes*3;
       const matematicamenteClassificado=naZona&&jogouTudo;
       const matematicamenteEliminado=!naZona&&maxPossivelTime<(ts[1]?ts[1].Pts:0)&&t.J>0;
@@ -3311,7 +3134,7 @@ async function reagirChat(msgId, emoji){
   if(!reacoes[emoji])reacoes[emoji]=[];
   const uid=usuarioAtual.id;
   const idx=reacoes[emoji].indexOf(uid);
-  if(idx>=0)reacoes[emoji].splice(idx,1); // remove se já reagiu (toggle)
+  if(idx>=0)reacoes[emoji].splice(idx,1);
   else reacoes[emoji].push(uid);
   msg.reacoes=reacoes;
   renderChat();
@@ -3334,9 +3157,7 @@ async function apagarMsgChat(msgId){
   if(!usuarioAtual)return;
   const msg=chatMsgs.find(m=>m.id===msgId);
   if(!msg)return;
-  // Admin apaga qualquer msg; usuário comum só apaga a própria
   if(!isAdmin()&&msg.usuario_id!==usuarioAtual.id){showToast('⚠️ Só pode apagar suas próprias mensagens');return;}
-  // Animação de saída
   const el=document.getElementById('chat-msg-'+msgId);
   if(el){el.style.transition='opacity .2s,transform .2s';el.style.opacity='0';el.style.transform='scale(.95)';}
   try{
@@ -3387,7 +3208,6 @@ async function carregarNoticias(){
     ]);
     const ns=(noticias.status==='fulfilled'?noticias.value:[])||[];
     const cs=(curiosidades.status==='fulfilled'?curiosidades.value:[])||[];
-    // Mescla e ordena por data
     _noticiaCache=[
       ...ns.map(n=>({...n,tipo:'noticia'})),
       ...cs.map(c=>({...c,tipo:'curiosidade',titulo:c.fato?.substring(0,80)+'…',publicado_em:c.criado_em})),
@@ -3481,7 +3301,6 @@ async function reagirNoticia(id,emoji){
   if(idx>=0)item.reacoes[emoji].splice(idx,1);
   else item.reacoes[emoji].push(usuarioAtual.id);
   try{if(navigator.vibrate)navigator.vibrate(30);}catch(e){}
-  // Re-renderiza o card
   const c=document.getElementById('noticias-container');
   if(c)_renderNoticiasLista(c);
   try{await sbPatch('copa_noticias',`id=eq.${id}`,{reacoes:item.reacoes});}catch(e){}
@@ -3548,10 +3367,9 @@ function renderMata(){
 // ═══════════════════════════════════════════
 function checarResumoSemanal(){
   const hoje=new Date();
-  const ehSegunda=hoje.getDay()===1; // 0=domingo, 1=segunda
+  const ehSegunda=hoje.getDay()===1;
   if(!ehSegunda)return;
   const chaveSemana=`copa_resumo_${hoje.toISOString().split('T')[0]}`;
-  // Já mostrou hoje? não repete
   const jaViuHoje=localStorage.getItem('copa_resumo_ultima_data')===hoje.toISOString().split('T')[0];
   if(jaViuHoje)return;
   setTimeout(()=>mostrarResumoSemanal(true),2500);
@@ -3564,7 +3382,6 @@ function checarStoriesDoDia(){
   const hoje=new Date().toISOString().split('T')[0];
   const jaViuHoje=localStorage.getItem('copa_stories_ultima_data')===hoje;
   if(jaViuHoje)return;
-  // Só mostra automaticamente se já tiver pelo menos 1 jogo encerrado hoje
   const jogosHoje=todosJogos.filter(j=>j.data===hoje&&j.status==='encerrado');
   if(!jogosHoje.length)return;
   setTimeout(()=>mostrarStoriesDoDia(true),3500);
@@ -3573,10 +3390,8 @@ function checarStoriesDoDia(){
 function mostrarStoriesDoDia(automatico){
   const hoje=new Date().toISOString().split('T')[0];
 
-  // Jogos encerrados hoje
   let jogosHoje=todosJogos.filter(j=>j.data===hoje&&j.status==='encerrado');
 
-  // Se não tem hoje (clique manual), pega rodada mais recente com jogos encerrados
   let labelData='RESUMO DO DIA';
   let labelDia=fmtData(hoje);
   if(!jogosHoje.length){
@@ -3590,7 +3405,6 @@ function mostrarStoriesDoDia(automatico){
 
   if(automatico)localStorage.setItem('copa_stories_ultima_data',hoje);
 
-  // Se ainda não tem nada
   if(!jogosHoje.length){
     const overlay=document.createElement('div');
     overlay.className='modal-overlay show';overlay.style.alignItems='center';
@@ -3609,19 +3423,16 @@ function mostrarStoriesDoDia(automatico){
 
   if(automatico)localStorage.setItem('copa_stories_ultima_data',hoje);
 
-  // Estatísticas
   const totalGols=jogosHoje.reduce((acc,j)=>acc+(j.gols1||0)+(j.gols2||0),0);
   const totalJogos=jogosHoje.length;
   const mediaGols=totalJogos?Math.round((totalGols/totalJogos)*10)/10:0;
 
-  // Maior goleada do dia
   let maiorGoleada=null,maiorDiff=-1;
   jogosHoje.forEach(j=>{
     const diff=Math.abs(j.gols1-j.gols2);
     if(diff>maiorDiff){maiorDiff=diff;maiorGoleada=j}
   });
 
-  // Craque do dia: quem mais pontuou nos jogos de hoje
   const pontosPorPessoa={};
   jogosHoje.forEach(j=>{
     Object.entries(todosPalpites[j.id]||{}).forEach(([uid,pal])=>{
@@ -3634,7 +3445,6 @@ function mostrarStoriesDoDia(automatico){
     if(pts>craquePts){craquePts=pts;craqueDoDia=todosUsuarios.find(u=>u.id===uid)}
   });
 
-  // Quantos placares exatos saíram hoje (de qualquer pessoa)
   let totalExatosHoje=0;
   jogosHoje.forEach(j=>{
     Object.values(todosPalpites[j.id]||{}).forEach(pal=>{
@@ -3702,7 +3512,6 @@ function fecharStoriesDoDia(){
 
 // ═══════════════════════════════════════════
 // STORIES PÓS-JOGO 🏆😐🥶 — melhor, mediano e pior palpite
-// Dispara automaticamente assim que um jogo termina, com 3 cards navegáveis
 // ═══════════════════════════════════════════
 let filaStoriesPosJogo=[];
 let storiesPosJogoAtivo=false;
@@ -3721,9 +3530,8 @@ function montarStoriesPosJogo(jogoId){
   const j=todosJogos.find(x=>x.id===jogoId);
   if(!j||j.gols1===null){processarFilaStoriesPosJogo();return}
   storiesPosJogoAtual=j;
-  marcarStoryComoVisto(jogoId); // marca já aqui — mesmo se a pessoa fechar o app no meio, não repete
+  marcarStoryComoVisto(jogoId);
 
-  // Calcula os pontos de cada pessoa que palpitou esse jogo
   const pals=todosPalpites[jogoId]||{};
   const entradas=Object.entries(pals).map(([uid,pal])=>{
     const u=todosUsuarios.find(x=>x.id===uid);
@@ -3732,7 +3540,6 @@ function montarStoriesPosJogo(jogoId){
   });
 
   if(entradas.length<2){
-    // Não tem gente suficiente pra fazer melhor/mediano/pior — pula
     processarFilaStoriesPosJogo();
     return;
   }
@@ -3805,20 +3612,25 @@ function navegarStoriesPosJogo(direcao){
 function fecharStoriesPosJogo(){
   document.getElementById('modal-stories-posjogo')?.remove();
   storiesPosJogoAtual=null;
-  processarFilaStoriesPosJogo(); // mostra o próximo jogo da fila, se tiver
+  processarFilaStoriesPosJogo();
 }
 
 // ═══════════════════════════════════════════
 // NOTIFICAÇÃO DE MUDANÇA DE POSIÇÃO 🎉 — ao abrir o app
 // ═══════════════════════════════════════════
 // ═══════════════════════════════════════════
-// BOLÃO ARTILHEIRO 🇧🇷 — Brasil x Escócia 24/06/2026
+// BOLÃO ARTILHEIRO 🇧🇷 — Brasil x Noruega 05/07/2026 (Oitavas de Final)
 // ═══════════════════════════════════════════
+function hojeBrasilia(){
+  const d=new Date(Date.now()-3*3600*1000);
+  return d.toISOString().split('T')[0];
+}
+
 const BOLAO_ARTILHEIRO_CONFIG = {
-  jogoId: 'jogo_2026-06-29_Brazil_Japan',
-  dataJogo: '2026-06-29',
+  jogoId: 'jogo_2026-07-05_Brazil_Norway',
+  dataJogo: '2026-07-05',
   time1: 'Brazil',
-  time2: 'Japan',
+  time2: 'Norway',
   pontos: 20,
   jogadores: [
     { id: 'alex_sandro',    nome: 'Alex Sandro',       emoji: '⚽', num: 6  },
@@ -3849,7 +3661,7 @@ const BOLAO_ARTILHEIRO_CONFIG = {
 
 async function checarBolaoArtilheiro(){
   if(!usuarioAtual)return;
-  // Não aparece se jogo já começou
+  if(hojeBrasilia()!==BOLAO_ARTILHEIRO_CONFIG.dataJogo)return;
   const jogo=todosJogos.find(j=>
     j.data===BOLAO_ARTILHEIRO_CONFIG.dataJogo&&(
       normalizarNomeTime(j.time1).includes('brazil')||
@@ -3857,14 +3669,12 @@ async function checarBolaoArtilheiro(){
     )
   );
   if(jogo&&jogo.status!=='futuro')return;
-  // Checa localStorage primeiro — evita query no banco a cada 10s
   const chaveVoto=`copa_artilheiro_votou_${usuarioAtual.id}_${BOLAO_ARTILHEIRO_CONFIG.dataJogo}`;
-  if(localStorage.getItem(chaveVoto))return; // já votou — não mostra
-  // Confirma no banco
+  if(localStorage.getItem(chaveVoto))return;
   try{
     const res=await sbGet('bolao_artilheiro',`usuario_id=eq.${usuarioAtual.id}&data_jogo=eq.${BOLAO_ARTILHEIRO_CONFIG.dataJogo}&select=jogador_id`);
     if(res?.[0]?.jogador_id){
-      localStorage.setItem(chaveVoto,'1'); // salva cache
+      localStorage.setItem(chaveVoto,'1');
       return;
     }
     mostrarPopupArtilheiro(null);
@@ -3903,22 +3713,19 @@ function mostrarPopupArtilheiro(escolhaAtual){
                 padding:1.5rem 1.25rem;position:relative;
                 box-shadow:0 0 60px rgba(0,156,59,.3),0 0 120px rgba(255,223,0,.1)">
 
-      <!-- Brilho de canto -->
       <div style="position:absolute;top:0;left:0;right:0;height:3px;
                   background:linear-gradient(90deg,transparent,#ffdf00,#009c3b,#ffdf00,transparent);
                   border-radius:20px 20px 0 0"></div>
 
-      <!-- Header -->
       <div style="text-align:center;margin-bottom:1.25rem">
-        <div style="font-size:2.5rem;margin-bottom:.3rem">🇧🇷⚽🇯🇵</div>
+        <div style="font-size:2.5rem;margin-bottom:.3rem">🇧🇷⚽🇳🇴</div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;
-                    color:#ffdf00;letter-spacing:2px;line-height:1">BRASIL × JAPÃO</div>
+                    color:#ffdf00;letter-spacing:2px;line-height:1">BRASIL × NORUEGA</div>
         <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:.2rem;letter-spacing:1px">
-          COPA DO MUNDO 2026 • 29/06 • 16 AVOS DE FINAL
+          COPA DO MUNDO 2026 • 05/07 • OITAVAS DE FINAL
         </div>
       </div>
 
-      <!-- Card destaque -->
       <div style="background:rgba(255,223,0,.08);border:1px solid rgba(255,223,0,.3);
                   border-radius:14px;padding:.9rem 1rem;margin-bottom:1.1rem;text-align:center">
         <div style="font-size:.7rem;font-weight:700;color:#ffdf00;
@@ -3934,14 +3741,12 @@ function mostrarPopupArtilheiro(escolhaAtual){
         </div>
       </div>
 
-      <!-- Regras rápidas -->
       <div style="display:flex;gap:.5rem;margin-bottom:1rem;font-size:.68rem;color:rgba(255,255,255,.45)">
         <div style="flex:1;text-align:center">✅ 1 escolha só</div>
         <div style="flex:1;text-align:center">⚡ Só antes do jogo</div>
         <div style="flex:1;text-align:center">🎯 +${cfg.pontos} pts se acertar</div>
       </div>
 
-      <!-- Grid de jogadores -->
       ${jaApostou?`<div style="font-size:.72rem;color:rgba(0,212,79,.8);text-align:center;margin-bottom:.75rem;font-weight:600">
         ✅ Você apostou em: <strong style="color:#00d44f">${cfg.jogadores.find(j=>j.id===escolhaAtual)?.nome||escolhaAtual}</strong>
       </div>`:''}
@@ -3970,10 +3775,9 @@ function mostrarPopupArtilheiro(escolhaAtual){
 
 async function selecionarArtilheiro(jogadorId, jogadorNome){
   if(!usuarioAtual)return;
-  const dataJogo=BOLAO_ARTILHEIRO_CONFIG.dataJogo; // sempre usa a data do config, não "hoje"
+  const dataJogo=BOLAO_ARTILHEIRO_CONFIG.dataJogo;
   const status=document.getElementById('artilheiro-status');
 
-  // Verifica se jogo já começou
   const jogo=todosJogos.find(j=>
     j.data===BOLAO_ARTILHEIRO_CONFIG.dataJogo&&
     (normalizarNomeTime(j.time2).includes('brazil')||normalizarNomeTime(j.time1).includes('brazil'))
@@ -3983,7 +3787,6 @@ async function selecionarArtilheiro(jogadorId, jogadorNome){
     return;
   }
 
-  // Desabilita todos os botões
   document.querySelectorAll('[id^="art-btn-"]').forEach(b=>{
     b.disabled=true;b.style.opacity='.45';b.style.cursor='default';
   });
@@ -4008,12 +3811,10 @@ async function selecionarArtilheiro(jogadorId, jogadorNome){
     },'usuario_id,data_jogo');
 
     if(status)status.innerHTML=`<span style="color:#00d44f">✅ Apostou em <strong>${jogadorNome}</strong>! Boa sorte! 🇧🇷</span>`;
-    // Salva cache — não vai mostrar o popup de novo
     const chaveVoto=`copa_artilheiro_votou_${usuarioAtual.id}_${BOLAO_ARTILHEIRO_CONFIG.dataJogo}`;
     localStorage.setItem(chaveVoto,'1');
     showToast(`🎯 Aposta feita: ${jogadorNome}! +${BOLAO_ARTILHEIRO_CONFIG.pontos}pts se acertar!`);
 
-    // Atualiza botão de fechar
     const btnFechar=document.querySelector('#modal-artilheiro button[onclick="fecharPopupArtilheiro()"]');
     if(btnFechar)btnFechar.textContent='✅ Fechado! Boa sorte 🇧🇷';
   }catch(e){
@@ -4027,7 +3828,6 @@ function fecharPopupArtilheiro(){
   document.getElementById('modal-artilheiro')?.remove();
 }
 
-// Calcula pontos do bolão artilheiro após o jogo
 async function calcularPontosArtilheiro(){
   if(!isAdmin())return;
   const inputEl=document.getElementById('artilheiro-input-gols');
@@ -4051,7 +3851,7 @@ async function calcularPontosArtilheiro(){
     showToast(`✅ ${acertos} pessoa(s) ganharam +${BOLAO_ARTILHEIRO_CONFIG.pontos}pts!`);
     await carregarDadosSupabase();
     renderRanking();
-    renderAdmin(); // atualiza lista no painel
+    renderAdmin();
   }catch(e){showToast('❌ Erro: '+e.message);}
 }
 
@@ -4060,17 +3860,15 @@ function checarMudancaRanking(){
   if(!uid||!todosUsuarios.length)return;
   const ranked=todosUsuarios.map(u=>({...u,...calcPtsTotal(u.id)})).sort((a,b)=>b.total-a.total);
   const posicaoAtual=ranked.findIndex(u=>u.id===uid)+1;
-  if(posicaoAtual===0)return; // não encontrado, ignora
+  if(posicaoAtual===0)return;
 
   const chave='copa_ultima_posicao_'+uid;
   const posicaoAnterior=parseInt(localStorage.getItem(chave)||'0');
 
-  // Só notifica se já tínhamos uma posição salva antes (não na primeira vez)
   if(posicaoAnterior>0&&posicaoAtual<posicaoAnterior){
     const subiu=posicaoAnterior-posicaoAtual;
     setTimeout(()=>{
       showToast(`🎉 Você subiu para ${posicaoAtual}º lugar!`);
-      // Confete leve para comemorar (sem ser exagerado)
       if(posicaoAtual<=3)lancarConfete();
     },1800);
   }
@@ -4078,9 +3876,7 @@ function checarMudancaRanking(){
 }
 
 // ═══════════════════════════════════════════
-// DADOS TÉCNICOS DO DISPOSITIVO 📱 — visível só para admin na Auditoria
-// Captura apenas info que o próprio navegador já expõe publicamente
-// (navegator/SO/tela) — NUNCA captura IP, localização ou dados pessoais.
+// DADOS TÉCNICOS DO DISPOSITIVO 📱
 // ═══════════════════════════════════════════
 function detectarDispositivo(){
   const ua=navigator.userAgent;
@@ -4124,7 +3920,6 @@ async function registrarAcessoDispositivo(){
       idioma:info.idioma,
       ultimo_acesso:new Date().toISOString(),
     },'usuario_id');
-    // Incrementa contador de acessos via RPC seria ideal, mas fazemos leitura+escrita simples
     const atual=await sbGet('acessos_dispositivo',`usuario_id=eq.${usuarioAtual.id}&select=total_acessos`);
     const totalAtual=atual?.[0]?.total_acessos||0;
     await sbUpsert('acessos_dispositivo',{usuario_id:usuarioAtual.id,total_acessos:totalAtual+1},'usuario_id');
@@ -4137,7 +3932,6 @@ function mostrarResumoSemanal(automatico){
   const hoje=new Date();
   const seteDiasAtras=new Date(hoje.getTime()-7*86400000);
 
-  // Jogos encerrados nos últimos 7 dias com palpite do usuário
   const jogosSemana=todosJogos.filter(j=>{
     if(j.status!=='encerrado')return false;
     const dtJ=new Date(j.data);
@@ -4153,7 +3947,6 @@ function mostrarResumoSemanal(automatico){
     if(pts>melhorPts){melhorPts=pts;melhorJogo=j}
   });
 
-  // Posição no ranking (atual vs estimativa simples)
   const ranked=todosUsuarios.map(u=>({...u,...calcPtsTotal(u.id)})).sort((a,b)=>b.total-a.total);
   const minhaPos=ranked.findIndex(u=>u.id===uid)+1;
 
@@ -4189,7 +3982,6 @@ function renderBolao(){
   const status=document.getElementById('bolao-status');
   const uid=usuarioAtual?.id;
   const meuCampeao=bolaoAtual[uid];
-  // Times únicos da Copa
   const times=[...new Set(todosJogos.filter(j=>!j.isMata).flatMap(j=>[j.time1,j.time2]).filter(t=>t&&!t.includes('winner')&&!t.includes('loser')&&!t.startsWith('W')&&!t.startsWith('L')&&!t.startsWith('1')&&!t.startsWith('2')&&!t.startsWith('3')))].sort();
   c.innerHTML=times.map(t=>`
     <div class="bolao-time-btn${meuCampeao===t?' selected':''}" onclick="selecionarCampeao('${t.replace(/'/g,"\\'")}')">
@@ -4239,7 +4031,6 @@ function renderBolaoClassificacaoGrid(){
   if(!grid||!grupoBolaoAtivo)return;
   const uid=usuarioAtual?.id;
 
-  // Times do grupo ativo
   const times=[...new Set(todosJogos.filter(j=>!j.isMata&&j.grupo===grupoBolaoAtivo).flatMap(j=>[j.time1,j.time2]))].sort((a,b)=>nomePT(a).localeCompare(nomePT(b)));
 
   const minhaEscolha=(classificacaoBolao[grupoBolaoAtivo]||{})[uid]||[];
@@ -4266,7 +4057,7 @@ async function toggleClassificacaoTime(grupo,time){
   let escolha=classificacaoBolao[grupo][uid]||[];
 
   if(escolha.includes(time)){
-    escolha=escolha.filter(t=>t!==time); // desmarca
+    escolha=escolha.filter(t=>t!==time);
   }else{
     if(escolha.length>=2){
       showToast('⚠️ Você já escolheu 2 times — desmarque um primeiro');
@@ -4292,17 +4083,15 @@ function renderPerfil(){
   renderBotaoInstalarPermanente();
   const c=document.getElementById('perfil-container');
   const uid=usuarioAtual?.id;
-  const{total,exatos,resultados,erros}=calcPtsTotal(uid);
+  const{total,exatos,resultados,erros,totalAjustes}=calcPtsTotal(uid);
   const jogosComPal=todosJogos.filter(j=>j.status==='encerrado'&&(todosPalpites[j.id]||{})[uid]);
   const taxa=jogosComPal.length?Math.round((exatos+resultados)/jogosComPal.length*100):0;
-  // Sequência atual
   let seq=0,maxSeq=0,cur=0;
   todosJogos.filter(j=>j.status==='encerrado').forEach(j=>{
     const pal=(todosPalpites[j.id]||{})[uid];if(!pal)return;
     const{txt}=calcPts(j,pal);
     if(txt.includes('Exato')||txt.includes('Resultado')){cur++;maxSeq=Math.max(maxSeq,cur)}else cur=0;
   });
-  // Jogo favorito (mais pontos em 1 jogo)
   let melhorJogo=null,melhorPts=0;
   jogosComPal.forEach(j=>{const pal=(todosPalpites[j.id]||{})[uid];const{pts}=calcPts(j,pal);if(pts>melhorPts){melhorPts=pts;melhorJogo=j}});
   const camp=bolaoAtual[uid];
@@ -4343,6 +4132,13 @@ function renderPerfil(){
       </div>
     </div>
     ${camp?`<div class="card"><div class="card-title"><span class="trofeu-balanca">👑</span> Bolão do Campeão</div><div style="display:flex;align-items:center;gap:.75rem">${getFlag(camp)}<div><div style="font-weight:700">${nomePT(camp)}</div><div style="font-size:.75rem;color:var(--muted)">+50 pts se acertar</div></div></div></div>`:''}
+    ${(ajustesPontosPorUsuario[uid]&&ajustesPontosPorUsuario[uid].length)?`<div class="card">
+      <div class="card-title">🎁 Ajustes manuais de pontos</div>
+      ${ajustesPontosPorUsuario[uid].map(a=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;border-bottom:1px solid var(--border);font-size:.8rem">
+        <span style="color:var(--muted)">${a.motivo||'Ajuste do admin'}</span>
+        <strong style="color:${a.pontos>=0?'var(--verde-light)':'#f87171'}">${a.pontos>=0?'+':''}${a.pontos}</strong>
+      </div>`).join('')}
+    </div>`:''}
     <div class="card">
       <div class="card-title">📊 Resumo</div>
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem;font-size:.8rem">
@@ -4359,7 +4155,6 @@ function renderPerfil(){
         const pal=(todosPalpites[j.id]||{})[uid];
         const{pts,txt}=calcPts(j,pal);
 
-        // Detalhe da aposta extra (vence 1º tempo)
         const escolhaExtra=(apostasExtras[j.id]||{})[uid];
         let extraHtml='', ptsExtra=0;
         if(escolhaExtra&&j.golsHT1!==null&&j.golsHT2!==null){
@@ -4376,7 +4171,6 @@ function renderPerfil(){
         }
         const ptsTotalJogo=pts+ptsExtra;
 
-        // Detalhe se teve bônus Brasil somado no placar
         const bonusBrasilHtml = (j.isBrasil&&pts>0&&(txt.includes('Exato')||txt.includes('Resultado')))
           ? `<span style="color:var(--amarelo);font-size:.65rem"> (+5 bônus 🇧🇷)</span>` : '';
 
@@ -4410,6 +4204,23 @@ function renderAdmin(){
 
   const opcoesUsuarios=todosUsuarios.map(u=>`<option value="${u.id}">${u.nome} (@${u.usuario})</option>`).join('');
   let html=`
+    <div class="admin-card" style="border-color:rgba(255,223,0,.35);background:rgba(255,223,0,.05)">
+      <div style="font-weight:700;margin-bottom:.6rem;font-size:.85rem;color:var(--amarelo)">🎁 Ajustar pontos manualmente</div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:.75rem">Some ou subtraia pontos de alguém (número negativo subtrai). Fica registrado com motivo.</div>
+      <div style="display:flex;flex-direction:column;gap:.5rem">
+        <select id="adm-ajuste-user" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.5rem;font-size:.8rem">
+          <option value="">— escolha a pessoa —</option>
+          ${opcoesUsuarios}
+        </select>
+        <div style="display:flex;gap:.5rem">
+          <input type="number" id="adm-ajuste-pontos" placeholder="Ex: 10 ou -5" style="flex:1;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.5rem;font-size:.8rem">
+        </div>
+        <input type="text" id="adm-ajuste-motivo" maxlength="120" placeholder="Motivo (obrigatório)" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.5rem;font-size:.8rem">
+        <button class="btn-admin-save" style="padding:.55rem;background:rgba(255,223,0,.2);border-color:rgba(255,223,0,.4);color:var(--amarelo)" onclick="adminAjustarPontos()">🎁 Aplicar ajuste</button>
+      </div>
+      <div id="adm-ajustes-historico" style="margin-top:.75rem"></div>
+    </div>
+
     <div class="admin-card" style="border-color:rgba(0,156,59,.3);background:rgba(0,156,59,.06)">
       <div style="font-weight:700;margin-bottom:.6rem;font-size:.85rem;color:var(--verde-light)">🔑 Resetar senha de alguém</div>
       <div style="display:flex;flex-direction:column;gap:.5rem">
@@ -4514,15 +4325,15 @@ function renderAdmin(){
 
   c.innerHTML=html;
   adminCarregarFusoes();
+  adminCarregarAjustes();
 
-  // Bolão artilheiro — botão só aparece no dia do jogo
   const hojeAdmin=new Date().toISOString().split('T')[0];
-  if(true){ // sempre visível para o admin
+  if(true){
     const artBox=document.createElement('div');
     artBox.className='admin-card';
     artBox.style.cssText='border-color:rgba(255,223,0,.4);background:rgba(255,223,0,.05);margin-bottom:.75rem';
     artBox.innerHTML=`
-      <div style="font-weight:700;font-size:.85rem;color:var(--amarelo);margin-bottom:.5rem">🇧🇷 Bolão Artilheiro — Brasil × Japão</div>
+      <div style="font-weight:700;font-size:.85rem;color:var(--amarelo);margin-bottom:.5rem">🇧🇷 Bolão Artilheiro — Brasil × Noruega</div>
       <div id="artilheiro-admin-lista" style="font-size:.75rem;color:var(--muted);margin-bottom:.75rem">Carregando apostas…</div>
       <div style="font-size:.7rem;color:var(--muted);margin-bottom:.4rem">IDs de quem marcou gol (separados por vírgula):</div>
       <div style="font-size:.65rem;color:var(--muted);margin-bottom:.5rem;line-height:1.6">
@@ -4554,6 +4365,83 @@ function renderAdmin(){
         el.innerHTML=html||'Nenhuma aposta ainda.';
       }).catch(()=>{});
   }
+}
+
+async function adminAjustarPontos(){
+  if(!isAdmin())return;
+  const userId=document.getElementById('adm-ajuste-user')?.value;
+  const pontosStr=document.getElementById('adm-ajuste-pontos')?.value;
+  const motivo=document.getElementById('adm-ajuste-motivo')?.value?.trim();
+  if(!userId){showToast('⚠️ Escolha a pessoa primeiro');return}
+  if(pontosStr===''||pontosStr===undefined){showToast('⚠️ Digite a quantidade de pontos');return}
+  const pontos=parseInt(pontosStr);
+  if(isNaN(pontos)||pontos===0){showToast('⚠️ Pontos inválidos');return}
+  if(!motivo){showToast('⚠️ Motivo é obrigatório');return}
+  const u=todosUsuarios.find(x=>x.id===userId);
+  try{
+    const registro=await sbPost('ajustes_pontos',{
+      usuario_id:userId,
+      usuario_nome:u?.nome||userId,
+      pontos,
+      motivo,
+      admin_id:usuarioAtual.id,
+      admin_nome:usuarioAtual.nome,
+    });
+    if(!ajustesPontosPorUsuario[userId])ajustesPontosPorUsuario[userId]=[];
+    ajustesPontosPorUsuario[userId].unshift(registro[0]||{pontos,motivo});
+    registrarLogAuditoria('ajuste_pontos',`${pontos>=0?'+':''}${pontos}pts para ${u?.nome||userId}. Motivo: ${motivo}`);
+    showToast(`✅ ${pontos>=0?'+':''}${pontos}pts aplicado para ${u?.nome||'usuário'}!`);
+    document.getElementById('adm-ajuste-user').value='';
+    document.getElementById('adm-ajuste-pontos').value='';
+    document.getElementById('adm-ajuste-motivo').value='';
+    adminCarregarAjustes();
+    if(document.getElementById('page-ranking')?.classList.contains('active'))renderRanking();
+  }catch(e){
+    console.error(e);
+    const msgErro=String(e.message||e);
+    if(msgErro.includes('relation')||msgErro.includes('does not exist')||msgErro.includes('42P01')){
+      showToast('❌ Tabela ajustes_pontos ainda não existe no Supabase. Crie-a primeiro.');
+    }else{
+      showToast('❌ Erro ao aplicar ajuste');
+    }
+  }
+}
+
+async function adminCarregarAjustes(){
+  const box=document.getElementById('adm-ajustes-historico');if(!box)return;
+  try{
+    const lista=await sbGet('ajustes_pontos','select=*&order=criado_em.desc&limit=15');
+    if(!lista.length){box.innerHTML='<div style="font-size:.72rem;color:var(--muted);text-align:center;padding:.5rem">Nenhum ajuste ainda.</div>';return;}
+    box.innerHTML=`<div style="font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.4rem">Histórico de ajustes</div>`
+      +lista.map(a=>{
+        const dt=a.criado_em?new Date(a.criado_em).toLocaleDateString('pt-BR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'';
+        const cor=a.pontos>=0?'var(--verde-light)':'#f87171';
+        return`<div style="padding:.45rem .6rem;background:var(--card2);border:1px solid var(--border);border-radius:8px;margin-bottom:.3rem;font-size:.74rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.1rem">
+            <span><strong>${a.usuario_nome}</strong> <span style="color:${cor};font-weight:700">${a.pontos>=0?'+':''}${a.pontos}pts</span></span>
+            <button onclick="adminRemoverAjuste('${a.id}')" style="background:none;border:none;color:rgba(248,113,113,.6);font-size:.75rem;cursor:pointer;padding:0 4px">🗑️</button>
+          </div>
+          <div style="color:var(--muted)">📝 ${a.motivo}</div>
+          <div style="color:var(--muted);font-size:.65rem">${dt} · por ${a.admin_nome||'admin'}</div>
+        </div>`;
+      }).join('');
+  }catch(e){
+    box.innerHTML='<div style="font-size:.72rem;color:var(--muted);padding:.4rem">Crie a tabela ajustes_pontos no Supabase para usar esse recurso.</div>';
+  }
+}
+
+async function adminRemoverAjuste(id){
+  if(!isAdmin())return;
+  if(!confirm('Remover este ajuste de pontos?'))return;
+  try{
+    await sbDelete('ajustes_pontos',`id=eq.${id}`);
+    Object.keys(ajustesPontosPorUsuario).forEach(uid=>{
+      ajustesPontosPorUsuario[uid]=ajustesPontosPorUsuario[uid].filter(a=>a.id!==id);
+    });
+    showToast('✅ Ajuste removido');
+    adminCarregarAjustes();
+    if(document.getElementById('page-ranking')?.classList.contains('active'))renderRanking();
+  }catch(e){showToast('❌ Erro ao remover ajuste');}
 }
 
 async function adminResetarSenha(){
@@ -4702,6 +4590,7 @@ async function adminDeletarUsuario(){
     try{await sbDelete('bolao',`usuario_id=eq.${uid}`);}catch(e){}
     try{await sbDelete('apostas_extras',`usuario_id=eq.${uid}`);}catch(e){}
     try{await sbDelete('classificacao_bolao',`usuario_id=eq.${uid}`);}catch(e){}
+    try{await sbDelete('ajustes_pontos',`usuario_id=eq.${uid}`);}catch(e){}
     await sbDelete('usuarios',`id=eq.${uid}`);
     todosUsuarios=todosUsuarios.filter(x=>x.id!==uid);
     Object.keys(todosPalpites).forEach(jid=>{delete todosPalpites[jid][uid];});
@@ -4725,7 +4614,6 @@ function adminSalvar(id){
   const st=document.getElementById('adm_st_'+id)?.value;
   if(!isNaN(g1)&&!isNaN(g2)){j.gols1=g1;j.gols2=g2}
   if(st)j.status=st;
-  // Mata-mata: vencedor, prorrogação e pênaltis — salva no banco para persistir
   if(j.isMata){
     const venc=document.getElementById('adm_venc_'+id)?.value;
     const prorr=document.getElementById('adm_prorr_'+id)?.value;
@@ -4735,7 +4623,6 @@ function adminSalvar(id){
     else if(prorr==='nao')j.foiProrrogacao=false;
     if(penal==='sim')j.foiPenaltis=true;
     else if(penal==='nao')j.foiPenaltis=false;
-    // Persiste no Supabase para não perder ao recarregar
     const dadosMata={
       vencedorFinal:venc||null,
       foiProrrogacao:prorr==='sim'?true:prorr==='nao'?false:null,
@@ -4753,7 +4640,6 @@ function adminSalvar(id){
 // AUDITORIA 🔍 — restrita ao admin
 // ═══════════════════════════════════════════
 
-// Registra uma ação no log de auditoria (tabela 'auditoria_log' no Supabase)
 async function registrarLogAuditoria(tipo, detalhe){
   if(!usuarioAtual)return;
   try{
@@ -5218,8 +5104,8 @@ function _renderGraficoEvolucao(canvasId,pts,cor,corTier){
 }
 
 // ═══════════════════════════════════════════
-// ESTATÍSTICAS DE PARTICIPAÇÃO (Auditoria → Engajamento v75)
-
+// AUDITORIA — abas
+// ═══════════════════════════════════════════
 async function renderAuditoria(){
   const c=document.getElementById('auditoria-container');
   if(!isAdmin()){
@@ -5253,7 +5139,6 @@ function trocarAbaAuditoria(aba,btn){
   else if(aba==='palpites')renderAuditPalpitesPagina(cont);
 }
 
-// ── ABA: GERAL ──
 function renderAuditGeral(cont){
   const totalUsuarios=todosUsuarios.length;
   const totalPalpitesDados=Object.values(todosPalpites).reduce((acc,porJogo)=>acc+Object.keys(porJogo).length,0);
@@ -5284,7 +5169,6 @@ function renderAuditGeral(cont){
   carregarLogAuditoria();
 }
 
-// ── ABA: ENGAJAMENTO ──
 function renderAuditEngajamento(cont){
   const contagemPorUsuario={};
   Object.values(todosPalpites).forEach(porJogo=>{
@@ -5410,7 +5294,6 @@ async function carregarHorarioPico(){
   }
 }
 
-// ── ABA: DISPOSITIVOS ──
 function renderAuditDispositivos(cont){
   cont.innerHTML=`
     <div class="card">
@@ -5422,7 +5305,6 @@ function renderAuditDispositivos(cont){
   carregarDispositivosAuditoria();
 }
 
-// ── ABA: SAÚDE TÉCNICA ──
 function renderAuditSaude(cont){
   const calcStats=(arr)=>{
     if(!arr||!arr.length)return{tentativas:0,sucessos:0,taxa:0,tempoMedio:0};
@@ -5477,7 +5359,6 @@ async function testarConexaoSupabase(){
   }
 }
 
-// ── ABA: PALPITES ──
 function renderAuditPalpitesPagina(cont){
   cont.innerHTML=`
     <div class="card">
@@ -5616,20 +5497,10 @@ function showToast(msg){
 // PWA MANIFEST INLINE (sem precisar de arquivo externo)
 // ═══════════════════════════════════════════
 (function(){
-  // IMPORTANTE: o Android precisa de ícones como URL HTTP real (não data:// URL).
-  // Ícones gerados via canvas/data-URL costumam falhar silenciosamente na hora
-  // de criar o atalho na tela inicial, mesmo o Chrome aceitando o manifest.
-  // Usamos a bandeira do Brasil em alta resolução, hospedada de verdade.
-  // IMPORTANTE: o Android precisa de ícones QUADRADOS como URL HTTP real.
-  // A bandeira do Brasil é retangular (4:3) — o Android pode rejeitar ou
-  // distorcer a criação do atalho com ícone não-quadrado. Usamos um SVG
-  // próprio, quadrado, hospedado como arquivo separado (icon.svg) no
-  // mesmo repositório do site.
   const baseUrl = window.location.origin + window.location.pathname.replace(/[^/]+$/, '');
   const ICONE_192 = baseUrl + 'icon.svg';
   const ICONE_512 = baseUrl + 'icon.svg';
 
-  // URL estável (sem query string de cache-busting) para o manifest não mudar a cada load
   const startUrlEstavel = window.location.origin + window.location.pathname;
 
   const manifest = {
