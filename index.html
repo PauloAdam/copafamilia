@@ -597,9 +597,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.4rem;font-size:.78rem">
           <div>🏆 Placar exato <strong style="color:var(--amarelo)">50 pts</strong></div>
           <div>✅ Resultado certo <strong style="color:var(--amarelo)">20 pts</strong></div>
-          <div>🏅 Quem passa <strong style="color:var(--amarelo)">15 pts</strong></div>
+          <div>➡️ Quem passa <strong style="color:var(--amarelo)">15 pts</strong></div>
           <div>🇧🇷 Bônus Brasil <strong style="color:var(--amarelo)">+5 pts</strong></div>
-          <div>⏱️ Prorrogação <strong style="color:var(--amarelo)">+10 pts</strong></div>
+          <div>⌛ Prorrogação <strong style="color:var(--amarelo)">+10 pts</strong></div>
           <div>🥅 Pênaltis <strong style="color:var(--amarelo)">+15 pts</strong></div>
         </div>
       </div>
@@ -762,7 +762,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '86';
+const APP_VERSION = '88';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -2496,7 +2496,7 @@ function extraApostaHTML(j){
       <span class="palpite-label" style="font-weight:700;color:var(--amarelo)">⚔️ Apostas do mata-mata</span>
 
       <div>
-        <div class="palpite-label" style="margin-bottom:.3rem">🏆 Quem passa? <span style="color:var(--amarelo);font-size:.65rem">+15pts (se errar o placar)</span></div>
+        <div class="palpite-label" style="margin-bottom:.3rem">➡️ Quem passa? <span style="color:var(--amarelo);font-size:.65rem">+15pts (se errar o placar)</span></div>
         <div class="extra-aposta-grid" style="grid-template-columns:1fr 1fr">
           <button class="extra-aposta-btn${passaEscolha===j.time1?' selected':''}" onclick="salvarApostaMataMata('${j.id}','passa','${j.time1.replace(/'/g,"\\'")}')">
             ${getFlagSmall(j.time1)} ${nomePT(j.time1)}
@@ -2508,7 +2508,7 @@ function extraApostaHTML(j){
       </div>
 
       <div>
-        <div class="palpite-label" style="margin-bottom:.3rem">⏱️ Vai a prorrogação? <span style="color:var(--amarelo);font-size:.65rem">+10pts</span></div>
+        <div class="palpite-label" style="margin-bottom:.3rem">⌛ Vai a prorrogação? <span style="color:var(--amarelo);font-size:.65rem">+10pts</span></div>
         <div class="extra-aposta-grid" style="grid-template-columns:1fr 1fr">
           <button class="extra-aposta-btn${prorr==='sim'?' selected':''}" onclick="salvarApostaMataMata('${j.id}','prorrogacao','sim')">✅ Sim</button>
           <button class="extra-aposta-btn${prorr==='nao'?' selected':''}" onclick="salvarApostaMataMata('${j.id}','prorrogacao','nao')">❌ Não</button>
@@ -2557,7 +2557,7 @@ async function salvarApostaMataMata(jogoId, tipo, valor){
   apostasExtras[jogoId][uid]=ap;
   try{
     await sbUpsert('apostas_extras',{usuario_id:uid,jogo_id:jogoId,jogador:JSON.stringify(ap)},'usuario_id,jogo_id');
-    const msgs={passa:`🏆 Quem passa: ${nomePT(valor)}!`,prorrogacao:`⏱️ Prorrogação: ${valor==='sim'?'Sim':'Não'}!`,penaltis:`🥅 Pênaltis: ${valor==='sim'?'Sim':'Não'}!`};
+    const msgs={passa:`➡️ Quem passa: ${nomePT(valor)}!`,prorrogacao:`⌛ Prorrogação: ${valor==='sim'?'Sim':'Não'}!`,penaltis:`🥅 Pênaltis: ${valor==='sim'?'Sim':'Não'}!`};
     showToast(msgs[tipo]||'✅ Salvo!');
     const j=todosJogos.find(x=>x.id===jogoId);
     const card=document.getElementById('card_'+jogoId);
@@ -4360,13 +4360,13 @@ function renderAdmin(){
       </div>
       ${j.isMata?`
       <div class="admin-jogo-row" style="margin-top:.35rem;flex-wrap:wrap;gap:.4rem">
-        <span style="font-size:.72rem;color:var(--amarelo)">🏆 Quem passou:</span>
+        <span style="font-size:.72rem;color:var(--amarelo)">➡️ Quem passou:</span>
         <select id="adm_venc_${j.id}" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:3px 6px;font-size:.72rem">
           <option value="">— (pelo placar)</option>
           <option value="${j.time1}"${j.vencedorFinal===j.time1?' selected':''}>${nomePT(j.time1)}</option>
           <option value="${j.time2}"${j.vencedorFinal===j.time2?' selected':''}>${nomePT(j.time2)}</option>
         </select>
-        <span style="font-size:.72rem;color:var(--amarelo)">⏱️ Prorrogação:</span>
+        <span style="font-size:.72rem;color:var(--amarelo)">⌛ Prorrogação:</span>
         <select id="adm_prorr_${j.id}" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:3px 6px;font-size:.72rem">
           <option value="">—</option>
           <option value="sim"${j.foiProrrogacao===true?' selected':''}>✅ Sim</option>
