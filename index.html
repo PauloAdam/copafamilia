@@ -762,7 +762,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '84';
+const APP_VERSION = '85';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -1214,6 +1214,7 @@ let filtroGrupoAtivo='todos', filtroStatusAtivo='proximos', ultimaAtualizacao=nu
 let placaresPrev={}, chatMsgs=[], ultimoChat=0, bolaoAtual={}, apostasExtras={}, classificacaoBolao={};
 let bloqueandoAutoRefresh=false;
 let ajustesPontosPorUsuario={};
+let palpiteLiberadoId=null;
 
 // ═══════════════════════════════════════════
 // SUPABASE
@@ -1620,6 +1621,8 @@ async function carregarDadosSupabase(){
     }catch(e){/* tabela ajustes_pontos pode não existir ainda */}
     try{
       const cfgs=await sbGet('configuracoes','select=chave,valor');
+      const cfgPal=cfgs.find(c=>c.chave==='palpite_liberado');
+      palpiteLiberadoId=cfgPal?(cfgPal.valor||null):null;
       cfgs.filter(c=>c.chave.startsWith('mata_')).forEach(c=>{
         const jogoId=c.chave.replace('mata_','');
         const dados=JSON.parse(c.valor||'{}');
@@ -2333,7 +2336,13 @@ function jogoCardHTML(j,comPalpite){
   if(comPalpite){
     const uid=usuarioAtual?.id;
     const pal=uid?(todosPalpites[j.id]||{})[uid]:null;
-    if((enc||live)&&pal){
+    if(live&&podeEditarPalpiteAoVivo()){
+      const v1=pal?.p1??'',v2=pal?.p2??'';
+      palHtml=`<div class="palpite-row" style="background:rgba(0,39,118,.06);border-radius:8px;padding:.3rem .5rem"><span class="palpite-label">✏️</span><div class="palpite-inputs"><input type="number" min="0" max="20" class="palpite-n" id="pn1_${j.id}" value="${v1}" placeholder="0"><span class="palpite-sep">×</span><input type="number" min="0" max="20" class="palpite-n" id="pn2_${j.id}" value="${v2}" placeholder="0"></div><button class="btn-salvar-pal" data-jogo="${j.id}">${pal?'✏️ Atualizar':'💾 Salvar'}</button>${pal?`<span class="palpite-ok" style="font-size:.68rem">✓${pal.p1}×${pal.p2}</span>`:''}</div>`;
+      palHtml+=`<div class="palpite-row" style="padding:.1rem .9rem 0"><span style="font-size:.68rem;color:var(--azul-claro)">🔓 Você pode editar seu palpite com o jogo em andamento</span></div>`;
+      palHtml+=extraApostaHTML(j);
+      palHtml+=`<div style="padding:.5rem .9rem 0"><button class="btn-ver-palpites" style="background:rgba(0,156,59,.12);border-color:rgba(0,156,59,.35);color:var(--verde-light)" onclick="abrirRankingAoVivo('${j.id}')">📊 Ver pontuação de todos em tempo real</button></div>`;
+    }else if((enc||live)&&pal){
       const{pts,txt}=enc?calcPts(j,pal):{pts:null,txt:'⏳ Aguardando'};
       palHtml=`<div class="palpite-row"><span class="palpite-label">🎯 Meu palpite:</span><span class="palpite-ok" style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:2px">${pal.p1}:${pal.p2}</span><span class="palpite-resultado" style="margin-left:.3rem">${txt}</span>${enc?`<span class="palpite-pts" style="margin-left:auto">${pts>0?'+'+pts:'–'}</span>`:''}</div>`;
       if(enc&&pts>0){
@@ -2517,6 +2526,11 @@ function extraApostaHTML(j){
 
 async function salvarApostaMataMata(jogoId, tipo, valor){
   if(!usuarioAtual)return;
+  const jGuard=todosJogos.find(x=>x.id===jogoId);
+  if(jGuard){
+    if(jGuard.status==='encerrado'){showToast('🔒 Jogo encerrado — não dá mais pra mudar a aposta');return}
+    if(jGuard.status==='ao-vivo'&&!podeEditarPalpiteAoVivo()){showToast('🔒 Jogo em andamento — apostas encerradas');return}
+  }
   const uid=usuarioAtual.id;
   if(!apostasExtras[jogoId])apostasExtras[jogoId]={};
   let ap={};
@@ -2538,6 +2552,11 @@ async function salvarApostaMataMata(jogoId, tipo, valor){
 
 async function salvarApostaExtra(jogoId, escolha){
   if(!usuarioAtual)return;
+  const jGuard=todosJogos.find(x=>x.id===jogoId);
+  if(jGuard){
+    if(jGuard.status==='encerrado'){showToast('🔒 Jogo encerrado — não dá mais pra mudar a aposta');return}
+    if(jGuard.status==='ao-vivo'&&!podeEditarPalpiteAoVivo()){showToast('🔒 Jogo em andamento — apostas encerradas');return}
+  }
   try{
     await sbUpsert('apostas_extras',{usuario_id:usuarioAtual.id,jogo_id:jogoId,jogador:escolha},'usuario_id,jogo_id');
     if(!apostasExtras[jogoId])apostasExtras[jogoId]={};
@@ -2774,6 +2793,11 @@ async function salvarPalpite(jogoId){
   if(v1===''||v2===''){showToast('⚠️ Coloque o placar dos dois times!');return}
   const g1=parseInt(v1),g2=parseInt(v2);
   if(isNaN(g1)||isNaN(g2)||g1<0||g2<0){showToast('⚠️ Placar inválido!');return}
+  const jGuard=todosJogos.find(x=>x.id===jogoId);
+  if(jGuard){
+    if(jGuard.status==='encerrado'){showToast('🔒 Jogo encerrado — não dá mais pra mudar o palpite');return}
+    if(jGuard.status==='ao-vivo'&&!podeEditarPalpiteAoVivo()){showToast('🔒 Jogo em andamento — palpites encerrados');return}
+  }
   const btn=document.querySelector(`.btn-salvar-pal[data-jogo="${jogoId}"]`);
   if(btn){
     if(btn.disabled)return;
@@ -4195,6 +4219,9 @@ function renderPerfil(){
 function isAdmin(){
   return usuarioAtual && CFG.admin_users.includes((usuarioAtual.usuario||'').toLowerCase().trim());
 }
+function podeEditarPalpiteAoVivo(){
+  return usuarioAtual && palpiteLiberadoId && usuarioAtual.id===palpiteLiberadoId;
+}
 function renderAdmin(){
   const c=document.getElementById('admin-jogos-container');
   if(!isAdmin()){
@@ -4203,7 +4230,21 @@ function renderAdmin(){
   }
 
   const opcoesUsuarios=todosUsuarios.map(u=>`<option value="${u.id}">${u.nome} (@${u.usuario})</option>`).join('');
+  const pLib=todosUsuarios.find(u=>u.id===palpiteLiberadoId);
   let html=`
+    <div class="admin-card" style="border-color:rgba(0,39,118,.4);background:rgba(0,39,118,.08)">
+      <div style="font-weight:700;margin-bottom:.15rem;font-size:.85rem;color:var(--azul-claro)">🔓 Liberar palpite ao vivo</div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:.75rem">A pessoa escolhida poderá alterar o palpite DELA mesmo com o jogo em andamento. Todos os outros continuam travados quando o jogo começa.</div>
+      <div style="display:flex;flex-direction:column;gap:.5rem">
+        <select id="adm-palpite-liberado" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:.5rem;font-size:.8rem">
+          <option value="">— ninguém —</option>
+          ${todosUsuarios.map(u=>`<option value="${u.id}"${palpiteLiberadoId===u.id?' selected':''}>${u.nome} (@${u.usuario})</option>`).join('')}
+        </select>
+        <button class="btn-admin-save" style="padding:.55rem;background:rgba(0,39,118,.25);border-color:rgba(0,39,118,.5);color:var(--azul-claro)" onclick="adminSalvarPalpiteLiberado()">💾 Salvar liberação</button>
+      </div>
+      ${pLib?`<div style="margin-top:.6rem;font-size:.75rem;color:var(--verde-light)">🔓 Liberado agora: <strong>${pLib.nome}</strong></div>`:`<div style="margin-top:.6rem;font-size:.75rem;color:var(--muted)">Ninguém liberado no momento.</div>`}
+    </div>
+
     <div class="admin-card" style="border-color:rgba(255,223,0,.35);background:rgba(255,223,0,.05)">
       <div style="font-weight:700;margin-bottom:.6rem;font-size:.85rem;color:var(--amarelo)">🎁 Ajustar pontos manualmente</div>
       <div style="font-size:.72rem;color:var(--muted);margin-bottom:.75rem">Some ou subtraia pontos de alguém (número negativo subtrai). Fica registrado com motivo.</div>
@@ -4365,6 +4406,21 @@ function renderAdmin(){
         el.innerHTML=html||'Nenhuma aposta ainda.';
       }).catch(()=>{});
   }
+}
+
+async function adminSalvarPalpiteLiberado(){
+  if(!isAdmin())return;
+  const sel=document.getElementById('adm-palpite-liberado');
+  if(!sel)return;
+  const val=sel.value||'';
+  try{
+    await sbUpsert('configuracoes',{chave:'palpite_liberado',valor:val},'chave');
+    palpiteLiberadoId=val||null;
+    const alvo=todosUsuarios.find(u=>u.id===val);
+    showToast(val?`🔓 ${alvo?alvo.nome:'Usuário'} liberado pra editar palpite ao vivo`:'🔒 Liberação de palpite removida');
+    registrarLogAuditoria('palpite_liberado',val?`Liberou ${alvo?alvo.nome:val} a editar palpite ao vivo`:'Removeu a liberação de palpite ao vivo');
+    renderAdmin();
+  }catch(e){showToast('❌ Erro ao salvar liberação')}
 }
 
 async function adminAjustarPontos(){
