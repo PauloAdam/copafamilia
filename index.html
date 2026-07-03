@@ -581,6 +581,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <button onclick="compartilharMinhaPos()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.6rem .5rem;background:rgba(255,223,0,.1);border:1px solid rgba(255,223,0,.35);border-radius:var(--radius-sm);color:var(--amarelo);font-size:.8rem;font-weight:600;cursor:pointer">⭐ Minha Posição</button>
       </div>
       <div id="podio-container" class="rank-podio"></div>
+      <div style="font-size:.62rem;color:var(--muted);margin-bottom:.5rem;line-height:1.6;text-align:center">🏆 placar exato · ✅ resultado certo · ⏱️ 1º tempo · ➡️ quem passa · 🎯 classificados · 🎁 ajuste</div>
       <div class="rank-lista" id="ranking-lista"></div>
       <div class="card" style="margin-top:.75rem">
         <div class="card-title">📋 Pontuação</div>
@@ -762,7 +763,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '88';
+const APP_VERSION = '89';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -2860,7 +2861,7 @@ function calcPts(j,pal){
 }
 
 function calcPtsTotal(uid){
-  let total=0,exatos=0,resultados=0,erros=0,acertosPrimeiroTempo=0;
+  let total=0,exatos=0,resultados=0,erros=0,acertosPrimeiroTempo=0,acertosQuemPassa=0;
   todosJogos.forEach(j=>{
     if(j.status!=='encerrado'||j.gols1===null)return;
     const pal=(todosPalpites[j.id]||{})[uid];if(!pal)return;
@@ -2892,7 +2893,7 @@ function calcPtsTotal(uid){
     const ptsPlacar=pal?calcPts(j,pal).pts:0;
     if(ap.passa&&ptsPlacar===0){
       const vencedorReal=j.vencedorFinal||(j.gols1>j.gols2?j.time1:j.gols2>j.gols1?j.time2:null);
-      if(vencedorReal&&ap.passa===vencedorReal){total+=15;acertosPrimeiroTempo++;}
+      if(vencedorReal&&ap.passa===vencedorReal){total+=15;acertosQuemPassa++;}
     }
 
     if(ap.prorrogacao&&j.foiProrrogacao!==undefined){
@@ -2937,7 +2938,7 @@ function calcPtsTotal(uid){
   (ajustesPontosPorUsuario[uid]||[]).forEach(a=>{totalAjustes+=a.pontos||0;});
   total+=totalAjustes;
 
-  return{total,exatos,resultados,erros,acertosPrimeiroTempo,acertosClassificacao,totalAjustes};
+  return{total,exatos,resultados,erros,acertosPrimeiroTempo,acertosQuemPassa,acertosClassificacao,totalAjustes};
 }
 
 // ═══════════════════════════════════════════
@@ -3010,6 +3011,7 @@ function renderRanking(){
     novasPosicoes[u.id]=pos;
     const detalhes=[`🏆${u.exatos}`,`✅${u.resultados}`];
     if(u.acertosPrimeiroTempo>0)detalhes.push(`⏱️${u.acertosPrimeiroTempo}`);
+    if(u.acertosQuemPassa>0)detalhes.push(`➡️${u.acertosQuemPassa}`);
     if(u.acertosClassificacao>0)detalhes.push(`🎯${u.acertosClassificacao}`);
     if(u.totalAjustes)detalhes.push(`🎁${u.totalAjustes>0?'+':''}${u.totalAjustes}`);
     let arrowHtml='';
