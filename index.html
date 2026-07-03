@@ -762,7 +762,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '85';
+const APP_VERSION = '86';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -1215,6 +1215,7 @@ let placaresPrev={}, chatMsgs=[], ultimoChat=0, bolaoAtual={}, apostasExtras={},
 let bloqueandoAutoRefresh=false;
 let ajustesPontosPorUsuario={};
 let palpiteLiberadoId=null;
+let placaresManuais={};
 
 // ═══════════════════════════════════════════
 // SUPABASE
@@ -1355,8 +1356,15 @@ async function iniciarApp(){
 // ═══════════════════════════════════════════
 // CARREGAR DADOS
 // ═══════════════════════════════════════════
+function aplicarPlacaresManuais(){
+  Object.entries(placaresManuais).forEach(([jid,p])=>{
+    const j=todosJogos.find(x=>x.id===jid);
+    if(j){ j.gols1=p.g1; j.gols2=p.g2; }
+  });
+}
 async function carregarTudo(){
   await Promise.allSettled([carregarJogos(),carregarDadosSupabase()]);
+  aplicarPlacaresManuais();
   ultimaAtualizacao=new Date();
   const el=document.getElementById('update-txt');
   if(el)el.textContent=`Atualizado às ${ultimaAtualizacao.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · dados reais`;
@@ -1633,6 +1641,15 @@ async function carregarDadosSupabase(){
           if(dados.foiPenaltis!==null&&dados.foiPenaltis!==undefined)j.foiPenaltis=dados.foiPenaltis;
         }
       });
+      placaresManuais={};
+      cfgs.filter(c=>c.chave.startsWith('placar_')).forEach(c=>{
+        const jogoId=c.chave.replace('placar_','');
+        try{
+          const d=JSON.parse(c.valor||'{}');
+          if(typeof d.g1==='number'&&typeof d.g2==='number')placaresManuais[jogoId]={g1:d.g1,g2:d.g2};
+        }catch(e){}
+      });
+      aplicarPlacaresManuais();
     }catch(e){}
   }catch(e){console.warn('Supabase:',e)}
 }
@@ -4668,7 +4685,12 @@ function adminSalvar(id){
   const g1=parseInt(document.getElementById('adm1_'+id)?.value);
   const g2=parseInt(document.getElementById('adm2_'+id)?.value);
   const st=document.getElementById('adm_st_'+id)?.value;
-  if(!isNaN(g1)&&!isNaN(g2)){j.gols1=g1;j.gols2=g2}
+  if(!isNaN(g1)&&!isNaN(g2)){
+    j.gols1=g1;j.gols2=g2;
+    placaresManuais[id]={g1,g2};
+    sbUpsert('configuracoes',{chave:`placar_${id}`,valor:JSON.stringify({g1,g2})},'chave')
+      .catch(e=>console.warn('Erro ao salvar placar manual:',e.message));
+  }
   if(st)j.status=st;
   if(j.isMata){
     const venc=document.getElementById('adm_venc_'+id)?.value;
