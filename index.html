@@ -763,7 +763,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '89';
+const APP_VERSION = '90';
 
 const CFG = {
   supabase_url: 'https://kiyalggxnniotznjvdnn.supabase.co',
@@ -2354,10 +2354,10 @@ function jogoCardHTML(j,comPalpite){
   if(comPalpite){
     const uid=usuarioAtual?.id;
     const pal=uid?(todosPalpites[j.id]||{})[uid]:null;
-    if(live&&podeEditarPalpiteAoVivo()){
+    if((live||enc)&&podeEditarPalpiteAoVivo()){
       const v1=pal?.p1??'',v2=pal?.p2??'';
       palHtml=`<div class="palpite-row" style="background:rgba(0,39,118,.06);border-radius:8px;padding:.3rem .5rem"><span class="palpite-label">✏️</span><div class="palpite-inputs"><input type="number" min="0" max="20" class="palpite-n" id="pn1_${j.id}" value="${v1}" placeholder="0"><span class="palpite-sep">×</span><input type="number" min="0" max="20" class="palpite-n" id="pn2_${j.id}" value="${v2}" placeholder="0"></div><button class="btn-salvar-pal" data-jogo="${j.id}">${pal?'✏️ Atualizar':'💾 Salvar'}</button>${pal?`<span class="palpite-ok" style="font-size:.68rem">✓${pal.p1}×${pal.p2}</span>`:''}</div>`;
-      palHtml+=`<div class="palpite-row" style="padding:.1rem .9rem 0"><span style="font-size:.68rem;color:var(--azul-claro)">🔓 Você pode editar seu palpite com o jogo em andamento</span></div>`;
+      palHtml+=`<div class="palpite-row" style="padding:.1rem .9rem 0"><span style="font-size:.68rem;color:var(--azul-claro)">🔓 Você está liberado para editar seu palpite ${enc?'mesmo com o jogo já encerrado':'com o jogo em andamento'}</span></div>`;
       palHtml+=extraApostaHTML(j);
       palHtml+=`<div style="padding:.5rem .9rem 0"><button class="btn-ver-palpites" style="background:rgba(0,156,59,.12);border-color:rgba(0,156,59,.35);color:var(--verde-light)" onclick="abrirRankingAoVivo('${j.id}')">📊 Ver pontuação de todos em tempo real</button></div>`;
     }else if((enc||live)&&pal){
@@ -2546,7 +2546,7 @@ async function salvarApostaMataMata(jogoId, tipo, valor){
   if(!usuarioAtual)return;
   const jGuard=todosJogos.find(x=>x.id===jogoId);
   if(jGuard){
-    if(jGuard.status==='encerrado'){showToast('🔒 Jogo encerrado — não dá mais pra mudar a aposta');return}
+    if(jGuard.status==='encerrado'&&!podeEditarPalpiteAoVivo()){showToast('🔒 Jogo encerrado — não dá mais pra mudar a aposta');return}
     if(jGuard.status==='ao-vivo'&&!podeEditarPalpiteAoVivo()){showToast('🔒 Jogo em andamento — apostas encerradas');return}
   }
   const uid=usuarioAtual.id;
@@ -2572,7 +2572,7 @@ async function salvarApostaExtra(jogoId, escolha){
   if(!usuarioAtual)return;
   const jGuard=todosJogos.find(x=>x.id===jogoId);
   if(jGuard){
-    if(jGuard.status==='encerrado'){showToast('🔒 Jogo encerrado — não dá mais pra mudar a aposta');return}
+    if(jGuard.status==='encerrado'&&!podeEditarPalpiteAoVivo()){showToast('🔒 Jogo encerrado — não dá mais pra mudar a aposta');return}
     if(jGuard.status==='ao-vivo'&&!podeEditarPalpiteAoVivo()){showToast('🔒 Jogo em andamento — apostas encerradas');return}
   }
   try{
@@ -2813,7 +2813,7 @@ async function salvarPalpite(jogoId){
   if(isNaN(g1)||isNaN(g2)||g1<0||g2<0){showToast('⚠️ Placar inválido!');return}
   const jGuard=todosJogos.find(x=>x.id===jogoId);
   if(jGuard){
-    if(jGuard.status==='encerrado'){showToast('🔒 Jogo encerrado — não dá mais pra mudar o palpite');return}
+    if(jGuard.status==='encerrado'&&!podeEditarPalpiteAoVivo()){showToast('🔒 Jogo encerrado — não dá mais pra mudar o palpite');return}
     if(jGuard.status==='ao-vivo'&&!podeEditarPalpiteAoVivo()){showToast('🔒 Jogo em andamento — palpites encerrados');return}
   }
   const btn=document.querySelector(`.btn-salvar-pal[data-jogo="${jogoId}"]`);
