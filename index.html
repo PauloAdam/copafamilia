@@ -53,6 +53,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .premi-hero{text-align:center;padding:2rem 1rem 1.5rem;background:radial-gradient(ellipse at top,rgba(255,223,0,.12),transparent 70%)}
 .premi-hero .tit{font-family:'Bebas Neue',sans-serif;font-size:2.6rem;line-height:.95;letter-spacing:2px;color:var(--amarelo);text-shadow:0 0 25px rgba(255,223,0,.5)}
 .premi-hero .sub{color:var(--muted);font-size:.85rem;margin-top:.4rem;letter-spacing:3px;text-transform:uppercase}
+.flag{display:inline-block;width:1.4em;height:1em;border-radius:2px;vertical-align:-.12em;margin:0 .15em;box-shadow:0 0 0 1px rgba(0,0,0,.25);overflow:hidden}
+.flag-es{background:linear-gradient(#c60b1e 0 25%,#ffc400 25% 75%,#c60b1e 75% 100%)}
+.flag-ar{background:linear-gradient(#74acdf 0 33%,#fff 33% 67%,#74acdf 67% 100%);position:relative}
+.flag-ar::after{content:"";position:absolute;top:50%;left:50%;width:.34em;height:.34em;transform:translate(-50%,-50%);background:#f6b40e;border-radius:50%}
 .premi-champ{background:linear-gradient(135deg,rgba(255,223,0,.14),rgba(0,156,59,.1));border:1px solid rgba(255,223,0,.4);border-radius:var(--radius);padding:1.1rem;margin:1rem 0;text-align:center}
 .premi-champ .lbl{font-size:.7rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
 .premi-champ .time{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;letter-spacing:1px;color:var(--text);margin:.15rem 0}
@@ -807,7 +811,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '97';
+const APP_VERSION = '98';
 
 const CFG = {
   supabase_url: 'https://api-copa.belezamarcante.com.br:8443',
@@ -4341,8 +4345,8 @@ function renderPremiacao(){
 
     <div class="premi-champ">
       <div class="lbl">🌍 Campeã do Mundo</div>
-      <div class="time">🇪🇸 ESPANHA</div>
-      <div class="vice">venceu a 🇦🇷 Argentina na final</div>
+      <div class="time"><span class="flag flag-es"></span> ESPANHA</div>
+      <div class="vice">venceu a <span class="flag flag-ar"></span> Argentina na final</div>
       ${cravaramCampeao.length?`<div style="margin-top:.6rem;font-size:.78rem;color:var(--verde-light)">🎯 Cravaram o campeão: <strong>${cravaramCampeao.join(', ')}</strong> (+50 pts)</div>`:`<div style="margin-top:.6rem;font-size:.78rem;color:var(--muted)">Ninguém cravou a Espanha campeã 😬</div>`}
     </div>
 
