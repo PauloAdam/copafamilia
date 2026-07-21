@@ -47,6 +47,43 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--verde-dark);border-radius:2px}
 
+/* ===== PREMIACAO / ENCERRAMENTO ===== */
+#page-premiacao{padding:0 !important}
+.premi-wrap{max-width:640px;margin:0 auto;padding:1rem}
+.premi-hero{text-align:center;padding:2rem 1rem 1.5rem;background:radial-gradient(ellipse at top,rgba(255,223,0,.12),transparent 70%)}
+.premi-hero .tit{font-family:'Bebas Neue',sans-serif;font-size:2.6rem;line-height:.95;letter-spacing:2px;color:var(--amarelo);text-shadow:0 0 25px rgba(255,223,0,.5)}
+.premi-hero .sub{color:var(--muted);font-size:.85rem;margin-top:.4rem;letter-spacing:3px;text-transform:uppercase}
+.premi-champ{background:linear-gradient(135deg,rgba(255,223,0,.14),rgba(0,156,59,.1));border:1px solid rgba(255,223,0,.4);border-radius:var(--radius);padding:1.1rem;margin:1rem 0;text-align:center}
+.premi-champ .lbl{font-size:.7rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+.premi-champ .time{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;letter-spacing:1px;color:var(--text);margin:.15rem 0}
+.premi-champ .vice{color:var(--muted);font-size:.85rem}
+.premi-podio{display:flex;align-items:flex-end;justify-content:center;gap:.5rem;margin:1.5rem 0}
+.premi-col{flex:1;max-width:170px;text-align:center;opacity:0;transform:translateY(30px);transition:all .7s cubic-bezier(.2,.8,.2,1)}
+.premi-col.show{opacity:1;transform:translateY(0)}
+.premi-col .av{margin:0 auto .4rem;width:var(--avs,60px)}
+.premi-col .nm{font-weight:800;font-size:.95rem;color:var(--text);margin-bottom:.1rem;line-height:1.1}
+.premi-col .pt{font-family:'Bebas Neue',sans-serif;color:var(--amarelo);font-size:1.5rem;line-height:1}
+.premi-col .pt small{font-size:.6rem;color:var(--muted);display:block;letter-spacing:1px}
+.premi-base{border-radius:8px 8px 0 0;display:flex;align-items:flex-start;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:#000;padding-top:.3rem;margin-top:.5rem;font-weight:700}
+.premi-base.b1{height:130px;background:linear-gradient(180deg,#ffd700,#e0a800)}
+.premi-base.b2{height:88px;background:linear-gradient(180deg,#cfd4da,#9aa0a6)}
+.premi-base.b3{height:64px;background:linear-gradient(180deg,#e8a06a,#c17544)}
+.premi-medal{font-size:2rem;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4))}
+.premi-stats{font-size:.62rem;color:var(--muted);margin-top:.25rem;line-height:1.5}
+.premi-sec-tit{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:1.5px;color:var(--amarelo);margin:1.5rem 0 .6rem;text-align:center}
+.premi-destaque{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.85rem 1rem;margin-bottom:.55rem;display:flex;align-items:center;gap:.75rem}
+.premi-destaque .ic{font-size:1.7rem;flex-shrink:0}
+.premi-destaque .ic-av{flex-shrink:0;width:46px;height:46px;display:flex;align-items:center;justify-content:center}
+.premi-destaque .txt{flex:1}
+.premi-destaque .dt-tit{font-weight:800;font-size:.8rem;color:var(--text)}
+.premi-destaque .dt-sub{font-size:.72rem;color:var(--muted);margin-top:.1rem}
+.premi-destaque .dt-val{font-weight:800;color:var(--verde-light);font-size:.8rem;white-space:nowrap}
+.premi-nums{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-top:.6rem}
+.premi-num{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.7rem .3rem;text-align:center}
+.premi-num .v{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;color:var(--amarelo);line-height:1}
+.premi-num .l{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:.2rem}
+.premi-btn-share{width:100%;background:var(--verde);border:none;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1.5px;padding:.85rem;border-radius:var(--radius-sm);cursor:pointer;margin:1.5rem 0 .5rem}
+.premi-replay{width:100%;background:var(--card2);border:1px solid var(--border);color:var(--muted);font-size:.8rem;padding:.6rem;border-radius:var(--radius-sm);cursor:pointer;margin-bottom:2rem}
 #confete-canvas{position:fixed;inset:0;pointer-events:none;z-index:9999;display:none}
 .gol-banner{
   position:fixed;top:0;left:0;right:0;z-index:9998;
@@ -685,6 +722,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     </div>
 
     <!-- ADMIN -->
+    <div id="page-premiacao" class="page">
+      <div class="premi-wrap" id="premi-conteudo"></div>
+    </div>
     <div id="page-admin" class="page">
       <div style="background:rgba(200,50,50,.1);border:1px solid rgba(200,50,50,.3);border-radius:var(--radius);padding:.75rem 1rem;margin-bottom:1rem">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--vermelho-claro);letter-spacing:1px">⚠️ PAINEL ADMIN</div>
@@ -722,6 +762,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     <button onclick="irParaMenu('bolao')" style="width:100%;background:none;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'Inter',sans-serif;font-size:.9rem;font-weight:600;padding:.8rem 1rem;text-align:left;cursor:pointer;display:flex;align-items:center;gap:.6rem">👑 Bolão do Campeão</button>
     <button onclick="irParaMenu('palpites')" style="width:100%;background:none;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'Inter',sans-serif;font-size:.9rem;font-weight:600;padding:.8rem 1rem;text-align:left;cursor:pointer;display:flex;align-items:center;gap:.6rem">🎯 Meus Palpites</button>
     <button onclick="irParaMenu('perfil')" style="width:100%;background:none;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'Inter',sans-serif;font-size:.9rem;font-weight:600;padding:.8rem 1rem;text-align:left;cursor:pointer;display:flex;align-items:center;gap:.6rem">👤 Meu Perfil</button>
+    <button onclick="irParaMenu('premiacao')" style="width:100%;background:none;border:none;border-bottom:1px solid var(--border);color:var(--amarelo);font-family:'Inter',sans-serif;font-size:.9rem;font-weight:700;padding:.8rem 1rem;text-align:left;cursor:pointer;display:flex;align-items:center;gap:.6rem">🏆 Premiação Final</button>
     <button id="btn-admin-menu" onclick="irParaMenu('admin')" style="display:none;width:100%;background:none;border:none;border-bottom:1px solid var(--border);color:var(--vermelho-claro);font-family:'Inter',sans-serif;font-size:.9rem;font-weight:600;padding:.8rem 1rem;text-align:left;cursor:pointer;display:none;align-items:center;gap:.6rem">⚙️ Painel Admin</button>
     <button id="btn-auditoria-menu" onclick="irParaMenu('auditoria')" style="display:none;width:100%;background:none;border:none;border-bottom:1px solid var(--border);color:var(--azul-claro);font-family:'Inter',sans-serif;font-size:.9rem;font-weight:600;padding:.8rem 1rem;text-align:left;cursor:pointer;display:none;align-items:center;gap:.6rem">🔍 Auditoria</button>
     <button onclick="fecharMenu()" style="width:100%;background:none;border:none;color:var(--muted);font-family:'Inter',sans-serif;font-size:.85rem;padding:.7rem 1rem;text-align:center;cursor:pointer">Fechar ✕</button>
@@ -763,7 +804,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '94';
+const APP_VERSION = '96';
 
 const CFG = {
   supabase_url: 'https://api-copa.belezamarcante.com.br:8443',
@@ -2172,6 +2213,7 @@ function renderPagina(pag){
   else if(pag==='mata')renderMata();
   else if(pag==='bolao')renderBolao();
   else if(pag==='perfil')renderPerfil();
+  else if(pag==='premiacao')renderPremiacao();
   else if(pag==='admin')renderAdmin();
   else if(pag==='auditoria')renderAuditoria();
 }
@@ -4241,6 +4283,133 @@ function isAdmin(){
 function podeEditarPalpiteAoVivo(){
   return usuarioAtual && palpiteLiberadoId && usuarioAtual.id===palpiteLiberadoId;
 }
+function renderPremiacao(){
+  const el=document.getElementById('premi-conteudo');
+  if(!el)return;
+
+  // ranking real (mesma lógica do app)
+  const ranked=todosUsuarios.map(u=>({...u,...calcPtsTotal(u.id)}))
+    .sort((a,b)=>b.total-a.total);
+
+  if(!ranked.length){el.innerHTML='<div style="text-align:center;padding:3rem;color:var(--muted)">Ranking ainda não disponível.</div>';return;}
+
+  const p1=ranked[0], p2=ranked[1], p3=ranked[2];
+
+  // ---- destaques (deboche) ----
+  // Sniper: mais placares exatos
+  const sniper=[...ranked].sort((a,b)=>b.exatos-a.exatos)[0];
+  // Lanterna: menor pontuação
+  const lanterna=ranked[ranked.length-1];
+  // Chute do ano: maior erro de saldo num palpite (previsto x real)
+  let pior={diff:-1,nome:'',jogo:'',pal:'',real:''};
+  todosJogos.forEach(j=>{
+    if(j.status!=='encerrado'||j.gols1===null)return;
+    const pals=todosPalpites[j.id]||{};
+    Object.keys(pals).forEach(uid=>{
+      const pal=pals[uid];if(!pal||pal.p1==null||pal.p2==null)return;
+      const diff=Math.abs(pal.p1-j.gols1)+Math.abs(pal.p2-j.gols2);
+      if(diff>pior.diff){
+        const u=todosUsuarios.find(x=>x.id===uid);
+        pior={diff,nome:u?u.nome:'?',jogo:`${j.time1} x ${j.time2}`,pal:`${pal.p1}x${pal.p2}`,real:`${j.gols1}x${j.gols2}`};
+      }
+    });
+  });
+
+  // ---- numeros gerais ----
+  const piorU=todosUsuarios.find(x=>x.nome===pior.nome)||ranked.find(r=>r.nome===pior.nome)||null;
+  const totalPart=ranked.length;
+  let totalPalpites=0;
+  Object.values(todosPalpites).forEach(o=>{totalPalpites+=Object.keys(o||{}).length;});
+  const jogosEnc=todosJogos.filter(j=>j.status==='encerrado'&&j.gols1!==null).length;
+  let totalExatos=0;ranked.forEach(r=>totalExatos+=r.exatos);
+  // quem cravou o campeao da Copa (Espanha)
+  const CAMPEAO_COPA='Spain';
+  const cravaramCampeao=ranked.filter(r=>bolaoAtual[r.id]===CAMPEAO_COPA).map(r=>r.nome);
+
+  const av=(u,size)=>`<div class="av" style="--avs:${size}px">${renderAvatar(u,size,u.total)}</div>`;
+  const st=u=>`<div class="premi-stats">🏆${u.exatos} · ✅${u.resultados} · 🎯${u.acertosClassificacao}</div>`;
+
+  el.innerHTML=`
+    <div class="premi-hero">
+      <div class="tit">COPA FAMÍLIA<br>2026</div>
+      <div class="sub">🏁 A grande final 🏁</div>
+    </div>
+
+    <div class="premi-champ">
+      <div class="lbl">🌍 Campeã do Mundo</div>
+      <div class="time">🇪🇸 ESPANHA</div>
+      <div class="vice">venceu a 🇦🇷 Argentina na final</div>
+      ${cravaramCampeao.length?`<div style="margin-top:.6rem;font-size:.78rem;color:var(--verde-light)">🎯 Cravaram o campeão: <strong>${cravaramCampeao.join(', ')}</strong> (+50 pts)</div>`:`<div style="margin-top:.6rem;font-size:.78rem;color:var(--muted)">Ninguém cravou a Espanha campeã 😬</div>`}
+    </div>
+
+    <div class="premi-sec-tit">🏅 O PÓDIO DA FAMÍLIA</div>
+    <div class="premi-podio">
+      <div class="premi-col" id="pcol-2">
+        <span class="premi-medal">🥈</span>
+        ${p2?av(p2,88):''}
+        <div class="nm">${p2?p2.nome:'—'}</div>
+        <div class="pt">${p2?p2.total:'0'}<small>PONTOS</small></div>
+        ${p2?st(p2):''}
+        <div class="premi-base b2">2</div>
+      </div>
+      <div class="premi-col" id="pcol-1">
+        <span class="premi-medal">👑</span>
+        ${p1?av(p1,110):''}
+        <div class="nm">${p1?p1.nome:'—'}</div>
+        <div class="pt">${p1?p1.total:'0'}<small>PONTOS</small></div>
+        ${p1?st(p1):''}
+        <div class="premi-base b1">1</div>
+      </div>
+      <div class="premi-col" id="pcol-3">
+        <span class="premi-medal">🥉</span>
+        ${p3?av(p3,80):''}
+        <div class="nm">${p3?p3.nome:'—'}</div>
+        <div class="pt">${p3?p3.total:'0'}<small>PONTOS</small></div>
+        ${p3?st(p3):''}
+        <div class="premi-base b3">3</div>
+      </div>
+    </div>
+
+    <div class="premi-sec-tit">🎖️ DESTAQUES (E VEXAMES)</div>
+    <div class="premi-destaque">
+      <div class="ic-av">${sniper?renderAvatar(sniper,46,sniper.total):'<span class="ic">🎯</span>'}</div>
+      <div class="txt"><div class="dt-tit">🎯 O Sniper</div><div class="dt-sub">${sniper?sniper.nome:'—'} — mais placares exatos</div></div>
+      <div class="dt-val">${sniper?sniper.exatos:0} exatos</div>
+    </div>
+    <div class="premi-destaque">
+      <div class="ic-av">${piorU?renderAvatar(piorU,46,piorU.total):'<span class="ic">😂</span>'}</div>
+      <div class="txt"><div class="dt-tit">😂 Chute do Ano</div><div class="dt-sub">${pior.nome} cravou ${pior.jogo} <strong>${pior.pal}</strong> e deu <strong>${pior.real}</strong></div></div>
+      <div class="dt-val">🤦</div>
+    </div>
+    <div class="premi-destaque">
+      <div class="ic-av">${lanterna?renderAvatar(lanterna,46,lanterna.total):'<span class="ic">🐢</span>'}</div>
+      <div class="txt"><div class="dt-tit">🐢 A Lanterna</div><div class="dt-sub">${lanterna?lanterna.nome:'—'} — alguém tinha que ser 😅</div></div>
+      <div class="dt-val">${lanterna?lanterna.total:0} pts</div>
+    </div>
+
+    <div class="premi-sec-tit">📊 A COPA EM NÚMEROS</div>
+    <div class="premi-nums">
+      <div class="premi-num"><div class="v">${totalPart}</div><div class="l">Jogadores</div></div>
+      <div class="premi-num"><div class="v">${totalPalpites}</div><div class="l">Palpites</div></div>
+      <div class="premi-num"><div class="v">${jogosEnc}</div><div class="l">Jogos</div></div>
+      <div class="premi-num"><div class="v">${totalExatos}</div><div class="l">Placares exatos</div></div>
+      <div class="premi-num"><div class="v">${p1?p1.total:0}</div><div class="l">Pts do campeão</div></div>
+      <div class="premi-num"><div class="v">${ranked.length>1?(p1.total-p2.total):0}</div><div class="l">Vantagem p/ 2º</div></div>
+    </div>
+
+    <button class="premi-btn-share" onclick="lancarConfete()">🎉 SOLTAR OS FOGOS DE NOVO</button>
+    <button class="premi-replay" onclick="renderPremiacao()">↻ Rever a revelação do pódio</button>
+  `;
+
+  // revelação animada: 3º -> 2º -> 1º + confete no campeão
+  const c1=document.getElementById('pcol-1');
+  const c2=document.getElementById('pcol-2');
+  const c3=document.getElementById('pcol-3');
+  setTimeout(()=>{if(c3)c3.classList.add('show')},400);
+  setTimeout(()=>{if(c2)c2.classList.add('show')},1200);
+  setTimeout(()=>{if(c1)c1.classList.add('show');try{lancarConfete()}catch(e){}},2100);
+}
+
 function renderAdmin(){
   const c=document.getElementById('admin-jogos-container');
   if(!isAdmin()){
