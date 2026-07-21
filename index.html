@@ -68,6 +68,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .premi-base.b1{height:130px;background:linear-gradient(180deg,#ffd700,#e0a800)}
 .premi-base.b2{height:88px;background:linear-gradient(180deg,#cfd4da,#9aa0a6)}
 .premi-base.b3{height:64px;background:linear-gradient(180deg,#e8a06a,#c17544)}
+.premi-titulo{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;line-height:1;margin-bottom:.25rem;text-shadow:0 0 12px currentColor;filter:brightness(1.15)}
+.premi-rank-med{display:block;font-size:.7rem;color:var(--muted);font-weight:700;margin-bottom:.15rem}
 .premi-medal{font-size:2rem;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4))}
 .premi-stats{font-size:.62rem;color:var(--muted);margin-top:.25rem;line-height:1.5}
 .premi-sec-tit{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:1.5px;color:var(--amarelo);margin:1.5rem 0 .6rem;text-align:center}
@@ -159,7 +161,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .btn-logout{background:none;border:1px solid var(--border);color:var(--muted);font-size:.7rem;padding:4px 10px;border-radius:20px;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif}
 .btn-logout:hover{border-color:var(--verde);color:var(--verde-light)}
 
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(8,15,10,.97);backdrop-filter:blur(12px);border-top:1px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom,0)}
+.bottom-nav{display:none !important}
+.bottom-nav-OFF{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(8,15,10,.97);backdrop-filter:blur(12px);border-top:1px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom,0)}
 [data-theme="light"] .bottom-nav{background:rgba(240,247,242,.97)}
 .nav-btn{flex:1;background:none;border:none;color:var(--muted);font-family:'Inter',sans-serif;font-size:.58rem;font-weight:600;padding:.55rem .25rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;transition:color .2s;text-transform:uppercase;letter-spacing:.3px;position:relative}
 .nav-btn .icon{font-size:1.2rem;line-height:1}
@@ -568,7 +571,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   <div class="page-content">
 
     <!-- HOJE -->
-    <div id="page-hoje" class="page active">
+    <div id="page-hoje" class="page">
       <div class="update-bar"><span class="live-dot" style="width:7px;height:7px;background:var(--verde-light);border-radius:50%;flex-shrink:0;animation:pulse 2s infinite"></span><span id="update-txt">Atualizando…</span></div>
       <div id="hoje-install-banner"></div>
       <div id="hoje-notif-banner"></div>
@@ -722,7 +725,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     </div>
 
     <!-- ADMIN -->
-    <div id="page-premiacao" class="page">
+    <div id="page-premiacao" class="page active">
       <div class="premi-wrap" id="premi-conteudo"></div>
     </div>
     <div id="page-admin" class="page">
@@ -804,7 +807,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 // ═══════════════════════════════════════════
 // ⚠️ ATUALIZE este número TODA VEZ que subir uma versão nova no Netlify!
 // Isso força o recarregamento automático em todos os celulares conectados.
-const APP_VERSION = '96';
+const APP_VERSION = '97';
 
 const CFG = {
   supabase_url: 'https://api-copa.belezamarcante.com.br:8443',
@@ -1367,7 +1370,7 @@ async function iniciarApp(){
 
   await carregarTudo();
   todosJogos.forEach(j=>{statusJogosAnteriores[j.id]=j.status});
-  renderHoje();
+  renderPremiacao();
   registrarSW();
   pedirNotificacao();
   checarResumoSemanal();
@@ -4326,6 +4329,7 @@ function renderPremiacao(){
   const CAMPEAO_COPA='Spain';
   const cravaramCampeao=ranked.filter(r=>bolaoAtual[r.id]===CAMPEAO_COPA).map(r=>r.nome);
 
+  const tituloNivel=(pts)=>{const n=getNivelMoldura(pts);return n&&n.cor?`<div class="premi-titulo" style="color:${n.cor}">${n.emoji} ${n.nome}</div>`:'';};
   const av=(u,size)=>`<div class="av" style="--avs:${size}px">${renderAvatar(u,size,u.total)}</div>`;
   const st=u=>`<div class="premi-stats">🏆${u.exatos} · ✅${u.resultados} · 🎯${u.acertosClassificacao}</div>`;
 
@@ -4345,7 +4349,7 @@ function renderPremiacao(){
     <div class="premi-sec-tit">🏅 O PÓDIO DA FAMÍLIA</div>
     <div class="premi-podio">
       <div class="premi-col" id="pcol-2">
-        <span class="premi-medal">🥈</span>
+        ${p2?tituloNivel(p2.total):""}<span class="premi-rank-med">🥈 2º</span>
         ${p2?av(p2,88):''}
         <div class="nm">${p2?p2.nome:'—'}</div>
         <div class="pt">${p2?p2.total:'0'}<small>PONTOS</small></div>
@@ -4353,7 +4357,7 @@ function renderPremiacao(){
         <div class="premi-base b2">2</div>
       </div>
       <div class="premi-col" id="pcol-1">
-        <span class="premi-medal">👑</span>
+        ${p1?tituloNivel(p1.total):""}<span class="premi-rank-med">🥇 1º</span>
         ${p1?av(p1,110):''}
         <div class="nm">${p1?p1.nome:'—'}</div>
         <div class="pt">${p1?p1.total:'0'}<small>PONTOS</small></div>
@@ -4361,7 +4365,7 @@ function renderPremiacao(){
         <div class="premi-base b1">1</div>
       </div>
       <div class="premi-col" id="pcol-3">
-        <span class="premi-medal">🥉</span>
+        ${p3?tituloNivel(p3.total):""}<span class="premi-rank-med">🥉 3º</span>
         ${p3?av(p3,80):''}
         <div class="nm">${p3?p3.nome:'—'}</div>
         <div class="pt">${p3?p3.total:'0'}<small>PONTOS</small></div>
